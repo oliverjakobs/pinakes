@@ -1,0 +1,8 @@
+{% for paper in papers %}
+  <tr>
+    <td><a href="/papers/{{ paper.id }}">{{ paper.title }}</a></td>
+    <td>{{ paper.authors|join('; ') }}</td>
+    <td>{{ paper.releaseYear }}</td>
+    <td>{{ paper.doi | default("-") }}</td>
+  </tr>
+{% endfor %}

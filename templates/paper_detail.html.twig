@@ -1,0 +1,21 @@
+{% extends "base.html.twig" %}
+
+{% block title %}
+  Pinakes - {{ paper.title }}}
+{% endblock %}
+
+{% block content %}
+<div class="detail">
+  <h1>{{ paper.title }} ({{paper.releaseYear}})</h1>
+  <p>Author(s):
+    <ul>
+      {% for author in paper.authors %}
+        <li><a href="/authors/{{ author.id }}">{{ author.name|e }}</a></li>
+      {% endfor %}
+    </ul>
+  </p>
+  {% if paper.doi is not null %}
+    <p>DOI: <a href="https://www.doi.org/{{paper.doi}}">{{ paper.doi }} </p>
+  {% endif %}
+</div>
+{% endblock %}
