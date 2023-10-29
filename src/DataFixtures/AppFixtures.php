@@ -31,9 +31,9 @@ class AppFixtures extends Fixture
         $berners_lee->setName("Tim Berners-Lee");
         $manager->persist($berners_lee);
 
-        $rithchie = new Author();
-        $rithchie->setName("Dennis M. Ritchie");
-        $manager->persist($rithchie);
+        $ritchie = new Author();
+        $ritchie->setName("Dennis M. Ritchie");
+        $manager->persist($ritchie);
 
         $thompson = new Author();
         $thompson->setName("Ken Thompson");
@@ -43,8 +43,8 @@ class AppFixtures extends Fixture
 
         // load papers
         $this->loadPaper($manager, "Information Management: A Proposal", [$berners_lee], 1990, null);
-        $this->loadPaper($manager, "The Development of the C Language", [$rithchie], 1996, "10.1145/234286.1057834");
-        $this->loadPaper($manager, "The UNIX Time-Sharing System", [$rithchie, $thompson], 1974, "10.1145/361011.361061");
+        $this->loadPaper($manager, "The Development of the C Language", [$ritchie], 1996, "10.1145/234286.1057834");
+        $this->loadPaper($manager, "The UNIX Time-Sharing System", [$ritchie, $thompson], 1974, "10.1145/361011.361061");
 
         $manager->flush();
     }

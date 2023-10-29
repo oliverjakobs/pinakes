@@ -5,7 +5,6 @@
   --border-hover: #6b6b6b;
   --table-border: #e0e0e0;
   --hover-color: rgba(0, 0, 0, 0.05);
-
 }
 
 body {
@@ -77,23 +76,6 @@ a {
   margin-left: auto;
 }
 
-.detail {
-  width: 40%;
-  display: block;
-  margin-right: auto;
-  margin-left: auto;
-}
-
-
-.table-control {
-  width: 100%;
-  margin-bottom: 0.4rem;
-}
-
-.table-control > :last-child {
-  float: right;
-}
-
 button, a.button {
   padding: 0.3rem 1.4rem;
   font-size: 0.875rem;
@@ -107,7 +89,62 @@ button, a.button {
 }
 
 button:hover, a.button:hover {
+  border-color: var(--border-hover);
   background-color: var(--hover-color);
+}
+
+/* --------------------------| overview |--------------------------- */
+.card-container {
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card {
+  width: 240px;
+  height: 120px;
+  border-radius: 8px;
+  margin: 20px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all .6s ease;
+  border: 1px solid var(--border-color);
+}
+
+.card:hover {
+  transform: scale(1.04);
+  border-color: var(--border-hover);
+}
+
+.card .icon {
+  margin: 0px;
+  font-size: 4rem;
+}
+
+.card .title {
+  margin: 0px;
+  font-size: 2rem;
+}
+
+/* --------------------------| table |------------------------------ */
+.table-control {
+  display: flex;
+  width: 100%;
+  margin-bottom: 0.8rem;
+}
+
+.table-control > :last-child:not(:only-child) {
+  margin-left: auto;
+}
+
+.table-control .search {
+  padding: 0.3rem 0;
+  width: 20%;
 }
 
 .table {
@@ -127,12 +164,23 @@ button:hover, a.button:hover {
   background-color: var(--table-border);
 }
 
-.table-hover tr:hover {
+.table tr:not(.empty):hover {
   background-color: var(--hover-color);
 }
 
+.table tr.empty {
+  text-align: center;
+}
 
+/* --------------------------| detail |----------------------------- */
+.detail {
+  width: 40%;
+  display: block;
+  margin-right: auto;
+  margin-left: auto;
+}
 
+/* --------------------------| form |------------------------------- */
 .form-container {
   width: 100%;
   max-width: 530px;
@@ -154,7 +202,6 @@ button:hover, a.button:hover {
   padding: 0 8px;
 }
 
-
 form {
   display: block;
   margin-top: 35px;
@@ -166,7 +213,7 @@ label {
   font-size: 14px;
 }
 
-form input {
+form input, form textarea {
   width: 100%;
   height: 30px;
   margin-bottom: 20px;
@@ -174,8 +221,12 @@ form input {
   border-radius: 5px;
 }
 
-form input:hover, form input:focus {
+form input:hover, form input:focus, form textarea:hover, form textarea:focus {
   border-color: var(--border-hover);
+}
+
+form textarea {
+  height: 120px;
 }
 
 

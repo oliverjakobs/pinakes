@@ -1,11 +1,11 @@
-{% extends "base.html.twig" %}
+{% extends "_base.html.twig" %}
 
 {% block title %}
-  Pinakes - {{ author.name }}}
+  Pinakes - {{ author.name }}
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="detail">
   <h1>{{ author.name }}</h1>
   <p>Papers:
     <ul>
@@ -14,5 +14,9 @@
       {% endfor %}
     </ul>
   </p>
+  
+  <div>
+    <a href="/authors/delete/{{ author.id }}" class="button">Delete</a>
+  </div>
 </div>
 {% endblock %}

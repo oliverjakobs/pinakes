@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\PaperRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PaperRepository::class)]
@@ -26,6 +27,9 @@ class Paper
 
     #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'papers')]
     private Collection $authors;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $abstract = null;
 
     public function __construct()
     {
@@ -93,6 +97,18 @@ class Paper
     public function removeAuthor(Author $author): static
     {
         $this->authors->removeElement($author);
+
+        return $this;
+    }
+
+    public function getAbstract(): ?string
+    {
+        return $this->abstract;
+    }
+
+    public function setAbstract(?string $abstract): static
+    {
+        $this->abstract = $abstract;
 
         return $this;
     }

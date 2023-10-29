@@ -36,6 +36,21 @@ class AuthorRepository extends ServiceEntityRepository
 //        ;
 //    }
 
+   /**
+    * @return Author[] Returns an array of Author objects
+    */
+    public function findLikeName(?string $name): array
+    {
+        if (is_null($name) or empty($name)) return $this->findAll();
+
+        $qb = $this->createQueryBuilder('p');
+        return $qb
+            ->andWhere($qb->expr()->like('p.name', ':name'))
+            ->setParameter('name', '%' . $name . '%')
+            ->getQuery()
+            ->getResult();
+    }
+
 //    public function findOneBySomeField($value): ?Author
 //    {
 //        return $this->createQueryBuilder('a')

@@ -1,0 +1,11 @@
+{% for book in content %}
+  <tr>
+    <td><a href="/books/{{ book.id }}">{{ book.title }}</a></td>
+    <td>{{ book.authors|join('; ') }}</td>
+    <td>{{ book.releaseYear }}</td>
+  </tr>
+{% else %}
+  <tr class="empty">
+    <td colspan="3">Nothing found!</td>
+  </tr>
+{% endfor %}

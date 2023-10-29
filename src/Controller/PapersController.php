@@ -24,8 +24,12 @@ class PapersController extends AbstractController
     #[Route('/papers', name: 'papers', methods: ['GET'])]
     public function index(PaperRepository $repository): Response
     {
-        return $this->render('papers.html.twig', [
-            'papers' => $repository->findAll()
+        return $this->render('content.html.twig', [
+            'name' => 'papers',
+            'fields' => [ "Title", "Author(s)", "Release Year", "DOI" ],
+            'content' => $repository->findAll(),
+            'content_template' => '/papers/list.html.twig',
+            'allow_add' => true
         ]);
     }
 
@@ -33,17 +37,14 @@ class PapersController extends AbstractController
     public function search(Request $request, PaperRepository $repository): Response
     {
         $title = $request->get('search');
-        return $this->render('paper_list.html.twig', [
-            'papers' => $repository->findLikeTitle($title)
+        return $this->render('/papers/list.html.twig', [
+            'content' => $repository->findLikeTitle($title)
         ]);
     }
 
-    #[Route('/papers/form', name: 'paper_form')]
-    public function form(Request $request): Response
+    private function handleForm(Paper $paper, Request $request): Response
     {
-        $paper = new Paper();
         $form = $this->createForm(PaperFormType::class, $paper);
-
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -67,16 +68,38 @@ class PapersController extends AbstractController
             return $this->redirectToRoute('papers');
         }
 
-        return $this->render('paper_form.html.twig', [
+        return $this->render('/papers/form.html.twig', [
             'form' => $form
         ]);
     }
 
-    #[Route('/papers/{id}', name: 'paper_detail', methods: ['GET'])]
-    public function detail($id): Response
+    #[Route('/papers/form', name: 'paper_add')]
+    public function add(Request $request): Response
     {
-        $repository = $this->em->getRepository(Paper::class);
-        return $this->render('paper_detail.html.twig', [
+        $paper = new Paper();
+        return $this->handleForm($paper, $request);
+    }
+    
+    #[Route('/papers/form/{id}', name: 'paper_edit')]
+    public function edit($id, Request $request, PaperRepository $repository): Response
+    {
+        $paper = $repository->find($id);
+        return $this->handleForm($paper, $request);
+    }
+    
+    #[Route('/papers/delete/{id}', name: 'paper_delete', methods: ['GET', 'DELETE'])]
+    public function delete($id, PaperRepository $repository, EntityManagerInterface $em): Response
+    {
+        $paper = $repository->find($id);
+        $em->remove($paper);
+        $em->flush();
+        return $this->redirectToRoute('papers');
+    }
+    
+    #[Route('/papers/{id}', name: 'paper_detail', methods: ['GET'])]
+    public function detail($id, PaperRepository $repository): Response
+    {
+        return $this->render('/papers/detail.html.twig', [
             'paper' => $repository->find($id),
         ]);
     }

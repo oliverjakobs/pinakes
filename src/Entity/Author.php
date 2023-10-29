@@ -18,7 +18,7 @@ class Author
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\ManyToMany(targetEntity: Paper::class, mappedBy: 'authors')]
+    #[ORM\ManyToMany(targetEntity: Paper::class, mappedBy: 'authors', cascade: ['remove'])]
     private Collection $papers;
 
     public function __construct()

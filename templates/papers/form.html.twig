@@ -1,11 +1,10 @@
-{% extends "base.html.twig" %}
+{% extends "_base.html.twig" %}
 
 {% block title %}
   Pinakes - New Entry
 {% endblock %}
 
 {% block content %}
-
 <div class="form-container">
   <h1 class="form-heading">Add new paper</h1>
   {{ form_start(form) }}
@@ -20,6 +19,10 @@
     <div class="form-row">
       {{ form_row(form.releaseYear) }}
       {{ form_row(form.doi, {'label': 'DOI'}) }}
+    </div>
+
+    <div class="form-row">
+      {{ form_row(form.abstract, {'label': 'Abstract'}) }}
     </div>
 
     <div class="form-row">
