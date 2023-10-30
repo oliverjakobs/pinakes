@@ -25,7 +25,8 @@
 
   <div>
     <a href="/papers/form/{{ paper.id }}" class="button">Edit</a>
-    <a href="/papers/delete/{{ paper.id }}" class="button">Delete</a>
+    
+    <button hx-delete="/papers/{{ paper.id }}"> Delete </button>
   </div>
 </div>
 {% endblock %}

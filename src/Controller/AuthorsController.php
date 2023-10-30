@@ -32,21 +32,23 @@ class AuthorsController extends AbstractController
         ]);
     }
 
-    #[Route('/authors/delete/{id}', name: 'author_delete', methods: ['GET', 'DELETE'])]
+    #[Route('/authors/{id}', name: 'author_show', methods: ['GET'])]
+    public function show($id, AuthorRepository $repository): Response
+    {
+        return $this->render('authors/show.html.twig', [
+            'author' => $repository->find($id),
+        ]);
+    }
+
+    #[Route('/authors/{id}', name: 'author_delete', methods: ['DELETE'])]
     public function delete($id, AuthorRepository $repository, EntityManagerInterface $em): Response
     {
         $author = $repository->find($id);
         $em->remove($author);
         $em->flush();
-        return $this->redirectToRoute('authors');
-    }
-    
-
-    #[Route('/authors/{id}', name: 'author_detail', methods: ['GET'])]
-    public function detail($id, AuthorRepository $repository): Response
-    {
-        return $this->render('authors/detail.html.twig', [
-            'author' => $repository->find($id),
+        
+        return new Response(headers: [
+            'HX-Redirect' => '/authors'
         ]);
     }
 }

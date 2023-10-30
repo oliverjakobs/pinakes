@@ -16,7 +16,9 @@
   </p>
   
   <div>
-    <a href="/authors/delete/{{ author.id }}" class="button">Delete</a>
+    <button hx-delete="/authors/{{ author.id }}" hx-confirm="Are you sure? This will also delete all associated papers.">
+      Delete
+    </button>
   </div>
 </div>
 {% endblock %}

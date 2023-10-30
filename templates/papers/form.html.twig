@@ -27,6 +27,7 @@
 
     <div class="form-row">
       {{ form_row(form.submit, {'label': 'Add'}) }}
+      <a class="button" href="/papers/{{paper.id}}">Cancel</a>
     </div>
 
     {{ form_rest(form) }}

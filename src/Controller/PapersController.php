@@ -69,7 +69,8 @@ class PapersController extends AbstractController
         }
 
         return $this->render('/papers/form.html.twig', [
-            'form' => $form
+            'form' => $form,
+            'paper' => $paper
         ]);
     }
 
@@ -87,20 +88,23 @@ class PapersController extends AbstractController
         return $this->handleForm($paper, $request);
     }
     
-    #[Route('/papers/delete/{id}', name: 'paper_delete', methods: ['GET', 'DELETE'])]
+    #[Route('/papers/{id}', name: 'paper_show', methods: ['GET'])]
+    public function show($id, PaperRepository $repository): Response
+    {
+        return $this->render('/papers/show.html.twig', [
+            'paper' => $repository->find($id),
+        ]);
+    }
+    
+    #[Route('/papers/{id}', name: 'paper_delete', methods: ['DELETE'])]
     public function delete($id, PaperRepository $repository, EntityManagerInterface $em): Response
     {
         $paper = $repository->find($id);
         $em->remove($paper);
         $em->flush();
-        return $this->redirectToRoute('papers');
-    }
-    
-    #[Route('/papers/{id}', name: 'paper_detail', methods: ['GET'])]
-    public function detail($id, PaperRepository $repository): Response
-    {
-        return $this->render('/papers/detail.html.twig', [
-            'paper' => $repository->find($id),
+
+        return new Response(headers: [
+            'HX-Redirect' => '/papers'
         ]);
     }
 }
