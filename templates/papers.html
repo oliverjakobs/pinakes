@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Pinakes - Papers</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
+    <link rel="stylesheet" href="/assets/css/pinakes.css">
+
+    <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+  </head>
+  <body>
+    {{template "header.html"}}
+
+    <div class="content">
+      <div class="container">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author(s)</th>
+              <th>Year</th>
+              <th>DOI</th>
+            </tr>
+          </thead>
+          <tbody hx-content-list>
+            {{range .}}
+              <tr>
+                <td><a href="/papers/{{.ID}}">{{.Title}}</a></td>
+                <td>{{join .Authors "; "}}</td>
+                <td>{{.Year}}</td>
+                {{if .DOI}}
+                  <td>{{.DOI}}</td>
+                {{else}}
+                  <td>-</td>
+                {{end}}
+              </tr>
+            {{end}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {{template "footer.html"}}
+  </body>
+</html>

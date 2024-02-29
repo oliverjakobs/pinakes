@@ -1,0 +1,230 @@
+:root {
+    --main-color: #212529;
+    --main-bg-color: #ffffff;
+    --border-color: #b6b6b6;
+    --border-hover: #6b6b6b;
+    --table-border: #e0e0e0;
+    --hover-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  body {
+    font-family:  sans-serif;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--main-color);
+    background-color: var(--main-bg-color);
+    display:flex;
+    flex-direction:column;
+    min-height: 100vh;
+  }
+  
+  
+  header {
+    font-size: 3rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 0.6rem;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 3rem;
+  }
+  
+  .content {
+    flex: 1;
+  }
+  
+  footer {
+    text-align: center;
+    padding: 1.2rem;
+    border-top: 2px solid var(--border-color);
+    margin-top: 3rem;
+    margin-bottom: 1.8rem;
+  }
+  
+  a {
+    text-decoration: none;
+    color: var(--main-color);
+  }
+  
+  .logo::before, .logo::after {
+    display: inline-block;
+    transition: transform .5s ease;
+    content: '~';
+  }
+  
+  .logo:hover {
+    transition: transform .5s ease;
+  }
+  
+  .logo:hover::before {
+    transform: translateX(-.2em);
+  }
+  
+  .logo:hover::after {
+    transform: translateX(.2em);
+  }
+  
+  .copyright::before {
+    font-family: Arial, sans-serif;
+    margin-right: 0.2em;
+    content: "\00a9";
+  }
+  
+  .container {
+    width: 80%;
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+  }
+  
+  button, a.button {
+    padding: 0.3rem 1.4rem;
+    font-size: 0.875rem;
+    font-weight: 300;
+    text-align: center;
+    border-radius: 4px;
+    border: thin solid var(--border-color);
+    background-color: var(--main-bg-color);
+    cursor: pointer;
+    transition: all .6s ease;
+  }
+  
+  button:hover, a.button:hover {
+    border-color: var(--border-hover);
+    background-color: var(--hover-color);
+  }
+  
+  /* --------------------------| overview |--------------------------- */
+  .card-container {
+    width: 100%;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .card {
+    width: 240px;
+    height: 120px;
+    border-radius: 8px;
+    margin: 20px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all .6s ease;
+    border: 1px solid var(--border-color);
+  }
+  
+  .card:hover {
+    transform: scale(1.04);
+    border-color: var(--border-hover);
+  }
+  
+  .card .icon {
+    margin: 0px;
+    font-size: 4rem;
+  }
+  
+  .card .title {
+    margin: 0px;
+    font-size: 2rem;
+  }
+  
+  /* --------------------------| table |------------------------------ */
+  .table-control {
+    display: flex;
+    width: 100%;
+    margin-bottom: 0.8rem;
+  }
+  
+  .table-control > :last-child:not(:only-child) {
+    margin-left: auto;
+  }
+  
+  .table-control .search {
+    padding: 0.3rem 0;
+    width: 20%;
+  }
+  
+  .table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+  }
+  
+  .table :is(th, td) {
+    padding: 0.5rem 0.5rem;
+    border: thin solid var(--table-border);
+  }
+  
+  .table th {
+    text-align: left;
+    border-color: var(--table-border);
+    background-color: var(--table-border);
+  }
+  
+  .table tr:not(.empty):hover {
+    background-color: var(--hover-color);
+  }
+  
+  .table tr.empty {
+    text-align: center;
+  }
+  
+  /* --------------------------| detail |----------------------------- */
+  .detail {
+    width: 40%;
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+  }
+  
+  /* --------------------------| form |------------------------------- */
+  .form-container {
+    width: 100%;
+    max-width: 530px;
+    margin-right: auto;
+    margin-left: auto;
+  }
+  
+  .form-heading {
+    font-weight: normal;
+  }
+  
+  .form-row {
+    display: flex;
+  }
+  
+  .form-row > div {
+    width: 100%;
+    position: relative;
+    padding: 0 8px;
+  }
+  
+  form {
+    display: block;
+    margin-top: 35px;
+  }
+  
+  label {
+    line-height: 100%;
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+  
+  form input, form textarea {
+    width: 100%;
+    height: 30px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+  }
+  
+  form input:hover, form input:focus, form textarea:hover, form textarea:focus {
+    border-color: var(--border-hover);
+  }
+  
+  form textarea {
+    height: 120px;
+  }

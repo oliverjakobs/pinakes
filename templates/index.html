@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Pinakes</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
+    <link rel="stylesheet" href="/assets/css/pinakes.css">
+
+    <script src="https://unpkg.com/htmx.org@1.9.5"></script>
+  </head>
+  <body>
+    {{template "header.html"}}
+
+    <div class="content">
+      <div class="card-container">
+        <a class="card" href="/papers/">
+          <div class="icon">&#128463;</div>
+          <div class="title">Papers</div>
+        </a>
+        <a class="card" href="/books/">
+          <div class="icon">&#128366;</div>
+          <div class="title">Books</div>
+        </a>
+        <a class="card" href="/authors/">
+          <div class="icon">&#9997;</div>
+          <div class="title">Authors</div>
+        </a>
+      </div>
+    </div>
+
+    {{template "footer.html"}}
+  </body>
+</html>
