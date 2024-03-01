@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"database/sql"
 
@@ -17,12 +16,19 @@ import (
 )
 
 var baseTmpl = template.New("base").Funcs(template.FuncMap{
-	"join": strings.Join,
+	"joinNames": joinAuthorNames,
 })
 
 var db *sql.DB
 
-func handlePapers(w http.ResponseWriter, r *http.Request) {
+func renderTemplate(w http.ResponseWriter, name string, data any) error {
+	tmpl := template.Must(baseTmpl.Clone())
+	template.Must(tmpl.ParseFiles(name))
+
+	return tmpl.ExecuteTemplate(w, "base", data)
+}
+
+func handlePaperList(w http.ResponseWriter, r *http.Request) {
 	papers, err := queryPapers(db)
 
 	if err != nil {
@@ -30,11 +36,16 @@ func handlePapers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl := template.Must(baseTmpl.Clone())
-	tmpl.ExecuteTemplate(w, "papers.html", papers)
+	err = renderTemplate(w, "./templates/paper_list.html", papers)
+
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		http.Error(w, "Failed to render template", http.StatusNotFound)
+		return
+	}
 }
 
-func handlePaperDetail(w http.ResponseWriter, r *http.Request) {
+func handlePaper(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 
 	if err != nil {
@@ -42,19 +53,101 @@ func handlePaperDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	paper, err := queryPaper(db, id)
+	paper, err := queryPaperByID(db, id)
 	if err != nil {
-		http.Error(w, "Failed to query for paper", http.StatusNotFound)
+		http.Error(w, "Failed to query for paper", http.StatusInternalServerError)
 		return
 	}
 
-	tmpl := template.Must(baseTmpl.Clone())
-	tmpl.ExecuteTemplate(w, "paper_detail.html", paper)
+	renderTemplate(w, "./templates/paper.html", paper)
+}
+
+func handlePaperDelete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusNotFound)
+		return
+	}
+
+	err = deletePaper(db, id)
+	if err != nil {
+		http.Error(w, "Failed to delete paper", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("HX-Redirect", "/papers/")
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func handlePaperForm(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	var paper Paper
+
+	if err == nil {
+		paper, _ = queryPaperByID(db, id)
+	}
+
+	renderTemplate(w, "./templates/paper_form.html", paper)
+}
+
+func handlePaperFormSubmit(w http.ResponseWriter, r *http.Request) {
+	title := r.FormValue("title")
+	year, _ := strconv.Atoi(r.FormValue("year"))
+	doi := r.FormValue("doi")
+	authors := r.FormValue("authors")
+
+	err := insertPaper(db, title, year, doi, authors)
+	if err != nil {
+		http.Error(w, "Failed to insert paper", http.StatusNotFound)
+		return
+	}
+
+	http.Redirect(w, r, "/papers/", http.StatusSeeOther)
+}
+
+func handleAuthorList(w http.ResponseWriter, r *http.Request) {
+	authors, err := queryAuthors(db)
+
+	if err != nil {
+		http.Error(w, "Query failed", http.StatusNotFound)
+		return
+	}
+
+	renderTemplate(w, "./templates/author_list.html", authors)
+}
+
+func handleAuthor(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusNotFound)
+		return
+	}
+
+	author, err := queryAuthorByID(db, id)
+	if err != nil {
+		http.Error(w, "Failed to query for author", http.StatusNotFound)
+		return
+	}
+
+	renderTemplate(w, "./templates/author.html", author)
+}
+
+func handleBookList(w http.ResponseWriter, r *http.Request) {
+	books, err := queryBooks(db)
+
+	if err != nil {
+		http.Error(w, "Query failed", http.StatusNotFound)
+		return
+	}
+
+	renderTemplate(w, "./templates/book_list.html", books)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(baseTmpl.Clone())
-	tmpl.ExecuteTemplate(w, "index.html", nil)
+	renderTemplate(w, "./templates/index.html", nil)
 }
 
 const port = 8000
@@ -82,8 +175,11 @@ func fillDatabase(db *sql.DB) {
 	}
 
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS paper_authors (
-		paper  INTEGER REFERENCES papers,
-		author INTEGER REFERENCES authors
+		id     INTEGER PRIMARY KEY,
+		paper  INTEGER,
+		author INTEGER,
+		FOREIGN KEY (paper) REFERENCES papers(id) ON DELETE CASCADE,
+		FOREIGN KEY (author) REFERENCES authors(id) ON DELETE CASCADE
 	)`)
 
 	if err != nil {
@@ -124,13 +220,25 @@ func main() {
 	r.Handle("/assets/*", http.StripPrefix("/assets/", fs))
 
 	r.Get("/", handler)
-	r.Get("/papers/", handlePapers)
-	r.Get("/papers/{id}", handlePaperDetail)
+
+	r.Route("/papers", func(r chi.Router) {
+		r.Get("/", handlePaperList)
+		r.Get("/{id}", handlePaper)
+		r.Delete("/{id}", handlePaperDelete)
+		r.Get("/form", handlePaperForm)
+		r.Get("/form/{id}", handlePaperForm)
+		r.Post("/form", handlePaperFormSubmit)
+	})
+
+	r.Get("/books/", handleBookList)
+
+	r.Get("/authors/", handleAuthorList)
+	r.Get("/authors/{id}", handleAuthor)
 
 	// init base template
-	_, err := baseTmpl.ParseGlob("./templates/*.html")
+	_, err := baseTmpl.ParseFiles("./templates/_base.html")
 	if err != nil {
-		fmt.Print("Failed to parse templates")
+		fmt.Print("Failed to parse templates: %s", err)
 	}
 
 	db, err = sql.Open("sqlite3", "./pinakes.db")
@@ -138,20 +246,8 @@ func main() {
 		panic(err)
 	}
 
+	db.Exec("PRAGMA foreign_keys=ON")
 	fillDatabase(db)
-
-	/*
-		rows, _ := db.Query("SELECT * FROM papers")
-		for rows.Next() {
-			var p paper
-			var authors string
-
-			rows.Scan(&p.ID, &p.Title, &authors, &p.Year, &p.DOI)
-			p.Authors = strings.Split(authors, "; ")
-
-			p.printPaper()
-		}
-	*/
 
 	fmt.Printf("Listening on port %d\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), r))

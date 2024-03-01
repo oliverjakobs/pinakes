@@ -1,0 +1,42 @@
+{{define "title"}}Papers{{end}}
+
+{{define "content"}}
+<div class="container">
+  <div class="table-control">
+    <input
+      class="search"
+      type="search"
+      placeholder="Search..."
+      name="search"
+      hx-trigger="keyup changed delay:500ms, search"
+      hx-get="/papers/search"
+      hx-target="[hx-content-list]">
+
+    <a href="/papers/form" class="button">Add New</a>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Author(s)</th>
+        <th>Year</th>
+        <th>DOI</th>
+      </tr>
+    </thead>
+    <tbody hx-content-list>
+      {{range .}}
+        <tr>
+          <td><a href="/papers/{{.ID}}">{{.Title}}</a></td>
+          <td>{{joinNames .Authors}}</td>
+          <td>{{if .Year}}{{.Year}}{{else}}-{{end}}</td>
+          <td>{{if .DOI}}{{.DOI}}{{else}}-{{end}}</td>
+        </tr>
+      {{else}}
+        <tr class="empty">
+          <td colspan="4">Nothing found!</td>
+        </tr>
+      {{end}}
+    </tbody>
+  </table>
+</div>
+{{end}}

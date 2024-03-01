@@ -1,0 +1,54 @@
+{{define "title"}}{{if .ID}}Edit{{else}}New{{end}} Paper{{end}}
+
+{{define "content"}}
+<div class="form-container">
+  <h1 class="form-heading">{{if .ID}}Edit{{else}}Add new{{end}} paper</h1>
+  <form method="Post">
+
+    <div class="form-row">
+      <div>
+        <label>Title:</label>
+        <input
+          type="text"
+          name="title"
+          value="{{.Title}}"
+          required>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div>
+        <label>Author(s):</label>
+        <input
+          type="text"
+          name="authors"
+          value="{{joinNames .Authors}}"
+          required>
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <div>
+        <label>Release Year:</label>
+        <input
+          type="text"
+          name="year"
+          value="{{if .Year}}{{.Year}}{{end}}"
+          pattern="[0-9]{4}">
+      </div>
+      <div>
+        <label>DOI:</label>
+        <input
+          type="text"
+          name="doi"
+          value="{{.DOI}}">
+      </div>
+    </div>
+    
+    <div class="form-row">
+      <input type="submit" value="Submit">
+      <a class="button" href="">Cancel</a>
+    </div>
+  </form>
+  </div>
+{{end}}

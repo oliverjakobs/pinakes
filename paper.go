@@ -2,44 +2,51 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 )
 
 type Paper struct {
 	ID      int
 	Title   string
-	Authors []string
 	Year    int
 	DOI     string
+	Authors []Author
 }
 
-func (p Paper) print() {
-	fmt.Printf("%d: %s (%d) - %s\n", p.ID, p.Title, p.Year, strings.Join(p.Authors, "; "))
+func (p Paper) String() string {
+	return p.Title
 }
 
-func queryAuthors(db *sql.DB, paperID int) ([]string, error) {
-	rows, err := db.Query(`
-    SELECT authors.name
-    FROM authors
-    JOIN paper_authors ON authors.id = paper_authors.author
-    WHERE paper_authors.paper = ?
-    `, paperID)
+func insertPaper(db *sql.DB, title string, year int, doi string, authors string) error {
+	stmt, _ := db.Prepare("INSERT INTO papers (title, year, doi) VALUES (?, ?, ?)")
 
-	var names []string
-	if err == nil {
-		for rows.Next() {
-			var name string
+	result, _ := stmt.Exec(title, year, doi)
 
-			err = rows.Scan(&name)
-			if err != nil {
-				break
-			}
+	paperID, _ := result.LastInsertId()
 
-			names = append(names, name)
+	stmtAuthor, _ := db.Prepare("INSERT INTO authors (name) VALUES (?)")
+	stmtRel, _ := db.Prepare("INSERT INTO paper_authors (paper, author) VALUES (?, ?)")
+	for _, n := range strings.Split(authors, ";") {
+		name := strings.TrimSpace(n)
+		author, err := queryAuthorByName(db, n)
+
+		authorID := int64(author.ID)
+		if err != nil {
+			result, _ = stmtAuthor.Exec(name)
+			authorID, _ = result.LastInsertId()
 		}
+
+		stmtRel.Exec(paperID, authorID)
 	}
-	return names, err
+
+	return nil
+}
+
+func deletePaper(db *sql.DB, id int) error {
+	_, err := db.Exec("DELETE FROM papers WHERE id=?", id)
+	//_, err = db.Exec("DELETE FROM paper_authors WHERE paper=?", id)
+
+	return err
 }
 
 func queryPapers(db *sql.DB) ([]Paper, error) {
@@ -53,7 +60,7 @@ func queryPapers(db *sql.DB) ([]Paper, error) {
 			if rows.Scan(&paper.ID, &paper.Title, &paper.Year, &paper.DOI) != nil {
 				break
 			}
-			paper.Authors, err = queryAuthors(db, paper.ID)
+			paper.Authors, err = queryAuthorsByPaper(db, paper.ID)
 			if err != nil {
 				break
 			}
@@ -64,13 +71,37 @@ func queryPapers(db *sql.DB) ([]Paper, error) {
 	return papers, err
 }
 
-func queryPaper(db *sql.DB, paperID int) (Paper, error) {
-	row := db.QueryRow("SELECT * FROM papers WHERE id=?", paperID)
+func queryPaperByID(db *sql.DB, id int) (Paper, error) {
+	row := db.QueryRow("SELECT * FROM papers WHERE id=?", id)
 
 	var paper Paper
 	err := row.Scan(&paper.ID, &paper.Title, &paper.Year, &paper.DOI)
 	if err == nil {
-		paper.Authors, err = queryAuthors(db, paperID)
+		paper.Authors, err = queryAuthorsByPaper(db, id)
 	}
 	return paper, err
+}
+
+func queryPapersByAuthor(db *sql.DB, authorID int) ([]Paper, error) {
+	rows, err := db.Query(`
+    SELECT papers.id, papers.title, papers.year, papers.doi
+    FROM papers
+    JOIN paper_authors ON papers.id = paper_authors.paper
+    WHERE paper_authors.author = ?
+    `, authorID)
+
+	var papers []Paper
+	if err == nil {
+		for rows.Next() {
+
+			var paper Paper
+			err := rows.Scan(&paper.ID, &paper.Title, &paper.Year, &paper.DOI)
+			if err != nil {
+				break
+			}
+
+			papers = append(papers, paper)
+		}
+	}
+	return papers, err
 }
