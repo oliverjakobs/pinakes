@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"database/sql"
 
@@ -15,18 +16,48 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+func atoi(str string, fallback int) int {
+	value, err := strconv.Atoi(str)
+
+	if err != nil {
+		return fallback
+	}
+	return value
+}
+
 var baseTmpl = template.New("base").Funcs(template.FuncMap{
 	"joinNames": joinAuthorNames,
+	"lower":     strings.ToLower,
 })
 
-var db *sql.DB
-
-func renderTemplate(w http.ResponseWriter, name string, data any) error {
+func renderTemplate(w http.ResponseWriter, filename string, data any) error {
 	tmpl := template.Must(baseTmpl.Clone())
-	template.Must(tmpl.ParseFiles(name))
+	template.Must(tmpl.ParseFiles(filename))
 
 	return tmpl.ExecuteTemplate(w, "base", data)
 }
+
+type ListViewData struct {
+	Name    string
+	Fields  []string
+	Entries any
+}
+
+func renderListViewTemplate(w http.ResponseWriter, filename string, data ListViewData) error {
+	tmpl := template.Must(baseTmpl.Clone())
+	template.Must(tmpl.ParseFiles("./templates/_listview.html", filename))
+
+	return tmpl.ExecuteTemplate(w, "base", data)
+}
+
+func renderListEntriesTemplate(w http.ResponseWriter, filename string, data any) error {
+	tmpl := template.Must(baseTmpl.Clone())
+	template.Must(tmpl.ParseFiles(filename))
+
+	return tmpl.ExecuteTemplate(w, "entries", data)
+}
+
+var db *sql.DB
 
 func handlePaperList(w http.ResponseWriter, r *http.Request) {
 	papers, err := queryPapers(db)
@@ -36,19 +67,17 @@ func handlePaperList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = renderTemplate(w, "./templates/paper_list.html", papers)
-
-	if err != nil {
-		fmt.Printf("Error: %s\n", err)
-		http.Error(w, "Failed to render template", http.StatusNotFound)
-		return
-	}
+	renderListViewTemplate(w, "./templates/paper_list.html", ListViewData{
+		Name:    "Papers",
+		Fields:  []string{"Title", "Author(s)", "Year", "DOI"},
+		Entries: papers,
+	})
 }
 
 func handlePaper(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	id := atoi(chi.URLParam(r, "id"), 0)
 
-	if err != nil {
+	if id <= 0 {
 		http.Error(w, "Invalid ID", http.StatusNotFound)
 		return
 	}
@@ -63,15 +92,14 @@ func handlePaper(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlePaperDelete(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	id := atoi(chi.URLParam(r, "id"), 0)
 
-	if err != nil {
+	if id <= 0 {
 		http.Error(w, "Invalid ID", http.StatusNotFound)
 		return
 	}
 
-	err = deletePaper(db, id)
-	if err != nil {
+	if deletePaper(db, id) != nil {
 		http.Error(w, "Failed to delete paper", http.StatusInternalServerError)
 		return
 	}
@@ -80,31 +108,53 @@ func handlePaperDelete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func handlePaperForm(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+func handlePaperSearch(w http.ResponseWriter, r *http.Request) {
+	title := r.FormValue("search")
 
-	var paper Paper
+	papers, err := queryPapersLikeTitle(db, title)
 
-	if err == nil {
-		paper, _ = queryPaperByID(db, id)
-	}
-
-	renderTemplate(w, "./templates/paper_form.html", paper)
-}
-
-func handlePaperFormSubmit(w http.ResponseWriter, r *http.Request) {
-	title := r.FormValue("title")
-	year, _ := strconv.Atoi(r.FormValue("year"))
-	doi := r.FormValue("doi")
-	authors := r.FormValue("authors")
-
-	err := insertPaper(db, title, year, doi, authors)
 	if err != nil {
-		http.Error(w, "Failed to insert paper", http.StatusNotFound)
+		http.Error(w, "Query failed", http.StatusNotFound)
 		return
 	}
 
-	http.Redirect(w, r, "/papers/", http.StatusSeeOther)
+	err = renderListEntriesTemplate(w, "./templates/paper_list.html", papers)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func handlePaperForm(w http.ResponseWriter, r *http.Request) {
+	var paper Paper
+
+	id := atoi(chi.URLParam(r, "id"), 0)
+	if id > 0 {
+		paper, _ = queryPaperByID(db, id)
+	}
+
+	if r.Method == http.MethodPost {
+		paper.Title = r.FormValue("title")
+		paper.Year = atoi(r.FormValue("year"), 0)
+		paper.DOI = r.FormValue("doi")
+
+		authors := r.FormValue("authors")
+
+		if paper.ID > 0 {
+			if updatePaper(db, paper, authors) != nil {
+				http.Error(w, "Failed to update paper", http.StatusNotFound)
+				return
+			}
+		} else {
+			if insertPaper(db, paper, authors) != nil {
+				http.Error(w, "Failed to insert paper", http.StatusNotFound)
+				return
+			}
+		}
+
+		http.Redirect(w, r, "/papers/", http.StatusSeeOther)
+	}
+
+	renderTemplate(w, "./templates/paper_form.html", paper)
 }
 
 func handleAuthorList(w http.ResponseWriter, r *http.Request) {
@@ -119,9 +169,9 @@ func handleAuthorList(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleAuthor(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	id := atoi(chi.URLParam(r, "id"), 0)
 
-	if err != nil {
+	if id <= 0 {
 		http.Error(w, "Invalid ID", http.StatusNotFound)
 		return
 	}
@@ -225,9 +275,11 @@ func main() {
 		r.Get("/", handlePaperList)
 		r.Get("/{id}", handlePaper)
 		r.Delete("/{id}", handlePaperDelete)
+		r.Get("/search", handlePaperSearch)
 		r.Get("/form", handlePaperForm)
 		r.Get("/form/{id}", handlePaperForm)
-		r.Post("/form", handlePaperFormSubmit)
+		r.Post("/form", handlePaperForm)
+		r.Post("/form/{id}", handlePaperForm)
 	})
 
 	r.Get("/books/", handleBookList)

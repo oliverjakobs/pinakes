@@ -1,0 +1,30 @@
+{{define "title"}}{{.Name}}{{end}}
+
+{{define "content"}}
+<div class="container">
+  <div class="table-control">
+    <input
+      class="search"
+      type="search"
+      placeholder="Search..."
+      name="search"
+      hx-trigger="keyup changed delay:500ms, search"
+      hx-get="/{{lower .Name}}/search"
+      hx-target="[hx-content-list]">
+
+    <a href="/{{lower .Name}}/form" class="button">Add New</a>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        {{range .Fields}}
+          <th>{{.}}</th>
+        {{end}}
+      </tr>
+    </thead>
+    <tbody hx-content-list>
+      {{template "entries" .Entries}}
+    </tbody>
+  </table>
+</div>
+{{end}}
