@@ -1,26 +1,13 @@
-{{define "title"}}Authors{{end}}
-
-{{define "content"}}
-<div class="container">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Papers</th>
-      </tr>
-    </thead>
-    <tbody hx-content-list>
-      {{range .}}
-        <tr>
-          <td><a href="/authors/{{.ID}}">{{.Name}}</a></td>
-          <td>{{len .Papers}}</td>
-        </tr>
-      {{else}}
-        <tr class="empty">
-          <td colspan="2">Nothing found!</td>
-        </tr>
-      {{end}}
-    </tbody>
-  </table>
-</div>
+{{define "entries"}}
+{{range .}}
+  <tr>
+    <td><a href="/authors/{{.ID}}">{{.Name}}</a></td>
+    <td>{{len .Papers}}</td>
+    <td>{{len .Books}}</td>
+  </tr>
+{{else}}
+  <tr class="empty">
+    <td colspan="3">Nothing found!</td>
+  </tr>
+{{end}}
 {{end}}

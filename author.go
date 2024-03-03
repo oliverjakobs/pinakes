@@ -2,19 +2,21 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 )
 
 type Author struct {
 	ID     int
 	Name   string
 	Papers []Paper
+	Books  []Book
 }
 
 func (a Author) String() string {
 	return a.Name
 }
 
-func joinAuthorNames(authors []Author) string {
+func JoinAuthorNames(authors []Author) string {
 	if len(authors) <= 0 {
 		return ""
 	}
@@ -27,48 +29,83 @@ func joinAuthorNames(authors []Author) string {
 	return names
 }
 
-func queryAuthors(db *sql.DB) ([]Author, error) {
-	rows, err := db.Query("SELECT * FROM authors")
+func ScanAuthor(row Scanable, queryWork bool) (Author, error) {
+	var author Author
+	err := row.Scan(&author.ID, &author.Name)
 
+	if queryWork && err == nil {
+		author.Papers, err = queryPapersByAuthor(db, author.ID)
+		author.Books, err = queryBooksByAuthor(db, author.ID)
+	}
+
+	return author, err
+}
+
+func ScanAuthorRows(rows *sql.Rows, queryWork bool) ([]Author, error) {
 	var authors []Author
-	if err == nil {
-		for rows.Next() {
-			var author Author
+	var err error
 
-			if rows.Scan(&author.ID, &author.Name) != nil {
-				break
-			}
-			author.Papers, err = queryPapersByAuthor(db, author.ID)
-			if err != nil {
-				break
-			}
+	for rows.Next() {
+		author, err := ScanAuthor(rows, queryWork)
 
-			authors = append(authors, author)
+		if err != nil {
+			break
 		}
+
+		authors = append(authors, author)
 	}
 	return authors, err
 }
 
-func queryAuthorByID(db *sql.DB, id int) (Author, error) {
-	row := db.QueryRow("SELECT * FROM authors WHERE id=?", id)
+type AuthorController struct{}
 
-	var author Author
-	err := row.Scan(&author.ID, &author.Name)
-	if err == nil {
-		author.Papers, err = queryPapersByAuthor(db, id)
+func (AuthorController) Delete(db *sql.DB, id int) error {
+	if id <= 0 {
+		return errors.New("Invalid ID")
 	}
-	return author, err
+
+	_, err := db.Exec("DELETE FROM authors WHERE id=?", id)
+
+	return err
 }
 
+func (AuthorController) QueryByID(db *sql.DB, id int) (Author, error) {
+	var author Author
+
+	if id <= 0 {
+		return author, errors.New("Invalid ID")
+	}
+
+	row := db.QueryRow("SELECT * FROM authors WHERE id=?", id)
+
+	return ScanAuthor(row, true)
+}
+
+func (AuthorController) QueryAll(db *sql.DB) ([]Author, error) {
+	rows, err := db.Query("SELECT * FROM authors")
+
+	if err != nil {
+		return []Author{}, err
+	}
+
+	return ScanAuthorRows(rows, true)
+}
+
+func (AuthorController) Search(db *sql.DB, name string) ([]Author, error) {
+	rows, err := db.Query("SELECT * FROM authors WHERE name LIKE ?", "%"+name+"%")
+
+	if err != nil {
+		return []Author{}, err
+	}
+
+	return ScanAuthorRows(rows, true)
+}
+
+// TODO change to findIDForName
 func queryAuthorByName(db *sql.DB, name string) (Author, error) {
 	row := db.QueryRow("SELECT * FROM authors WHERE name=?", name)
 
-	var author Author
-	err := row.Scan(&author.ID, &author.Name)
-	if err == nil {
-		author.Papers, err = queryPapersByAuthor(db, author.ID)
-	}
-	return author, err
+	return ScanAuthor(row, false)
 }
 
 func queryAuthorsByPaper(db *sql.DB, paperID int) ([]Author, error) {
@@ -79,18 +116,24 @@ func queryAuthorsByPaper(db *sql.DB, paperID int) ([]Author, error) {
     WHERE paper_authors.paper = ?
     `, paperID)
 
-	var authors []Author
-	if err == nil {
-		for rows.Next() {
-			var author Author
-
-			err = rows.Scan(&author.ID, &author.Name)
-			if err != nil {
-				break
-			}
-
-			authors = append(authors, author)
-		}
+	if err != nil {
+		return []Author{}, err
 	}
-	return authors, err
+
+	return ScanAuthorRows(rows, false)
+}
+
+func queryAuthorsByBook(db *sql.DB, bookID int) ([]Author, error) {
+	rows, err := db.Query(`
+    SELECT authors.id, authors.name
+    FROM authors
+    JOIN book_authors ON authors.id = book_authors.author
+    WHERE book_authors.book = ?
+    `, bookID)
+
+	if err != nil {
+		return []Author{}, err
+	}
+
+	return ScanAuthorRows(rows, false)
 }

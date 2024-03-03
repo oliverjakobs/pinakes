@@ -1,26 +1,14 @@
-{{define "title"}}Books{{end}}
-
-{{define "content"}}
-<div class="container">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Title</th>
-        <th>Author(s)</th>
-      </tr>
-    </thead>
-    <tbody hx-content-list>
-      {{range .}}
-        <tr>
-          <td><a href="/books/{{.ID}}">{{.Title}}</a></td>
-          <td>{{joinNames .Authors "; "}}</td>
-        </tr>
-      {{else}}
-        <tr class="empty">
-          <td colspan="2">Nothing found!</td>
-        </tr>
-      {{end}}
-    </tbody>
-  </table>
-</div>
+{{define "entries"}}
+{{range .}}
+  <tr>
+    <td><a href="/books/{{.ID}}">{{.Title}}</a></td>
+    <td>{{joinNames .Authors}}</td>
+    <td>{{or .Year "-"}}</td>
+    <td>{{or .ISBN "-"}}</td>
+  </tr>
+{{else}}
+  <tr class="empty">
+    <td colspan="4">Nothing found!</td>
+  </tr>
+{{end}}
 {{end}}

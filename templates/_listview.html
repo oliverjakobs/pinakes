@@ -12,7 +12,9 @@
       hx-get="/{{lower .Name}}/search"
       hx-target="[hx-content-list]">
 
-    <a href="/{{lower .Name}}/form" class="button">Add New</a>
+    {{if .AllowAdd}}
+      <a href="/{{lower .Name}}/form" class="button">Add New</a>
+    {{end}}
   </div>
   <table class="table">
     <thead>
