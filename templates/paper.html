@@ -14,9 +14,8 @@
     <p>DOI: <a href="https://www.doi.org/{{.DOI}}">{{.DOI}}</a></p>
   {{end}}
 
-  <div>
+  <div class="button-row">
     <a href="/papers/form/{{.ID}}" class="button">Edit</a>
-    
     <button hx-delete="/papers/{{.ID}}"> Delete </button>
   </div>
 </div>

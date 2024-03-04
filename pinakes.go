@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -20,13 +22,13 @@ type Scanable interface {
 	Scan(dest ...any) error
 }
 
-func atoi(str string, fallback int) int {
+func atoi(str string, fallback int64) int64 {
 	value, err := strconv.Atoi(str)
 
 	if err != nil {
 		return fallback
 	}
-	return value
+	return int64(value)
 }
 
 var baseTmpl = template.New("base").Funcs(template.FuncMap{
@@ -41,28 +43,18 @@ func renderTemplate(w http.ResponseWriter, filename string, data any) error {
 	return tmpl.ExecuteTemplate(w, "base", data)
 }
 
-// TODO rename PinakesTable
-type ListView struct {
+type PinakesTable struct {
 	Name     string
 	Fields   []string
 	AllowAdd bool
+	Entries  any
 }
 
-func renderListViewTemplate(w http.ResponseWriter, filename string, entries any, view ListView) error {
+func renderTableTemplate(w http.ResponseWriter, filename string, table PinakesTable) error {
 	tmpl := template.Must(baseTmpl.Clone())
-	template.Must(tmpl.ParseFiles("./templates/_listview.html", filename))
+	template.Must(tmpl.ParseFiles("./templates/_table.html", filename))
 
-	return tmpl.ExecuteTemplate(w, "base", struct {
-		Name     string
-		Fields   []string
-		AllowAdd bool
-		Entries  any
-	}{
-		Name:     view.Name,
-		Fields:   view.Fields,
-		AllowAdd: view.AllowAdd,
-		Entries:  entries,
-	})
+	return tmpl.ExecuteTemplate(w, "base", table)
 }
 
 func renderListEntriesTemplate(w http.ResponseWriter, filename string, data any) error {
@@ -75,82 +67,31 @@ func renderListEntriesTemplate(w http.ResponseWriter, filename string, data any)
 var db *sql.DB
 
 // ==============================================================================
-// FORM
-// ==============================================================================
-func handlePaperForm(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		paper := Paper{
-			Title: r.FormValue("title"),
-			Year:  atoi(r.FormValue("year"), 0),
-			DOI:   r.FormValue("doi"),
-		}
-
-		authors := r.FormValue("authors")
-
-		if insertPaper(db, paper, authors) != nil {
-			http.Error(w, "Failed to insert paper", http.StatusNotFound)
-			return
-		}
-
-		http.Redirect(w, r, "/papers/", http.StatusSeeOther)
-		return // ?
-	}
-
-	renderTemplate(w, "./templates/paper_form.html", nil)
-}
-
-func handlePaperFormEdit(w http.ResponseWriter, r *http.Request) {
-	var c PaperController
-	paper, err := c.QueryByID(db, atoi(chi.URLParam(r, "id"), 0))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if r.Method == http.MethodPost {
-		paper.Title = r.FormValue("title")
-		paper.Year = atoi(r.FormValue("year"), 0)
-		paper.DOI = r.FormValue("doi")
-
-		authors := r.FormValue("authors")
-
-		if updatePaper(db, paper, authors) != nil {
-			http.Error(w, "Failed to update paper", http.StatusNotFound)
-			return
-		}
-
-		http.Redirect(w, r, "/papers/", http.StatusSeeOther)
-		return // ?
-	}
-
-	renderTemplate(w, "./templates/paper_form.html", paper)
-}
-
-// ==============================================================================
 // CONTROLLER
 // ==============================================================================
 type PinakesController[T any] interface {
-	Delete(db *sql.DB, id int) error
-	QueryByID(db *sql.DB, id int) (T, error)
+	Delete(db *sql.DB, id int64) error
+	QueryByID(db *sql.DB, id int64) (T, error)
 	QueryAll(db *sql.DB) ([]T, error)
 	Search(db *sql.DB, search string) ([]T, error)
 }
 
-func QueryAll[T any](c PinakesController[T], w http.ResponseWriter, r *http.Request, tmpl string, list ListView) {
-	entries, err := c.QueryAll(db)
+func HandleTable[T any](c PinakesController[T], w http.ResponseWriter, r *http.Request, tmpl string, table PinakesTable) {
+	var err error
+	table.Entries, err = c.QueryAll(db)
 
 	if err != nil {
 		http.Error(w, "Query failed: "+err.Error(), http.StatusNotFound)
 		return
 	}
 
-	err = renderListViewTemplate(w, tmpl, entries, list)
+	err = renderTableTemplate(w, tmpl, table)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
-func QueryByID[T any](c PinakesController[T], w http.ResponseWriter, r *http.Request, tmpl string) {
+func HandleSingle[T any](c PinakesController[T], w http.ResponseWriter, r *http.Request, tmpl string) {
 	id := atoi(chi.URLParam(r, "id"), 0)
 	entry, err := c.QueryByID(db, id)
 
@@ -162,7 +103,7 @@ func QueryByID[T any](c PinakesController[T], w http.ResponseWriter, r *http.Req
 	renderTemplate(w, tmpl, entry)
 }
 
-func Delete[T any](c PinakesController[T], w http.ResponseWriter, r *http.Request, redirect string) {
+func HandleDelete[T any](c PinakesController[T], w http.ResponseWriter, r *http.Request, redirect string) {
 	id := atoi(chi.URLParam(r, "id"), 0)
 	err := c.Delete(db, id)
 
@@ -175,7 +116,7 @@ func Delete[T any](c PinakesController[T], w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func Search[T any](c PinakesController[T], w http.ResponseWriter, r *http.Request, tmpl string) {
+func HandleSearch[T any](c PinakesController[T], w http.ResponseWriter, r *http.Request, tmpl string) {
 	name := r.FormValue("search")
 	entries, err := c.Search(db, name)
 
@@ -188,8 +129,80 @@ func Search[T any](c PinakesController[T], w http.ResponseWriter, r *http.Reques
 }
 
 // ==============================================================================
+// FORM CONTROLLER
+// ==============================================================================
+type PinakesFormController[T any] interface {
+	PinakesController[T]
+
+	Parse(r *http.Request, id int64) T
+	Insert(db *sql.DB, entry T) error
+	Update(db *sql.DB, entry T) error
+}
+
+func HandleFormSubmit[T any](c PinakesFormController[T], w http.ResponseWriter, r *http.Request, redirect string) {
+	entry := c.Parse(r, 0)
+
+	err := c.Insert(db, entry)
+	if err != nil {
+		http.Error(w, "Insert failed: "+err.Error(), http.StatusNotFound)
+		return
+	}
+
+	http.Redirect(w, r, redirect, http.StatusSeeOther)
+}
+
+func HandleEditSubmit[T any](c PinakesFormController[T], w http.ResponseWriter, r *http.Request, redirect string) {
+	id := atoi(chi.URLParam(r, "id"), 0)
+	entry := c.Parse(r, id)
+
+	err := c.Update(db, entry)
+	if err != nil {
+		http.Error(w, "Update failed: "+err.Error(), http.StatusNotFound)
+		return
+	}
+
+	http.Redirect(w, r, redirect, http.StatusSeeOther)
+}
+
+// ==============================================================================
 // SETUP
 // ==============================================================================
+func ReadCSV(filename string) [][]string {
+	f, err := os.Open(filename)
+	if err != nil {
+		log.Fatal("Unable to read input file "+filename, err)
+	}
+	defer f.Close()
+
+	csvReader := csv.NewReader(f)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		log.Fatal("Unable to parse file as CSV for "+filename, err)
+	}
+
+	return records
+}
+
+func ImportCSV(filename string) {
+	records := ReadCSV(filename)
+
+	var c PaperController
+	for _, row := range records[1:] {
+		p := Paper{
+			ID:    0,
+			Title: row[0],
+			Year:  int(atoi(row[2], 0)),
+			DOI:   row[3],
+		}
+
+		for _, name := range strings.Split(row[1], ";") {
+			name := strings.TrimSpace(name)
+			p.Authors = append(p.Authors, Author{Name: name})
+		}
+		c.Insert(db, p)
+	}
+}
+
 const port = 8000
 
 func fillDatabase(db *sql.DB) {
@@ -301,44 +314,53 @@ func main() {
 	r.Route("/papers", func(r chi.Router) {
 		var c PaperController
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			QueryAll(c, w, r, "./templates/paper_list.html", ListView{
+			HandleTable(c, w, r, "./templates/paper_list.html", PinakesTable{
 				Name:     "Papers",
 				Fields:   []string{"Title", "Author(s)", "Year", "DOI"},
 				AllowAdd: true,
 			})
 		})
 		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
-			QueryByID(c, w, r, "./templates/paper.html")
+			HandleSingle(c, w, r, "./templates/paper.html")
 		})
 		r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {
-			Delete(c, w, r, "/papers")
+			HandleDelete(c, w, r, "/papers")
 		})
 		r.Get("/search", func(w http.ResponseWriter, r *http.Request) {
-			Search(c, w, r, "./templates/paper_list.html")
+			HandleSearch(c, w, r, "./templates/paper_list.html")
 		})
-		r.Get("/form", handlePaperForm)
-		r.Post("/form", handlePaperForm)
-		r.Get("/form/{id}", handlePaperFormEdit)
-		r.Post("/form/{id}", handlePaperFormEdit)
+		// Forms
+		r.Get("/form", func(w http.ResponseWriter, r *http.Request) {
+			renderTemplate(w, "./templates/paper_form.html", nil)
+		})
+		r.Get("/form/{id}", func(w http.ResponseWriter, r *http.Request) {
+			HandleSingle(c, w, r, "./templates/paper_form.html")
+		})
+		r.Post("/form", func(w http.ResponseWriter, r *http.Request) {
+			HandleFormSubmit(c, w, r, "/papers")
+		})
+		r.Post("/form/{id}", func(w http.ResponseWriter, r *http.Request) {
+			HandleEditSubmit(c, w, r, "/papers")
+		})
 	})
 
 	r.Route("/books", func(r chi.Router) {
 		var c BookController
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			QueryAll(c, w, r, "./templates/book_list.html", ListView{
+			HandleTable(c, w, r, "./templates/book_list.html", PinakesTable{
 				Name:     "Books",
 				Fields:   []string{"Title", "Author(s)", "Year", "ISBN"},
 				AllowAdd: true,
 			})
 		})
 		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
-			QueryByID(c, w, r, "./templates/book.html")
+			HandleSingle(c, w, r, "./templates/book.html")
 		})
 		r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {
-			Delete(c, w, r, "/books")
+			HandleDelete(c, w, r, "/books")
 		})
 		r.Get("/search", func(w http.ResponseWriter, r *http.Request) {
-			Search(c, w, r, "./templates/book_list.html")
+			HandleSearch(c, w, r, "./templates/book_list.html")
 		})
 		/*
 			r.Get("/form", handlePaperForm)
@@ -351,20 +373,20 @@ func main() {
 	r.Route("/authors", func(r chi.Router) {
 		var c AuthorController
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			QueryAll(c, w, r, "./templates/author_list.html", ListView{
+			HandleTable(c, w, r, "./templates/author_list.html", PinakesTable{
 				Name:     "Authors",
 				Fields:   []string{"Name", "Papers", "Books"},
 				AllowAdd: false,
 			})
 		})
 		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
-			QueryByID(c, w, r, "./templates/author.html")
+			HandleSingle(c, w, r, "./templates/author.html")
 		})
 		r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {
-			Delete(c, w, r, "/authors")
+			HandleDelete(c, w, r, "/authors")
 		})
 		r.Get("/search", func(w http.ResponseWriter, r *http.Request) {
-			Search(c, w, r, "./templates/author_list.html")
+			HandleSearch(c, w, r, "./templates/author_list.html")
 		})
 	})
 
@@ -381,6 +403,8 @@ func main() {
 
 	db.Exec("PRAGMA foreign_keys=ON")
 	fillDatabase(db)
+
+	//ImportCSV("./papers.csv")
 
 	fmt.Printf("Listening on port %d\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), r))

@@ -6,7 +6,7 @@ import (
 )
 
 type Book struct {
-	ID      int
+	ID      int64
 	Title   string
 	Year    int
 	ISBN    string
@@ -46,7 +46,15 @@ func ScanBookRows(rows *sql.Rows, queryAuthor bool) ([]Book, error) {
 
 type BookController struct{}
 
-func (BookController) Delete(db *sql.DB, id int) error {
+func (BookController) Insert(db *sql.DB, book Book) error {
+	return nil
+}
+
+func (BookController) Update(db *sql.DB, book Book) error {
+	return nil
+}
+
+func (BookController) Delete(db *sql.DB, id int64) error {
 	if id <= 0 {
 		return errors.New("Invalid ID")
 	}
@@ -56,7 +64,7 @@ func (BookController) Delete(db *sql.DB, id int) error {
 	return err
 }
 
-func (BookController) QueryByID(db *sql.DB, id int) (Book, error) {
+func (BookController) QueryByID(db *sql.DB, id int64) (Book, error) {
 	if id <= 0 {
 		return Book{}, errors.New("Invalid ID")
 	}
@@ -86,7 +94,7 @@ func (BookController) Search(db *sql.DB, title string) ([]Book, error) {
 	return ScanBookRows(rows, true)
 }
 
-func queryBooksByAuthor(db *sql.DB, authorID int) ([]Book, error) {
+func queryBooksByAuthor(db *sql.DB, authorID int64) ([]Book, error) {
 	rows, err := db.Query(`
     SELECT books.*
     FROM books

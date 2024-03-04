@@ -6,7 +6,7 @@ import (
 )
 
 type Author struct {
-	ID     int
+	ID     int64
 	Name   string
 	Papers []Paper
 	Books  []Book
@@ -59,7 +59,7 @@ func ScanAuthorRows(rows *sql.Rows, queryWork bool) ([]Author, error) {
 
 type AuthorController struct{}
 
-func (AuthorController) Delete(db *sql.DB, id int) error {
+func (AuthorController) Delete(db *sql.DB, id int64) error {
 	if id <= 0 {
 		return errors.New("Invalid ID")
 	}
@@ -69,7 +69,7 @@ func (AuthorController) Delete(db *sql.DB, id int) error {
 	return err
 }
 
-func (AuthorController) QueryByID(db *sql.DB, id int) (Author, error) {
+func (AuthorController) QueryByID(db *sql.DB, id int64) (Author, error) {
 	var author Author
 
 	if id <= 0 {
@@ -108,7 +108,7 @@ func queryAuthorByName(db *sql.DB, name string) (Author, error) {
 	return ScanAuthor(row, false)
 }
 
-func queryAuthorsByPaper(db *sql.DB, paperID int) ([]Author, error) {
+func queryAuthorsByPaper(db *sql.DB, paperID int64) ([]Author, error) {
 	rows, err := db.Query(`
     SELECT authors.id, authors.name
     FROM authors
@@ -123,7 +123,7 @@ func queryAuthorsByPaper(db *sql.DB, paperID int) ([]Author, error) {
 	return ScanAuthorRows(rows, false)
 }
 
-func queryAuthorsByBook(db *sql.DB, bookID int) ([]Author, error) {
+func queryAuthorsByBook(db *sql.DB, bookID int64) ([]Author, error) {
 	rows, err := db.Query(`
     SELECT authors.id, authors.name
     FROM authors
