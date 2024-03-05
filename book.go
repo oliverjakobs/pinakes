@@ -3,6 +3,9 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"net/http"
+	"strings"
 )
 
 type Book struct {
@@ -46,12 +49,62 @@ func ScanBookRows(rows *sql.Rows, queryAuthor bool) ([]Book, error) {
 
 type BookController struct{}
 
-func (BookController) Insert(db *sql.DB, book Book) error {
+func (BookController) Parse(r *http.Request, id int64) Book {
+	book := Book{
+		ID:    id,
+		Title: r.FormValue("title"),
+		Year:  int(atoi(r.FormValue("year"), 0)),
+		ISBN:  r.FormValue("isbn"),
+	}
+
+	authors := r.FormValue("authors")
+	for _, name := range strings.Split(authors, ";") {
+		name := strings.TrimSpace(name)
+		book.Authors = append(book.Authors, Author{Name: name})
+	}
+	return book
+}
+
+func InsertBookAuthors(db *sql.DB, bookID int64, authors []Author) error {
+	stmtAuthor, _ := db.Prepare("INSERT INTO authors (name) VALUES (?)")
+	stmtRel, _ := db.Prepare("INSERT INTO book_authors (book, author) VALUES (?, ?)")
+
+	for _, a := range authors {
+		author, err := queryAuthorByName(db, a.Name)
+
+		authorID := author.ID
+		if err != nil {
+			result, _ := stmtAuthor.Exec(a.Name)
+			authorID, _ = result.LastInsertId()
+		}
+
+		stmtRel.Exec(bookID, authorID)
+	}
+
 	return nil
 }
 
+func (BookController) Insert(db *sql.DB, book Book) error {
+	stmt, _ := db.Prepare("INSERT INTO books (title, year, isbn) VALUES (?, ?, ?)")
+	result, _ := stmt.Exec(book.Title, book.Year, book.ISBN)
+
+	bookID, _ := result.LastInsertId()
+	return InsertBookAuthors(db, bookID, book.Authors)
+}
+
 func (BookController) Update(db *sql.DB, book Book) error {
-	return nil
+	stmt, err := db.Prepare("UPDATE books SET title=?, year=?, isbn=? WHERE id=?")
+	stmt.Exec(book.Title, book.Year, book.ISBN, book.ID)
+
+	// remove all authors for this paper
+	stmt, err = db.Prepare("DELETE FROM book_authors WHERE book=?")
+	_, err = stmt.Exec(book.ID)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return InsertPaperAuthors(db, book.ID, book.Authors)
 }
 
 func (BookController) Delete(db *sql.DB, id int64) error {

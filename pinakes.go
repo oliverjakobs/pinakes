@@ -301,6 +301,8 @@ func fillDatabase(db *sql.DB) {
 }
 
 func main() {
+	fmt.Println("Starting Pinakes...")
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
@@ -311,6 +313,7 @@ func main() {
 		renderTemplate(w, "./templates/index.html", nil)
 	})
 
+	// paper routes
 	r.Route("/papers", func(r chi.Router) {
 		var c PaperController
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -344,6 +347,7 @@ func main() {
 		})
 	})
 
+	// book routes
 	r.Route("/books", func(r chi.Router) {
 		var c BookController
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -362,14 +366,22 @@ func main() {
 		r.Get("/search", func(w http.ResponseWriter, r *http.Request) {
 			HandleSearch(c, w, r, "./templates/book_list.html")
 		})
-		/*
-			r.Get("/form", handlePaperForm)
-			r.Post("/form", handlePaperForm)
-			r.Get("/form/{id}", handlePaperFormEdit)
-			r.Post("/form/{id}", handlePaperFormEdit)
-		*/
+		// Forms
+		r.Get("/form", func(w http.ResponseWriter, r *http.Request) {
+			renderTemplate(w, "./templates/book_form.html", nil)
+		})
+		r.Get("/form/{id}", func(w http.ResponseWriter, r *http.Request) {
+			HandleSingle(c, w, r, "./templates/book_form.html")
+		})
+		r.Post("/form", func(w http.ResponseWriter, r *http.Request) {
+			HandleFormSubmit(c, w, r, "/books")
+		})
+		r.Post("/form/{id}", func(w http.ResponseWriter, r *http.Request) {
+			HandleEditSubmit(c, w, r, "/books")
+		})
 	})
 
+	// author routes
 	r.Route("/authors", func(r chi.Router) {
 		var c AuthorController
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -406,6 +418,7 @@ func main() {
 
 	//ImportCSV("./papers.csv")
 
+	fmt.Println("Done.")
 	fmt.Printf("Listening on port %d\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), r))
 }
