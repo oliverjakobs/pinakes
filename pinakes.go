@@ -188,18 +188,13 @@ func ImportCSV(filename string) {
 
 	var c PaperController
 	for _, row := range records[1:] {
-		p := Paper{
-			ID:    0,
-			Title: row[0],
-			Year:  int(atoi(row[2], 0)),
-			DOI:   row[3],
-		}
-
-		for _, name := range strings.Split(row[1], ";") {
-			name := strings.TrimSpace(name)
-			p.Authors = append(p.Authors, Author{Name: name})
-		}
-		c.Insert(db, p)
+		c.Insert(db, Paper{
+			ID:      0,
+			Title:   row[0],
+			Authors: ParseAuthors(row[1]),
+			Year:    int(atoi(row[2], 0)),
+			DOI:     row[3],
+		})
 	}
 }
 
@@ -270,34 +265,39 @@ func fillDatabase(db *sql.DB) {
 	db.Exec("DELETE FROM book_authors")
 
 	// insert test entries
-	stmt, _ := db.Prepare("INSERT INTO papers (title, year, doi) VALUES (?, ?, ?)")
+	var pc PaperController
+	pc.Insert(db, Paper{
+		ID:      0,
+		Title:   "Information Management: A Proposal",
+		Authors: ParseAuthors("Tim Berners-Lee"),
+		Year:    1990,
+		DOI:     "",
+	})
 
-	stmt.Exec("Information Management: A Proposal", 1990, "")
-	stmt.Exec("The Development of the C Language", 1996, "10.1145/234286.1057834")
-	stmt.Exec("The UNIX Time-Sharing System", 1974, "10.1145/361011.361061")
+	pc.Insert(db, Paper{
+		ID:      0,
+		Title:   "The Development of the C Language",
+		Authors: ParseAuthors("Dennis M. Ritchie"),
+		Year:    1996,
+		DOI:     "10.1145/234286.1057834",
+	})
 
-	stmt, _ = db.Prepare("INSERT INTO books (title, year, isbn) VALUES (?, ?, ?)")
+	pc.Insert(db, Paper{
+		ID:      0,
+		Title:   "The UNIX Time-Sharing System",
+		Authors: ParseAuthors("Dennis M. Ritchie;Ken Thompson"),
+		Year:    1974,
+		DOI:     "10.1145/361011.361061",
+	})
 
-	stmt.Exec("The C Programming Language", 1978, "9780131101630")
-
-	stmt, _ = db.Prepare("INSERT INTO authors (name) VALUES (?)")
-
-	stmt.Exec("Tim Berners-Lee")
-	stmt.Exec("Dennis M. Ritchie")
-	stmt.Exec("Ken Thompson")
-	stmt.Exec("Brian Kernighan")
-
-	stmt, _ = db.Prepare("INSERT INTO paper_authors (paper, author) VALUES (?, ?)")
-
-	stmt.Exec(1, 1)
-	stmt.Exec(2, 2)
-	stmt.Exec(3, 2)
-	stmt.Exec(3, 3)
-
-	stmt, _ = db.Prepare("INSERT INTO book_authors (book, author) VALUES (?, ?)")
-
-	stmt.Exec(1, 2)
-	stmt.Exec(1, 4)
+	var bc BookController
+	bc.Insert(db, Book{
+		ID:      0,
+		Title:   "The C Programming Language",
+		Authors: ParseAuthors("Dennis M. Ritchie;Brian Kernighan"),
+		Year:    1978,
+		ISBN:    "9780131101630",
+	})
 }
 
 func main() {

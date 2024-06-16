@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 type Paper struct {
@@ -51,17 +50,13 @@ type PaperController struct{}
 
 func (PaperController) Parse(r *http.Request, id int64) Paper {
 	paper := Paper{
-		ID:    id,
-		Title: r.FormValue("title"),
-		Year:  int(atoi(r.FormValue("year"), 0)),
-		DOI:   r.FormValue("doi"),
+		ID:      id,
+		Title:   r.FormValue("title"),
+		Authors: ParseAuthors(r.FormValue("authors")),
+		Year:    int(atoi(r.FormValue("year"), 0)),
+		DOI:     r.FormValue("doi"),
 	}
 
-	authors := r.FormValue("authors")
-	for _, name := range strings.Split(authors, ";") {
-		name := strings.TrimSpace(name)
-		paper.Authors = append(paper.Authors, Author{Name: name})
-	}
 	return paper
 }
 

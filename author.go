@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"strings"
 )
 
 type Author struct {
@@ -14,6 +15,15 @@ type Author struct {
 
 func (a Author) String() string {
 	return a.Name
+}
+
+func ParseAuthors(authors string) []Author {
+	a := []Author{}
+	for _, name := range strings.Split(authors, ";") {
+		name := strings.TrimSpace(name)
+		a = append(a, Author{Name: name})
+	}
+	return a
 }
 
 func JoinAuthorNames(authors []Author) string {
