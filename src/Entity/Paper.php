@@ -9,27 +9,27 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PaperRepository::class)]
-class Paper
+class Paper extends PinakesEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    private ?int $id = null;
+    public ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $title = null;
+    public ?string $title = null;
 
     #[ORM\Column]
-    private ?int $releaseYear = null;
+    public ?int $releaseYear = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $doi = null;
+    public ?string $doi = null;
 
     #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'papers')]
-    private Collection $authors;
+    public Collection $authors;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $abstract = null;
+    public ?string $abstract = null;
 
     public function __construct()
     {

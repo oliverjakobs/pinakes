@@ -1,0 +1,22 @@
+<table class="table" hx-table-content>
+  <thead>
+    <tr>
+    {% for field in fields %}
+      <th>{{ field.caption }}</th>
+    {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+  {% for entry in data %}
+    <tr>
+    {% for field in fields %}
+      <td>{{ entry(entry, field)|raw }}</td>
+    {% endfor %}
+    </tr>
+  {% else %}
+    <tr class="empty">
+      <td colspan="{{ fields|length }}">Nothing found!</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

@@ -7,39 +7,48 @@ use App\Entity\Paper;
 use App\Form\PaperFormType;
 use App\Repository\PaperRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class PapersController extends AbstractController
-{
-    private EntityManagerInterface $em;
+class PapersController extends PinakesController {
 
-    public function __construct(EntityManagerInterface $em)
-    {
-        $this->em = $em;
+    private function get_fields(): array {
+        return [
+            array(
+                'name' => 'title',
+                'caption' => 'Title',
+                'link' => fn(Paper $p) => '/papers/' . $p->id,
+            ),
+            array(
+                'name' => 'authors',
+                'caption' => 'Author(s)',
+            ),
+            array(
+                'name' => 'releaseYear',
+                'caption' => 'Release Year',
+            ),
+            array(
+                'name' => 'doi',
+                'caption' => 'DOI',
+                'default' => '-'
+            ),
+        ];
+    }
+
+    protected function getName(): string {
+        return 'papers';
     }
 
     #[Route('/papers', name: 'papers', methods: ['GET'])]
-    public function index(PaperRepository $repository): Response
-    {
-        return $this->render('content.html.twig', [
-            'name' => 'papers',
-            'fields' => [ "Title", "Author(s)", "Release Year", "DOI" ],
-            'content' => $repository->findAll(),
-            'content_template' => '/papers/list.html.twig',
-            'allow_add' => true
-        ]);
+    public function index(PaperRepository $repository): Response {
+        return $this->renderTable($repository->findAll(), $this->get_fields());
     }
 
     #[Route('/papers/search', name: 'paper_search', methods: ['GET'])]
-    public function search(Request $request, PaperRepository $repository): Response
-    {
+    public function search(Request $request, PaperRepository $repository): Response {
         $title = $request->get('search');
-        return $this->render('/papers/list.html.twig', [
-            'content' => $repository->findLikeTitle($title)
-        ]);
+        return $this->renderTableContent($repository->findLikeTitle($title), $this->get_fields());
     }
 
     private function handleForm(Paper $paper, Request $request): Response

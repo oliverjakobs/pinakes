@@ -7,6 +7,6 @@
   </tr>
 {% else %}
   <tr class="empty">
-    <td colspan="4">Nothing found!</td>
+    <td colspan="{{ fields|length }}">Nothing found!</td>
   </tr>
 {% endfor %}

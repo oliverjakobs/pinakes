@@ -1,0 +1,25 @@
+{% extends "_base.html.twig" %}
+
+{% block title %}
+  Pinakes - {{ name|capitalize }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="table-control">
+    <input
+      class="search"
+      type="search"
+      placeholder="Search..."
+      name="search"
+      hx-trigger="keyup changed delay:500ms, search"
+      hx-get="/{{ name }}/search"
+      hx-target="[hx-table-content]">
+
+    {% if allow_add %}
+      <a href="/{{ name }}/form" class="button">Add New</a>
+    {% endif %}
+  </div>
+  {% include '/tablecontent.html.twig' %}
+</div>
+{% endblock %}
