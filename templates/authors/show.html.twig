@@ -14,6 +14,13 @@
       {% endfor %}
     </ul>
   </p>
+  <p>Books:
+    <ul>
+      {% for book in author.books %}
+        <li><a href="/books/{{ book.id }}">{{ book.title|e }}</a></li>
+      {% endfor %}
+    </ul>
+  </p>
   
   <div>
     <button hx-delete="/authors/{{ author.id }}" hx-confirm="Are you sure? This will also delete all associated papers.">

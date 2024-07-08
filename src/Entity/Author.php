@@ -21,6 +21,9 @@ class Author
     #[ORM\ManyToMany(targetEntity: Paper::class, mappedBy: 'authors', cascade: ['remove'])]
     private Collection $papers;
 
+    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'authors', cascade: ['remove'])]
+    private Collection $books;
+
     public function __construct()
     {
         $this->papers = new ArrayCollection();
@@ -70,6 +73,33 @@ class Author
     {
         if ($this->papers->removeElement($paper)) {
             $paper->removeAuthor($this);
+        }
+
+        return $this;
+    }
+
+        /**
+     * @return Collection<int, Book>
+     */
+    public function getBooks(): Collection
+    {
+        return $this->books;
+    }
+
+    public function addBook(Book $book): static
+    {
+        if (!$this->books->contains($book)) {
+            $this->books->add($book);
+            $book->addAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBook(Book $book): static
+    {
+        if ($this->books->removeElement($book)) {
+            $book->removeAuthor($this);
         }
 
         return $this;

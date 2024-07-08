@@ -2,14 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\PaperRepository;
+use App\Repository\BookRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: PaperRepository::class)]
-class Paper
+#[ORM\Entity(repositoryClass: BookRepository::class)]
+class Book
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,13 +22,10 @@ class Paper
     private ?int $releaseYear = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $doi = null;
-
-    #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'papers')]
+    private ?string $isbn = null;
+    
+    #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'books')]
     private Collection $authors;
-
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $abstract = null;
 
     public function __construct()
     {
@@ -68,17 +64,17 @@ class Paper
         return $this;
     }
 
-    public function getDoi(): ?string
+    public function getIsbn(): ?string
     {
-        return $this->doi;
+        return $this->isbn;
     }
 
-    public function setDoi(?string $doi): static
+    public function setIsbn(?string $isbn): static
     {
-        $this->doi = $doi;
+        $this->isbn = $isbn;
         return $this;
     }
-
+    
     /**
      * @return Collection<int, Author>
      */
@@ -99,18 +95,6 @@ class Paper
     public function removeAuthor(Author $author): static
     {
         $this->authors->removeElement($author);
-        return $this;
-    }
-
-    public function getAbstract(): ?string
-    {
-        return $this->abstract;
-    }
-
-    public function setAbstract(?string $abstract): static
-    {
-        $this->abstract = $abstract;
-
         return $this;
     }
 }

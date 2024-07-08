@@ -32,4 +32,10 @@ abstract class PinakesController extends AbstractController {
             'data' => $data,
         ]);
     }
+
+    public function redirectHx(string $url): Response {
+        return new Response(headers: [
+            'HX-Redirect' => $url
+        ]);
+    }
 }

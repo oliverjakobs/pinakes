@@ -2,17 +2,17 @@
 
 namespace App\Repository;
 
-use App\Entity\Paper;
+use App\Entity\Book;
 use Doctrine\Persistence\ManagerRegistry;
 
-class PaperRepository extends PinakesRepository {
+class BookRepository extends PinakesRepository {
 
     public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Paper::class);
+        parent::__construct($registry, Book::class);
     }
 
    /**
-    * @return Paper[] Returns an array of Paper objects
+    * @return Book[] Returns an array of Book objects
     */
     public function findLikeTitle(?string $title): array {
         return $this->findLike('title', $title);
@@ -23,7 +23,7 @@ class PaperRepository extends PinakesRepository {
             array(
                 'name' => 'title',
                 'caption' => 'Title',
-                'link' => fn(Paper $p) => '/papers/' . $p->getId(),
+                'link' => fn(Book $p) => '/books/' . $p->getId(),
             ),
             array(
                 'name' => 'authors',
@@ -34,8 +34,8 @@ class PaperRepository extends PinakesRepository {
                 'caption' => 'Release Year',
             ),
             array(
-                'name' => 'doi',
-                'caption' => 'DOI',
+                'name' => 'isbn',
+                'caption' => 'ISBN',
                 'default' => '-'
             ),
         ];

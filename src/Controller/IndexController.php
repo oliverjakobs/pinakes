@@ -9,8 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class IndexController extends AbstractController
 {
     #[Route('/', name: 'pinakes')]
-    public function index(): Response
-    {
-        return $this->render('pinakes.html.twig');
+    public function index(): Response {
+        return $this->render('index.html.twig');
     }
 }
