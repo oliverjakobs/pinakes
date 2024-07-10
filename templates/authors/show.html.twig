@@ -1,0 +1,31 @@
+{% extends "_base.html.twig" %}
+
+{% block title %}
+  Pinakes - {{ author.name }}
+{% endblock %}
+
+{% block content %}
+<div class="detail">
+  <h1>{{ author.name }}</h1>
+  <p>Papers:
+    <ul>
+      {% for paper in author.papers %}
+        <li><a href="/papers/{{ paper.id }}">{{ paper.title|e }}</a></li>
+      {% endfor %}
+    </ul>
+  </p>
+  <p>Books:
+    <ul>
+      {% for book in author.books %}
+        <li><a href="/books/{{ book.id }}">{{ book.title|e }}</a></li>
+      {% endfor %}
+    </ul>
+  </p>
+  
+  <div>
+    <button hx-delete="/authors/{{ author.id }}" hx-confirm="Are you sure? This will also delete all associated papers.">
+      Delete
+    </button>
+  </div>
+</div>
+{% endblock %}
