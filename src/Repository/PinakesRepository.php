@@ -31,5 +31,15 @@ abstract class PinakesRepository extends ServiceEntityRepository {
             ->getResult();
     }
 
+    public static function getLink(string $href, string $value): string {
+        return sprintf('<a href="%s">%s</a>', $href, $value);
+    }
+
+    public static function getLinkSelf(object $entity, ?string $value = null): string {
+        $href = '/' . get_called_class()::getName() . '/' .  $entity->getId();
+        return self::getLink($href, $value ?? (string)$entity);
+    }
+
+    abstract public static function getName(): string;
     abstract public function getFields(): array;
 }

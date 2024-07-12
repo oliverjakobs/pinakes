@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Author;
 use App\Entity\Paper;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -18,25 +19,35 @@ class PaperRepository extends PinakesRepository {
         return $this->findLike('title', $title);
     }
 
+    public static function getLinkDoi(string $doi): string {
+        return self::getLink('https://www.doi.org/' . $doi, $doi);
+    }
+
+    public static function getName(): string {
+        return 'papers';
+    }
+
     public function getFields(): array {
         return [
-            array(
-                'name' => 'title',
+            'title' => array(
                 'caption' => 'Title',
-                'link' => fn(Paper $p) => '/papers/' . $p->getId(),
+                'data' => 'self',
+                'link' => fn(Paper $p) => self::getLinkSelf($p),
             ),
-            array(
-                'name' => 'authors',
+            'authors' => array(
                 'caption' => 'Author(s)',
+                'data' => 'authors',
+                'link' => fn(Author $a) => AuthorRepository::getLinkSelf($a),
             ),
-            array(
-                'name' => 'releaseYear',
+            'releaseYear' => array(
                 'caption' => 'Release Year',
+                'data' => 'releaseYear',
             ),
-            array(
-                'name' => 'doi',
+            'doi' => array(
                 'caption' => 'DOI',
-                'default' => '-'
+                'data' => 'doi',
+                'default' => '-',
+                'link' => fn(string $p) => self::getLinkDoi($p),
             ),
         ];
     }

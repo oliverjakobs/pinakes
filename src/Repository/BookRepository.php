@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Author;
 use App\Entity\Book;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -18,24 +19,29 @@ class BookRepository extends PinakesRepository {
         return $this->findLike('title', $title);
     }
 
+    public static function getName(): string {
+        return 'books';
+    }
+
     public function getFields(): array {
         return [
-            array(
-                'name' => 'title',
+            'title' => array(
                 'caption' => 'Title',
-                'link' => fn(Book $p) => '/books/' . $p->getId(),
+                'data' => 'self',
+                'link' => fn(Book $b) => self::getLinkSelf($b),
             ),
-            array(
-                'name' => 'authors',
+            'authors' => array(
                 'caption' => 'Author(s)',
+                'data' => 'authors',
+                'link' => fn(Author $a) => AuthorRepository::getLinkSelf($a),
             ),
-            array(
-                'name' => 'releaseYear',
+            'releaseYear' => array(
                 'caption' => 'Release Year',
+                'data' => 'releaseYear',
             ),
-            array(
-                'name' => 'isbn',
+            'isbn' => array(
                 'caption' => 'ISBN',
+                'data' => 'isbn',
                 'default' => '-'
             ),
         ];

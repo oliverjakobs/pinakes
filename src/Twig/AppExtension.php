@@ -15,26 +15,38 @@ class AppExtension extends AbstractExtension
         ];
     }
 
-    private static function getData(object $entity, array $field): mixed {
-        if (isset($field['data'])) {
-            assert(is_callable($field['data']), 'Data must be callable');
-            return $field['data']($entity);
+    private static function getData(callable|string $data, object $entity): mixed {
+        if (is_callable($data)) {
+            return $data($entity);
         }
 
-        $name = 'get' . ucwords($field['name'], '-');
+        if ('self' === $data) {
+            return $entity;
+        }
+
+        $name = 'get' . ucwords($data, '-');
         return $entity->{$name}();
     }
 
+    private static function getLink(mixed $value, array $field): string {
+        if (!isset($field['link'])) return (string) $value;
+
+        return $field['link']($value);
+    }
+
     public function renderEntity(object $entity, array $field): string {
-        $default = isset($field['default']) ? $field['default'] : '';
-        $result = self::getData($entity, $field) ?? $default;
+        assert(isset($field['data']), 'No data specified');
+        $data = self::getData($field['data'], $entity);
 
-        if ($result instanceof Collection) $result = implode('; ', $result->toArray());
-
-        if (isset($field['link'])) {
-            $result = sprintf('<a href="%s">%s</a>', $field['link']($entity), $result);
+        if (null === $data) {
+            return $field['default'] ?? '';
         }
 
-        return $result;
+        if ($data instanceof Collection) {
+            $array = array_map(fn ($a) => self::getLink($a, $field), $data->toArray());
+            return implode('; ', $array);
+        }
+
+        return self::getLink($data, $field);
     }
 }

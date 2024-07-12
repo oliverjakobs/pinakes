@@ -27,23 +27,26 @@ class AuthorRepository extends PinakesRepository {
     public function findLikeName(?string $name): array {
         return $this->findLike('name', $name);
     }
+    
+
+    public static function getName(): string {
+        return 'authors';
+    }
 
     public function getFields(): array {
         return [
-            array(
-                'name' => 'name',
+            'name' => array(
                 'caption' => 'Title',
-                'link' => fn(Author $a) => '/authors/' . $a->getId(),
+                'data' => 'self',
+                'link' => fn(Author $a) => self::getLinkSelf($a),
             ),
-            array(
-                'name' => 'papers',
-                'data' => fn(Author $a) => $a->getPapers()->count(),
+            'paper_count' => array(
                 'caption' => 'Papers',
+                'data' => fn(Author $a) => $a->getPapers()->count(),
             ),
-            array(
-                'name' => 'books',
-                'data' => fn(Author $a) => $a->getBooks()->count(),
+            'book_count' => array(
                 'caption' => 'Books',
+                'data' => fn(Author $a) => $a->getBooks()->count(),
             ),
         ];
     }

@@ -10,19 +10,15 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AuthorsController extends PinakesController {
 
-    protected function getName(): string {
-        return 'authors';
-    }
-
     #[Route('/authors', name: 'authors', methods: ['GET'])]
     public function index(AuthorRepository $repository): Response {
-        return $this->renderTable($repository->findAll(), $repository->getFields());
+        return $this->renderTable($repository->findAll(), $repository);
     }
 
     #[Route('/authors/search', name: 'author_search', methods: ['GET'])]
     public function search(Request $request, AuthorRepository $repository): Response {
         $search = $request->get('search');
-        return $this->renderTableContent($repository->findLikeName($search), $repository->getFields());
+        return $this->renderTableContent($repository->findLikeName($search), $repository);
     }
 
     #[Route('/authors/{id}', name: 'author_show', methods: ['GET'])]

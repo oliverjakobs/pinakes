@@ -12,19 +12,15 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class PapersController extends PinakesController {
 
-    protected function getName(): string {
-        return 'papers';
-    }
-
     #[Route('/papers', name: 'papers', methods: ['GET'])]
     public function index(PaperRepository $repository): Response {
-        return $this->renderTable($repository->findAll(), $repository->getFields());
+        return $this->renderTable($repository->findAll(), $repository);
     }
 
     #[Route('/papers/search', name: 'paper_search', methods: ['GET'])]
     public function search(Request $request, PaperRepository $repository): Response {
         $title = $request->get('search');
-        return $this->renderTableContent($repository->findLikeTitle($title), $repository->getFields());
+        return $this->renderTableContent($repository->findLikeTitle($title), $repository);
     }
 
     #[Route('/papers/{id}', name: 'paper_show', methods: ['GET'])]
