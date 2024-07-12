@@ -11,7 +11,7 @@ class AppExtension extends AbstractExtension
     public function getFunctions(): array
     {
         return [
-            new TwigFunction('entry', [$this, 'renderEntity']),
+            new TwigFunction('get_value', [$this, 'getValue']),
         ];
     }
 
@@ -28,13 +28,13 @@ class AppExtension extends AbstractExtension
         return $entity->{$name}();
     }
 
-    private static function getLink(mixed $value, array $field): string {
+    private static function getLink(array $field, mixed $value): string {
         if (!isset($field['link'])) return (string) $value;
 
         return $field['link']($value);
     }
 
-    public function renderEntity(object $entity, array $field): string {
+    public function getValue(array $field, object $entity): string {
         assert(isset($field['data']), 'No data specified');
         $data = self::getData($field['data'], $entity);
 
@@ -43,10 +43,10 @@ class AppExtension extends AbstractExtension
         }
 
         if ($data instanceof Collection) {
-            $array = array_map(fn ($a) => self::getLink($a, $field), $data->toArray());
+            $array = array_map(fn ($a) => self::getLink($field, $a), $data->toArray());
             return implode('; ', $array);
         }
 
-        return self::getLink($data, $field);
+        return self::getLink($field, $data);
     }
 }

@@ -10,7 +10,7 @@
   {% for entry in data %}
     <tr>
     {% for field in fields %}
-      <td>{{ entry(entry, field)|raw }}</td>
+      <td>{{ get_value(field, entry)|raw }}</td>
     {% endfor %}
     </tr>
   {% else %}
