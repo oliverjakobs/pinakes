@@ -14,13 +14,13 @@ class PapersController extends PinakesController {
 
     #[Route('/papers', name: 'papers', methods: ['GET'])]
     public function index(PaperRepository $repository): Response {
-        return $this->renderTable($repository->findAll(), $repository);
+        return $this->renderTable($repository->findAll(), $repository, 'list');
     }
 
     #[Route('/papers/search', name: 'paper_search', methods: ['GET'])]
     public function search(Request $request, PaperRepository $repository): Response {
         $title = $request->get('search');
-        return $this->renderTableContent($repository->findLikeTitle($title), $repository);
+        return $this->renderTableContent($repository->findLikeTitle($title), $repository, 'list');
     }
 
     #[Route('/papers/{id}', name: 'paper_show', methods: ['GET'])]

@@ -33,10 +33,10 @@ class AuthorRepository extends PinakesRepository {
         return 'authors';
     }
 
-    public function getFields(): array {
+    protected function defineDataFields(): array {
         return [
             'name' => array(
-                'caption' => 'Title',
+                'caption' => 'Name',
                 'data' => 'self',
                 'link' => fn(Author $a) => self::getLinkSelf($a),
             ),
@@ -49,5 +49,11 @@ class AuthorRepository extends PinakesRepository {
                 'data' => fn(Author $a) => $a->getBooks()->count(),
             ),
         ];
+    }
+
+    public function getDataFieldsList(): array {
+        return $this->getDataFields(array(
+            'name', 'paper_count', 'book_count'
+        ));
     }
 }

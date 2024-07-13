@@ -23,7 +23,7 @@ class BookRepository extends PinakesRepository {
         return 'books';
     }
 
-    public function getFields(): array {
+    protected function defineDataFields(): array {
         return [
             'title' => array(
                 'caption' => 'Title',
@@ -45,5 +45,11 @@ class BookRepository extends PinakesRepository {
                 'default' => '-'
             ),
         ];
+    }
+
+    public function getDataFieldsList(): array {
+        return $this->getDataFields(array(
+            'title', 'authors', 'releaseYear', 'isbn'
+        ));
     }
 }

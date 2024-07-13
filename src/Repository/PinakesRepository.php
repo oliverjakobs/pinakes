@@ -2,9 +2,23 @@
 
 namespace App\Repository;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 abstract class PinakesRepository extends ServiceEntityRepository {
+
+    private array $dataFields;
+
+    public function __construct(ManagerRegistry $registry, string $entityClass) {
+        parent::__construct($registry, $entityClass);
+        $this->dataFields = $this->defineDataFields();
+    }
+    
+    public function getDataFields(?array $names = null): array {
+        if (null === $names) return $this->dataFields;
+
+        return array_filter($this->dataFields, fn ($e) => in_array($e, $names), ARRAY_FILTER_USE_KEY);
+    }
 
     public function save(object $entity, bool $flush = true) {
         $em = $this->getEntityManager();
@@ -41,5 +55,6 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     }
 
     abstract public static function getName(): string;
-    abstract public function getFields(): array;
+
+    abstract protected function defineDataFields(): array;
 }

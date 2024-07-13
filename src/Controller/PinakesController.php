@@ -15,19 +15,26 @@ abstract class PinakesController extends AbstractController {
         $this->em = $em;
     }
 
-    public function renderTable(array $data, PinakesRepository $repository, bool $allowAdd = true): Response {
+    private function getFields(PinakesRepository $repository, string $fields): array {
+        $func = 'getDataFields' . ucwords($fields);
+
+        assert(method_exists($repository, $func), $func . ' missing for ' . $repository::class);
+        return $repository->$func();
+    }
+
+    public function renderTable(array $data, PinakesRepository $repository, string $fields): Response {
         return $this->render('table.html.twig', [
             'repository' => $repository,
-            'fields' => $repository->getFields(),
+            'fields' => $this->getFields($repository, $fields),
             'data' => $data,
-            'allow_add' => $allowAdd
+            'allow_add' => false
         ]);
     }
 
-    public function renderTableContent(array $data, PinakesRepository $repository): Response {
+    public function renderTableContent(array $data, PinakesRepository $repository, string $fields): Response {
         return $this->render('tablecontent.html.twig', [
             'repository' => $repository,
-            'fields' => $repository->getFields(),
+            'fields' => $this->getFields($repository, $fields),
             'data' => $data,
         ]);
     }

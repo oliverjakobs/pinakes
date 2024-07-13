@@ -27,7 +27,7 @@ class PaperRepository extends PinakesRepository {
         return 'papers';
     }
 
-    public function getFields(): array {
+    protected function defineDataFields(): array {
         return [
             'title' => array(
                 'caption' => 'Title',
@@ -49,6 +49,16 @@ class PaperRepository extends PinakesRepository {
                 'default' => '-',
                 'link' => fn(string $p) => self::getLinkDoi($p),
             ),
+            'abstract' => array(
+                'caption' => 'Abstract',
+                'data' => 'abstract',
+            ),
         ];
+    }
+
+    public function getDataFieldsList(): array {
+        return $this->getDataFields(array(
+            'title', 'authors', 'releaseYear', 'doi'
+        ));
     }
 }
