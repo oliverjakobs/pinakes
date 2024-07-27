@@ -6,10 +6,8 @@ use Doctrine\Common\Collections\Collection;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
-class AppExtension extends AbstractExtension
-{
-    public function getFunctions(): array
-    {
+class AppExtension extends AbstractExtension {
+    public function getFunctions(): array {
         return [
             new TwigFunction('get_value', [$this, 'getValue']),
         ];

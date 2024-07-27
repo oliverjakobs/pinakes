@@ -22,20 +22,20 @@ abstract class PinakesController extends AbstractController {
         return $repository->$func();
     }
 
-    public function renderTable(array $data, PinakesRepository $repository, string $fields): Response {
+    public function renderTable(PinakesRepository $repository, string $fields, array $data = null): Response {
         return $this->render('table.html.twig', [
             'repository' => $repository,
             'fields' => $this->getFields($repository, $fields),
-            'data' => $data,
+            'data' => $data ?? $repository->findAll(),
             'allow_add' => false
         ]);
     }
 
-    public function renderTableContent(array $data, PinakesRepository $repository, string $fields): Response {
+    public function renderTableContent(PinakesRepository $repository, string $fields, array $data = null): Response {
         return $this->render('tablecontent.html.twig', [
             'repository' => $repository,
             'fields' => $this->getFields($repository, $fields),
-            'data' => $data,
+            'data' => $data ?? $repository->findAll(),
         ]);
     }
 

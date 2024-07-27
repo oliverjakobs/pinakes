@@ -27,7 +27,6 @@ class AuthorRepository extends PinakesRepository {
     public function findLikeName(?string $name): array {
         return $this->findLike('name', $name);
     }
-    
 
     public static function getName(): string {
         return 'authors';

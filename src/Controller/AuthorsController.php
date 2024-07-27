@@ -12,13 +12,13 @@ class AuthorsController extends PinakesController {
 
     #[Route('/authors', name: 'authors', methods: ['GET'])]
     public function index(AuthorRepository $repository): Response {
-        return $this->renderTable($repository->findAll(), $repository, 'list');
+        return $this->renderTable($repository, 'list');
     }
 
     #[Route('/authors/search', name: 'author_search', methods: ['GET'])]
     public function search(Request $request, AuthorRepository $repository): Response {
         $search = $request->get('search');
-        return $this->renderTableContent($repository->findLikeName($search), $repository, 'list');
+        return $this->renderTableContent($repository, 'list', $repository->findLikeName($search));
     }
 
     #[Route('/authors/{id}', name: 'author_show', methods: ['GET'])]

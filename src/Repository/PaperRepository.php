@@ -12,6 +12,10 @@ class PaperRepository extends PinakesRepository {
         parent::__construct($registry, Paper::class);
     }
 
+    public static function getName(): string {
+        return 'papers';
+    }
+
    /**
     * @return Paper[] Returns an array of Paper objects
     */
@@ -19,12 +23,9 @@ class PaperRepository extends PinakesRepository {
         return $this->findLike('title', $title);
     }
 
-    public static function getLinkDoi(string $doi): string {
-        return self::getLink('https://www.doi.org/' . $doi, $doi);
-    }
-
-    public static function getName(): string {
-        return 'papers';
+    public static function getLinkDoi(Paper $paper): ?string {
+        if (null === $paper->getDoi()) return null;
+        return self::getLink('https://www.doi.org/' . $paper->getDoi(), $paper->getDoi());
     }
 
     protected function defineDataFields(): array {
@@ -45,9 +46,8 @@ class PaperRepository extends PinakesRepository {
             ),
             'doi' => array(
                 'caption' => 'DOI',
-                'data' => 'doi',
+                'data' => fn(Paper $p) => self::getLinkDoi($p),
                 'default' => '-',
-                'link' => fn(string $p) => self::getLinkDoi($p),
             ),
             'abstract' => array(
                 'caption' => 'Abstract',
