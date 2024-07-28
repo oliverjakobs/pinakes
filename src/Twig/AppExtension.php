@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Entity\PinakesEntity;
 use Doctrine\Common\Collections\Collection;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -13,13 +14,17 @@ class AppExtension extends AbstractExtension {
         ];
     }
 
-    private static function getData(callable|string $data, object $entity): mixed {
+    private static function getData(callable|string $data, PinakesEntity $entity): mixed {
         if (is_callable($data)) {
             return $data($entity);
         }
 
         if ('self' === $data) {
             return $entity;
+        }
+
+        if (method_exists($entity, $data)) {
+            return $entity->{$data}();
         }
 
         $name = 'get' . ucwords($data, '-');
@@ -32,7 +37,7 @@ class AppExtension extends AbstractExtension {
         return $field['link']($value);
     }
 
-    public function getValue(array $field, object $entity): string {
+    public function getValue(array $field, PinakesEntity $entity): string {
         assert(isset($field['data']), 'No data specified');
         $data = self::getData($field['data'], $entity);
 

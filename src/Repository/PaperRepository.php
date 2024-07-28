@@ -12,10 +12,6 @@ class PaperRepository extends PinakesRepository {
         parent::__construct($registry, Paper::class);
     }
 
-    public static function getName(): string {
-        return 'papers';
-    }
-
    /**
     * @return Paper[] Returns an array of Paper objects
     */
@@ -23,22 +19,17 @@ class PaperRepository extends PinakesRepository {
         return $this->findLike('title', $title);
     }
 
-    public static function getLinkDoi(Paper $paper): ?string {
-        if (null === $paper->getDoi()) return null;
-        return self::getLink('https://www.doi.org/' . $paper->getDoi(), $paper->getDoi());
-    }
-
     protected function defineDataFields(): array {
         return [
             'title' => array(
                 'caption' => 'Title',
                 'data' => 'self',
-                'link' => fn(Paper $p) => self::getLinkSelf($p),
+                'link' => fn(Paper $p) => $p->getLinkSelf(),
             ),
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'link' => fn(Author $a) => AuthorRepository::getLinkSelf($a),
+                'link' => fn(Author $a) => $a->getLinkSelf(),
             ),
             'releaseYear' => array(
                 'caption' => 'Release Year',
@@ -46,7 +37,7 @@ class PaperRepository extends PinakesRepository {
             ),
             'doi' => array(
                 'caption' => 'DOI',
-                'data' => fn(Paper $p) => self::getLinkDoi($p),
+                'data' => 'getLinkDoi',
                 'default' => '-',
             ),
             'abstract' => array(
@@ -59,6 +50,12 @@ class PaperRepository extends PinakesRepository {
     public function getDataFieldsList(): array {
         return $this->getDataFields(array(
             'title', 'authors', 'releaseYear', 'doi'
+        ));
+    }
+
+    public function getDataFieldsShow(): array {
+        return $this->getDataFields(array(
+            'authors', 'releaseYear', 'doi', 'abstract'
         ));
     }
 }

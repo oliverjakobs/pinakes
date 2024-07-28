@@ -1,7 +1,7 @@
 {% extends "_base.html.twig" %}
 
 {% block title %}
-  Pinakes - {{ repository.name|capitalize }}
+  Pinakes - {{ name|capitalize }}
 {% endblock %}
 
 {% block content %}
@@ -13,11 +13,11 @@
       placeholder="Search..."
       name="search"
       hx-trigger="keyup changed delay:500ms, search"
-      hx-get="/{{ repository.name }}/search"
+      hx-get="/{{ name }}/search"
       hx-target="[hx-table-content]">
 
     {% if allow_add %}
-      <a href="/{{ repository.name }}/form" class="button">Add New</a>
+      <a href="/{{ name }}/form" class="button">Add New</a>
     {% endif %}
   </div>
   {% include '/tablecontent.html.twig' %}

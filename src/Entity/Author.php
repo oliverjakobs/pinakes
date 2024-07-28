@@ -8,8 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
-class Author
-{
+class Author extends PinakesEntity {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -24,18 +23,15 @@ class Author
     #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'authors', cascade: ['remove'])]
     private Collection $books;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->papers = new ArrayCollection();
     }
 
-    public function __toString()
-    {
+    public function __toString(): string {
         return $this->name;
     }
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 

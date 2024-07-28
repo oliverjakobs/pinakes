@@ -9,7 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PaperRepository::class)]
-class Paper
+class Paper extends PinakesEntity
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -31,12 +31,11 @@ class Paper
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $abstract = null;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->authors = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->title;
     }
@@ -71,6 +70,11 @@ class Paper
     public function getDoi(): ?string
     {
         return $this->doi;
+    }
+
+    public function getLinkDoi(): ?string {
+        if (null === $this->doi) return null;
+        return self::getLink('https://www.doi.org/' . $this->doi, $this->doi);
     }
 
     public function setDoi(?string $doi): static

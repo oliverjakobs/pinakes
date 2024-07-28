@@ -8,32 +8,27 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class AuthorsController extends PinakesController {
+class AuthorController extends PinakesController {
 
-    #[Route('/authors', name: 'authors', methods: ['GET'])]
+    #[Route('/author', name: 'author_list', methods: ['GET'])]
     public function index(AuthorRepository $repository): Response {
         return $this->renderTable($repository, 'list');
     }
 
-    #[Route('/authors/search', name: 'author_search', methods: ['GET'])]
+    #[Route('/author/search', name: 'author_search', methods: ['GET'])]
     public function search(Request $request, AuthorRepository $repository): Response {
         $search = $request->get('search');
         return $this->renderTableContent($repository, 'list', $repository->findLikeName($search));
     }
 
-    #[Route('/authors/{id}', name: 'author_show', methods: ['GET'])]
+    #[Route('/author/{id}', name: 'author_show', methods: ['GET'])]
     public function show($id, AuthorRepository $repository): Response {
-        return $this->render('authors/show.html.twig', [
-            'author' => $repository->find($id),
-        ]);
+        return $this->renderShow($repository, $id, 'show');
     }
 
-    #[Route('/authors/{id}', name: 'author_delete', methods: ['DELETE'])]
-    public function delete($id, AuthorRepository $repository, EntityManagerInterface $em): Response {
-        $author = $repository->find($id);
-        $em->remove($author);
-        $em->flush();
-        
-        return $this->redirectHx('/authors');
+    #[Route('/author/{id}', name: 'author_delete', methods: ['DELETE'])]
+    public function delete($id, AuthorRepository $repository): Response {
+        $repository->delete($repository->find($id));
+        return $this->redirectHx('author_list');
     }
 }

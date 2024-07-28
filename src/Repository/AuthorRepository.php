@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Author;
+use App\Entity\PinakesEntity;
 use Doctrine\Persistence\ManagerRegistry;
 
 class AuthorRepository extends PinakesRepository {
@@ -28,20 +29,24 @@ class AuthorRepository extends PinakesRepository {
         return $this->findLike('name', $name);
     }
 
-    public static function getName(): string {
-        return 'authors';
-    }
-
     protected function defineDataFields(): array {
         return [
             'name' => array(
                 'caption' => 'Name',
                 'data' => 'self',
-                'link' => fn(Author $a) => self::getLinkSelf($a),
+                'link' => fn(Author $a) => $a->getLinkSelf(),
+            ),
+            'papers' => array(
+                'caption' => 'Papers',
+                'data' => fn(Author $a) => PinakesEntity::toHtmlList($a->getPapers(), true),
             ),
             'paper_count' => array(
                 'caption' => 'Papers',
                 'data' => fn(Author $a) => $a->getPapers()->count(),
+            ),
+            'books' => array(
+                'caption' => 'Books',
+                'data' => fn(Author $a) => PinakesEntity::toHtmlList($a->getBooks(), true),
             ),
             'book_count' => array(
                 'caption' => 'Books',
@@ -53,6 +58,12 @@ class AuthorRepository extends PinakesRepository {
     public function getDataFieldsList(): array {
         return $this->getDataFields(array(
             'name', 'paper_count', 'book_count'
+        ));
+    }
+
+    public function getDataFieldsShow(): array {
+        return $this->getDataFields(array(
+            'papers', 'books'
         ));
     }
 }

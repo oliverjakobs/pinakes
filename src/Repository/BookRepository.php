@@ -19,21 +19,17 @@ class BookRepository extends PinakesRepository {
         return $this->findLike('title', $title);
     }
 
-    public static function getName(): string {
-        return 'books';
-    }
-
     protected function defineDataFields(): array {
         return [
             'title' => array(
                 'caption' => 'Title',
                 'data' => 'self',
-                'link' => fn(Book $b) => self::getLinkSelf($b),
+                'link' => fn(Book $b) => $b->getLinkSelf(),
             ),
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'link' => fn(Author $a) => AuthorRepository::getLinkSelf($a),
+                'link' => fn(Author $a) => $a->getLinkSelf(),
             ),
             'releaseYear' => array(
                 'caption' => 'Release Year',
@@ -50,6 +46,12 @@ class BookRepository extends PinakesRepository {
     public function getDataFieldsList(): array {
         return $this->getDataFields(array(
             'title', 'authors', 'releaseYear', 'isbn'
+        ));
+    }
+    
+    public function getDataFieldsShow(): array {
+        return $this->getDataFields(array(
+            'authors', 'releaseYear', 'isbn'
         ));
     }
 }

@@ -24,24 +24,39 @@ abstract class PinakesController extends AbstractController {
 
     public function renderTable(PinakesRepository $repository, string $fields, array $data = null): Response {
         return $this->render('table.html.twig', [
-            'repository' => $repository,
-            'fields' => $this->getFields($repository, $fields),
+            'name' => $repository->getEntityName(),
             'data' => $data ?? $repository->findAll(),
+            'fields' => $this->getFields($repository, $fields),
             'allow_add' => false
         ]);
     }
 
     public function renderTableContent(PinakesRepository $repository, string $fields, array $data = null): Response {
         return $this->render('tablecontent.html.twig', [
-            'repository' => $repository,
-            'fields' => $this->getFields($repository, $fields),
+            'name' => $repository->getEntityName(),
             'data' => $data ?? $repository->findAll(),
+            'fields' => $this->getFields($repository, $fields),
         ]);
     }
 
-    public function redirectHx(string $url): Response {
+    public function renderShow(PinakesRepository $repository, int $id, string $fields): Response {
+        $name = $repository->getEntityName();
+        $entity = $repository->find($id);
+
+        if (null === $entity) {
+            throw $this->createNotFoundException($name . ' with id ' . $id . ' does not exist');
+        }
+
+        return $this->render('show.html.twig', [
+            'name' => $name,
+            'entity' => $entity,
+            'fields' => $this->getFields($repository, $fields),
+        ]);
+    }
+
+    public function redirectHx(string $route): Response {
         return new Response(headers: [
-            'HX-Redirect' => $url
+            'HX-Redirect' => $this->generateUrl($route)
         ]);
     }
 }

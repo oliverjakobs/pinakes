@@ -1,0 +1,22 @@
+{% extends "_base.html.twig" %}
+
+{% block title %}
+  Pinakes - {{ entity }}
+{% endblock %}
+
+{% block content %}
+<div class="detail">
+  <h1>{{ entity }}</h1>
+
+  <ul>
+  {% for field in fields %}
+    <li>{{ field.caption }}: {{ get_value(field, entity)|raw }}</li>
+  {% endfor %}
+  </ul>
+
+  <div>
+    <a href="/{{ name }}/form/{{ entity.id }}" class="button">Edit</a>
+    <button hx-delete="/{{ name }}/{{ entity.id }}"> Delete </button>
+  </div>
+</div>
+{% endblock %}
