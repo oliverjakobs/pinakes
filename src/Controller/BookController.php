@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -16,17 +16,16 @@ class BookController extends PinakesController {
 
     #[Route('/book/search', name: 'book_search', methods: ['GET'])]
     public function search(Request $request, BookRepository $repository): Response {
-        $title = $request->get('search');
-        return $this->renderTableContent($repository, 'list', $repository->findLikeTitle($title));
+        return $this->renderSearch($repository, 'list', $request->get('search'));
     }
 
     #[Route('/book/{id}', name: 'book_show', methods: ['GET'])]
-    public function show($id, BookRepository $repository): Response {
+    public function show(int $id, BookRepository $repository): Response {
         return $this->renderShow($repository, $id, 'show');
     }
 
     #[Route('/book/{id}', name: 'book_delete', methods: ['DELETE'])]
-    public function delete($id, BookRepository $repository): Response {
+    public function delete(int $id, BookRepository $repository): Response {
         $repository->delete($repository->find($id));
         return $this->redirectHx('book_list');
     }

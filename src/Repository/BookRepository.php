@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Repository;
 
@@ -12,12 +12,10 @@ class BookRepository extends PinakesRepository {
         parent::__construct($registry, Book::class);
     }
 
-   /**
-    * @return Book[] Returns an array of Book objects
-    */
-    public function findLikeTitle(?string $title): array {
-        return $this->findLike('title', $title);
-    }
+    /** @return Book[] Returns an array of Book objects */
+     public function search(?string $search): array {
+         return $this->findLike('title', $search);
+     }
 
     protected function defineDataFields(): array {
         return [

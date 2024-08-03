@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Repository;
 
@@ -39,7 +39,11 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if ($flush) $em->flush();
     }
 
-    public function findLike(string $key, ?string $value): array {
+    public function findAll(?array $orderBy = null, $limit = null, $offset = null): array {
+        return $this->findBy([], $orderBy, $limit, $offset);
+    }
+
+    public function findLike(string $key, ?string $value, ?array $orderBy = null): array {
         if (is_null($value) || empty($value)) return $this->findAll();
 
         $qb = $this->createQueryBuilder('p');
@@ -51,4 +55,5 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     }
 
     abstract protected function defineDataFields(): array;
+    abstract public function search(?string $search): array;
 }

@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Repository;
 
@@ -12,11 +12,9 @@ class PaperRepository extends PinakesRepository {
         parent::__construct($registry, Paper::class);
     }
 
-   /**
-    * @return Paper[] Returns an array of Paper objects
-    */
-    public function findLikeTitle(?string $title): array {
-        return $this->findLike('title', $title);
+   /** @return Paper[] Returns an array of Paper objects */
+    public function search(?string $search): array {
+        return $this->findLike('title', $search);
     }
 
     protected function defineDataFields(): array {

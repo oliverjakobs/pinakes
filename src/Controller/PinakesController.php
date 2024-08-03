@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -31,10 +31,15 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    public function renderTableContent(PinakesRepository $repository, string $fields, array $data = null): Response {
+    public function processSearch(PinakesRepository $repository, ?string $search, ?array $orderBy = null): array {
+        
+        return $repository->search($search);
+    }
+
+    public function renderSearch(PinakesRepository $repository, string $fields, ?string $search): Response {
         return $this->render('tablecontent.html.twig', [
             'name' => $repository->getEntityName(),
-            'data' => $data ?? $repository->findAll(),
+            'data' => $repository->search($search),
             'fields' => $this->getFields($repository, $fields),
         ]);
     }

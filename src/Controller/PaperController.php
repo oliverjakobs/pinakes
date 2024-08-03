@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Controller;
 
@@ -19,17 +19,16 @@ class PaperController extends PinakesController {
 
     #[Route('/paper/search', name: 'paper_search', methods: ['GET'])]
     public function search(Request $request, PaperRepository $repository): Response {
-        $title = $request->get('search');
-        return $this->renderTableContent($repository, 'list', $repository->findLikeTitle($title));
+        return $this->renderSearch($repository, 'list', $request->get('search'));
     }
 
     #[Route('/paper/{id}', name: 'paper_show', methods: ['GET'])]
-    public function show($id, PaperRepository $repository): Response {
+    public function show(int $id, PaperRepository $repository): Response {
         return $this->renderShow($repository, $id, 'show');
     }
     
     #[Route('/paper/{id}', name: 'paper_delete', methods: ['DELETE'])]
-    public function delete($id, PaperRepository $repository): Response {
+    public function delete(int $id, PaperRepository $repository): Response {
         $repository->delete($repository->find($id));
         return $this->redirectHx('paper_list');
     }
@@ -43,7 +42,6 @@ class PaperController extends PinakesController {
             $authorRep = $this->em->getRepository(Author::class);
 
             $authors = $form->get('authors')->getData();
-
             foreach (explode(';', $authors) as $name) {
                 $author = $authorRep->getOrCreate($name);
                 $paper->addAuthor($author);

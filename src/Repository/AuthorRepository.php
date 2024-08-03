@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Repository;
 
@@ -22,12 +22,10 @@ class AuthorRepository extends PinakesRepository {
         return $author;
     }
 
-   /**
-    * @return Author[] Returns an array of Author objects
-    */
-    public function findLikeName(?string $name): array {
-        return $this->findLike('name', $name);
-    }
+    /** @return Author[] Returns an array of Author objects */
+     public function search(?string $search): array {
+         return $this->findLike('name', $search);
+     }
 
     protected function defineDataFields(): array {
         return [
