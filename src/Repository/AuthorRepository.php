@@ -23,8 +23,8 @@ class AuthorRepository extends PinakesRepository {
     }
 
     /** @return Author[] Returns an array of Author objects */
-     public function search(?string $search): array {
-         return $this->findLike('name', $search);
+     public function search(?string $search, ?array $orderBy = null): array {
+         return $this->findLike('name', $search, $orderBy);
      }
 
     protected function defineDataFields(): array {

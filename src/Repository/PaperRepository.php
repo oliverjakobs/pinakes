@@ -13,8 +13,8 @@ class PaperRepository extends PinakesRepository {
     }
 
    /** @return Paper[] Returns an array of Paper objects */
-    public function search(?string $search): array {
-        return $this->findLike('title', $search);
+    public function search(?string $search, ?array $orderBy = null): array {
+        return $this->findLike('title', $search, $orderBy);
     }
 
     protected function defineDataFields(): array {

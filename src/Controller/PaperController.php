@@ -17,9 +17,9 @@ class PaperController extends PinakesController {
         return $this->renderTable($repository, 'list');
     }
 
-    #[Route('/paper/search', name: 'paper_search', methods: ['GET'])]
-    public function search(Request $request, PaperRepository $repository): Response {
-        return $this->renderSearch($repository, 'list', $request->get('search'));
+    #[Route('/paper/filter', name: 'paper_filter', methods: ['GET'])]
+    public function filter(Request $request, PaperRepository $repository): Response {
+        return $this->renderTablecontent($repository, 'list', $this->parseOptions($request));
     }
 
     #[Route('/paper/{id}', name: 'paper_show', methods: ['GET'])]

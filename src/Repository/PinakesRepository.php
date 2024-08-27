@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\PinakesEntity;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Common\Collections\Criteria;
 
 abstract class PinakesRepository extends ServiceEntityRepository {
 
@@ -44,16 +45,18 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     }
 
     public function findLike(string $key, ?string $value, ?array $orderBy = null): array {
-        if (is_null($value) || empty($value)) return $this->findAll();
+        if (is_null($value) || empty($value)) return $this->findAll($orderBy);
 
         $qb = $this->createQueryBuilder('p');
-        return $qb
-            ->andWhere($qb->expr()->like('p.' . $key, ':value'))
-            ->setParameter('value', '%' . $value . '%')
-            ->getQuery()
-            ->getResult();
+        $qb->where($qb->expr()->like('p.' . $key, ':value'));
+
+        if (null !== $orderBy) $qb->addCriteria(Criteria::create()->orderBy($orderBy));
+
+        return $qb->getQuery()->execute([
+            'value' => '%' . $value . '%'
+        ]);
     }
 
     abstract protected function defineDataFields(): array;
-    abstract public function search(?string $search): array;
+    abstract public function search(?string $search, ?array $orderBy = null): array;
 }

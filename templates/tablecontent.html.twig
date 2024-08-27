@@ -1,12 +1,24 @@
 <table class="table" hx-table-content>
   <thead>
     <tr>
-    {% for field in fields %}
-      <th>{{ field.caption }}</th>
+    {% for key, field in fields %}
+      {% set query = query_order(app.request, key) %}
+      <th
+        hx-get="/{{ name }}/filter{{ query }}"
+        hx-trigger='click'
+        hx-swap='outerHTML'
+        hx-target="[hx-table-content]">
+        <div class="table-field {{ order_icon(app.request, key) }}">{{ field.caption }}</div>
+      </th>
     {% endfor %}
     </tr>
   </thead>
   <tbody>
+    <tr class="empty">
+      <td colspan="{{ fields|length }}">
+        {{ app.request.requesturi }}
+      </td>
+    </tr>
   {% for entry in data %}
     <tr>
     {% for field in fields %}

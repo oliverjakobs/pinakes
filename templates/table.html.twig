@@ -13,12 +13,8 @@
       placeholder="Search..."
       name="search"
       hx-trigger="keyup changed delay:500ms, search"
-      hx-get="/{{ name }}/search"
+      hx-get="/{{ name }}/filter"
       hx-target="[hx-table-content]">
-
-    {% if allow_add %}
-      <a href="/{{ name }}/form" class="button">Add New</a>
-    {% endif %}
   </div>
   {% include '/tablecontent.html.twig' %}
 </div>

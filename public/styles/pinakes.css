@@ -164,6 +164,24 @@ button:hover, a.button:hover {
   background-color: var(--table-border);
 }
 
+.table-field {
+  margin-right: 1.2em;
+}
+
+.table-field::after {
+  padding-left: 0.2em;
+  font-size: 0.8em;
+  position: absolute;
+}
+
+.table-field.order-asc::after {
+  content: '\25B2';
+}
+
+.table-field.order-desc::after {
+  content: '\25BC';
+}
+
 .table tr:not(.empty):hover {
   background-color: var(--hover-color);
 }

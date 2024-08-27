@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Repository\PinakesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 abstract class PinakesController extends AbstractController {
@@ -22,6 +23,23 @@ abstract class PinakesController extends AbstractController {
         return $repository->$func();
     }
 
+    private function parseOrderString(?string $order_by): ?array {
+        if (null === $order_by) return null;
+
+        $result = explode(' ', $order_by);
+        $key = $result[0] ?? '';
+        $dir = $result[1] ?? '';
+
+        return [$key => $dir];
+    }
+
+    protected function parseOptions(Request $request): array {
+        return [
+            'search' => $request->get('search'),
+            'order_by' => $this->parseOrderString($request->get('orderby'))
+        ];
+    }
+
     public function renderTable(PinakesRepository $repository, string $fields, array $data = null): Response {
         return $this->render('table.html.twig', [
             'name' => $repository->getEntityName(),
@@ -31,15 +49,18 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    public function processSearch(PinakesRepository $repository, ?string $search, ?array $orderBy = null): array {
-        
-        return $repository->search($search);
-    }
-
     public function renderSearch(PinakesRepository $repository, string $fields, ?string $search): Response {
         return $this->render('tablecontent.html.twig', [
             'name' => $repository->getEntityName(),
             'data' => $repository->search($search),
+            'fields' => $this->getFields($repository, $fields),
+        ]);
+    }
+
+    public function renderTablecontent(PinakesRepository $repository, string $fields, array $options = array()): Response {
+        return $this->render('tablecontent.html.twig', [
+            'name' => $repository->getEntityName(),
+            'data' => $repository->search($options['search'], $options['order_by']),
             'fields' => $this->getFields($repository, $fields),
         ]);
     }

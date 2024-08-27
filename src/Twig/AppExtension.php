@@ -4,6 +4,7 @@ namespace App\Twig;
 
 use App\Entity\PinakesEntity;
 use Doctrine\Common\Collections\Collection;
+use Symfony\Component\HttpFoundation\Request;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -11,6 +12,8 @@ class AppExtension extends AbstractExtension {
     public function getFunctions(): array {
         return [
             new TwigFunction('get_value', [$this, 'getValue']),
+            new TwigFunction('query_order', [$this, 'getOrder']),
+            new TwigFunction('order_icon', [$this, 'getOrderIcon']),
         ];
     }
 
@@ -51,5 +54,38 @@ class AppExtension extends AbstractExtension {
         }
 
         return self::getLink($field, $data);
+    }
+
+    private function parseOrderString(?string $order_by): array {
+        if (null === $order_by) return ['', ''];
+        $result = explode(' ', $order_by);
+
+        $key = $result[0] ?? '';
+        $dir = $result[1] ?? '';
+
+        return [$key, $dir];
+    }
+
+    public function getOrder(Request $request, string $name): string {
+        list($key, $dir) = $this->parseOrderString($request->query->get('orderby'));
+
+        if (strcmp($name, $key) !== 0) {
+            $key = $name;
+            $dir = '';
+        }
+
+        return '?' . http_build_query([
+            'orderby' => $key . ' ' . ($dir === 'asc' ? 'dsc' : 'asc')
+        ]);
+    }
+
+    public function getOrderIcon(Request $request, string $name): string {
+        $order_by = $request->query->get('orderby');
+        if (null === $order_by) return '';
+
+        list($key, $dir) = $this->parseOrderString($order_by);
+
+        if (strcmp($name, $key) !== 0) return '';
+        return 'order-' . $dir;
     }
 }
