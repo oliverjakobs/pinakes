@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 namespace App\Repository;
 
@@ -10,16 +10,6 @@ class AuthorRepository extends PinakesRepository {
 
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, Author::class);
-    }
-    
-    public function getOrCreate(string $name): Author {
-        $author = $this->findOneBy(['name' => $name]);
-        if (null !== $author) return $author;
-        
-        $author = new Author();
-        $author->setName($name);
-        $this->save($author);
-        return $author;
     }
 
     /** @return Author[] Returns an array of Author objects */
@@ -34,14 +24,6 @@ class AuthorRepository extends PinakesRepository {
                 'data' => 'self',
                 'link' => fn(Author $a) => $a->getLinkSelf(),
             ),
-            'papers' => array(
-                'caption' => 'Papers',
-                'data' => fn(Author $a) => PinakesEntity::toHtmlList($a->getPapers(), true),
-            ),
-            'paper_count' => array(
-                'caption' => 'Papers',
-                'data' => fn(Author $a) => $a->getPapers()->count(),
-            ),
             'books' => array(
                 'caption' => 'Books',
                 'data' => fn(Author $a) => PinakesEntity::toHtmlList($a->getBooks(), true),
@@ -54,14 +36,8 @@ class AuthorRepository extends PinakesRepository {
     }
 
     public function getDataFieldsList(): array {
-        return $this->getDataFields(array(
-            'name', 'paper_count', 'book_count'
-        ));
-    }
-
-    public function getDataFieldsShow(): array {
-        return $this->getDataFields(array(
-            'papers', 'books'
+        return $this->composeDataFields(array(
+            'name', 'book_count'
         ));
     }
 }

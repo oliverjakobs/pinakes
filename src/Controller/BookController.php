@@ -9,24 +9,45 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class BookController extends PinakesController {
 
-    #[Route('/book', name: 'book_list', methods: ['GET'])]
-    public function index(BookRepository $repository): Response {
-        return $this->renderTable($repository, 'list');
+    #[Route('/books', name: 'books', methods: ['GET'])]
+    public function list(BookRepository $repository): Response {
+        return $this->render('table.html.twig', [
+            'name' => 'books',
+            'data' => $repository->findAll(),
+            'fields' => $repository->getDataFields('list')
+        ]);
     }
 
-    #[Route('/book/search', name: 'book_search', methods: ['GET'])]
-    public function search(Request $request, BookRepository $repository): Response {
-        return $this->renderSearch($repository, 'list', $request->get('search'));
+    #[Route('/books/filter', name: 'books_filter', methods: ['GET'])]
+    public function filter(Request $request, BookRepository $repository): Response {
+
+        $search = $request->get('search');
+        $orderby = null;
+        
+        $order_field = $request->get('orderby');
+        if (null !== $order_field) {
+            $orderby = [ $order_field => $request->query->get('order_dir', 'asc')];
+        }
+
+        return $this->render('tablecontent.html.twig', [
+            'name' => 'books',
+            'data' => $repository->search($search, $orderby),
+            'fields' => $repository->getDataFields('list'),
+        ]);
     }
 
-    #[Route('/book/{id}', name: 'book_show', methods: ['GET'])]
+    #[Route('/book/{id}', name: 'books_show', methods: ['GET'])]
     public function show(int $id, BookRepository $repository): Response {
-        return $this->renderShow($repository, $id, 'show');
-    }
+        $entity = $repository->find($id);
 
-    #[Route('/book/{id}', name: 'book_delete', methods: ['DELETE'])]
-    public function delete(int $id, BookRepository $repository): Response {
-        $repository->delete($repository->find($id));
-        return $this->redirectHx('book_list');
+        if (null === $entity) {
+            throw $this->createNotFoundException('Book with id ' . $id . ' does not exist');
+        }
+
+        return $this->render('show.html.twig', [
+            'name' => 'books',
+            'entity' => $entity,
+            'fields' => $repository->getDataFields('show'),
+        ]);
     }
 }

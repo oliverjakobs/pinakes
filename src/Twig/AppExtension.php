@@ -12,8 +12,8 @@ class AppExtension extends AbstractExtension {
     public function getFunctions(): array {
         return [
             new TwigFunction('get_value', [$this, 'getValue']),
-            new TwigFunction('query_order', [$this, 'getOrder']),
             new TwigFunction('order_icon', [$this, 'getOrderIcon']),
+            new TwigFunction('order_query', [$this, 'getOrderQuery']),
         ];
     }
 
@@ -56,36 +56,25 @@ class AppExtension extends AbstractExtension {
         return self::getLink($field, $data);
     }
 
-    private function parseOrderString(?string $order_by): array {
-        if (null === $order_by) return ['', ''];
-        $result = explode(' ', $order_by);
-
-        $key = $result[0] ?? '';
-        $dir = $result[1] ?? '';
-
-        return [$key, $dir];
+    private static function getOrderDir(Request $request): string {
+        $dir = $request->query->get('order_dir', 'asc');
+        return  $dir === 'asc' ? 'desc' : 'asc';
+    }
+    private static function getOrderBy(array $field): string {
+        if (isset($field['order'])) return $field['order'];
+        return $field['data'];
     }
 
-    public function getOrder(Request $request, string $name): string {
-        list($key, $dir) = $this->parseOrderString($request->query->get('orderby'));
+    public function getOrderIcon(Request $request, array $field): string {
+        $orderby = $request->query->get('orderby');
+        if (self::getOrderBy($field) !== $orderby) return '';
+        return self::getOrderDir($request);
+    }
 
-        if (strcmp($name, $key) !== 0) {
-            $key = $name;
-            $dir = '';
-        }
-
-        return '?' . http_build_query([
-            'orderby' => $key . ' ' . ($dir === 'asc' ? 'dsc' : 'asc')
+    public function getOrderQuery(Request $request, array $field): string {
+        return http_build_query([
+            'orderby' => self::getOrderBy($field),
+            'order_dir' => self::getOrderDir($request)
         ]);
-    }
-
-    public function getOrderIcon(Request $request, string $name): string {
-        $order_by = $request->query->get('orderby');
-        if (null === $order_by) return '';
-
-        list($key, $dir) = $this->parseOrderString($order_by);
-
-        if (strcmp($name, $key) !== 0) return '';
-        return 'order-' . $dir;
     }
 }

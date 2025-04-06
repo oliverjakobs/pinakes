@@ -1,16 +1,21 @@
 {% extends "_base.html.twig" %}
 
-{% block title %}
-  Pinakes
-{% endblock %}
-
 {% block content %}
-  <div class="card-container">
-  {% for name, card in cards %}
-    <a class="card" href="/{{ name }}/">
-      <div class="icon">{{ card.icon|raw }}</div>
-      <div class="title">{{ card.title }}</div>
-    </a>
-  {% endfor %}
-  </div>
+<div class="container">
+
+  <ul>
+    <li><a href="/books">Books</a></li>
+    <li><a href="/authors">Authors</a></li>
+    <li><a href="/publishers">Publishers</a></li>
+  </ul>
+
+  <form hx-get="/search" hx-target="[hx-search-result]">
+    <label for="isbn">ISBN</label>
+    <input type="text" id="isbn" name="isbn">
+    <button type="submit">Search</button>
+  </form>
+  {% include '/searchresult.html.twig' %}
+</div>
+
+
 {% endblock %}

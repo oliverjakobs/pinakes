@@ -2,8 +2,9 @@
 
 namespace App\Repository;
 
-use App\Entity\Author;
 use App\Entity\Book;
+use App\Entity\Author;
+use App\Entity\Publisher;
 use Doctrine\Persistence\ManagerRegistry;
 
 class BookRepository extends PinakesRepository {
@@ -23,33 +24,47 @@ class BookRepository extends PinakesRepository {
                 'caption' => 'Title',
                 'data' => 'self',
                 'link' => fn(Book $b) => $b->getLinkSelf(),
+                'order' => 'title'
             ),
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
                 'link' => fn(Author $a) => $a->getLinkSelf(),
             ),
-            'releaseYear' => array(
-                'caption' => 'Release Year',
-                'data' => 'releaseYear',
+            'publisher' => array(
+                'caption' => 'Publisher',
+                'data' => 'publisher',
+                'link' => fn(Publisher $p) => $p->getLinkSelf(),
+            ),
+            'year' => array(
+                'caption' => 'Year Published',
+                'data' => 'published',
             ),
             'isbn' => array(
                 'caption' => 'ISBN',
                 'data' => 'isbn',
-                'default' => '-'
-            ),
+            )
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->getDataFields(array(
-            'title', 'authors', 'releaseYear', 'isbn'
+        return $this->composeDataFields(array(
+            'title', 'authors', 'publisher', 'year', 'isbn'
         ));
     }
-    
+    public function getDataFieldsListAuthor(): array {
+        return $this->composeDataFields(array(
+            'title', 'publisher', 'year', 'isbn'
+        ));
+    }
+    public function getDataFieldsListPublisher(): array {
+        return $this->composeDataFields(array(
+            'title', 'authors', 'year', 'isbn'
+        ));
+    }
     public function getDataFieldsShow(): array {
-        return $this->getDataFields(array(
-            'authors', 'releaseYear', 'isbn'
+        return $this->composeDataFields(array(
+            'authors', 'publisher', 'year', 'isbn'
         ));
     }
 }

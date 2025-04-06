@@ -40,7 +40,7 @@ footer {
   margin-bottom: 1.8rem;
 }
 
-a {
+a.logo {
   text-decoration: none;
   color: var(--main-color);
 }
@@ -170,16 +170,17 @@ button:hover, a.button:hover {
 
 .table-field::after {
   padding-left: 0.2em;
-  font-size: 0.8em;
+  font-size: 1.6em;
+  line-height: 1em;
   position: absolute;
 }
 
-.table-field.order-asc::after {
-  content: '\25B2';
+.table-field.asc::after {
+  content: '\1F839';
 }
 
-.table-field.order-desc::after {
-  content: '\25BC';
+.table-field.desc::after {
+  content: '\1F83B';
 }
 
 .table tr:not(.empty):hover {
@@ -246,5 +247,3 @@ form input:hover, form input:focus, form textarea:hover, form textarea:focus {
 form textarea {
   height: 120px;
 }
-
-

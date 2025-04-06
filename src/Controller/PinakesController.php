@@ -16,13 +16,6 @@ abstract class PinakesController extends AbstractController {
         $this->em = $em;
     }
 
-    private function getFields(PinakesRepository $repository, string $fields): array {
-        $func = 'getDataFields' . ucwords($fields);
-
-        assert(method_exists($repository, $func), $func . ' missing for ' . $repository::class);
-        return $repository->$func();
-    }
-
     private function parseOrderString(?string $order_by): ?array {
         if (null === $order_by) return null;
 
@@ -44,8 +37,7 @@ abstract class PinakesController extends AbstractController {
         return $this->render('table.html.twig', [
             'name' => $repository->getEntityName(),
             'data' => $data ?? $repository->findAll(),
-            'fields' => $this->getFields($repository, $fields),
-            'allow_add' => false
+            'fields' => $repository->getDataFields($fields)
         ]);
     }
 
@@ -53,7 +45,7 @@ abstract class PinakesController extends AbstractController {
         return $this->render('tablecontent.html.twig', [
             'name' => $repository->getEntityName(),
             'data' => $repository->search($search),
-            'fields' => $this->getFields($repository, $fields),
+            'fields' => $repository->getDataFields($fields),
         ]);
     }
 
@@ -61,22 +53,7 @@ abstract class PinakesController extends AbstractController {
         return $this->render('tablecontent.html.twig', [
             'name' => $repository->getEntityName(),
             'data' => $repository->search($options['search'], $options['order_by']),
-            'fields' => $this->getFields($repository, $fields),
-        ]);
-    }
-
-    public function renderShow(PinakesRepository $repository, int $id, string $fields): Response {
-        $name = $repository->getEntityName();
-        $entity = $repository->find($id);
-
-        if (null === $entity) {
-            throw $this->createNotFoundException($name . ' with id ' . $id . ' does not exist');
-        }
-
-        return $this->render('show.html.twig', [
-            'name' => $name,
-            'entity' => $entity,
-            'fields' => $this->getFields($repository, $fields),
+            'fields' => $repository->getDataFields($fields),
         ]);
     }
 

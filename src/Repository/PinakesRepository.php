@@ -15,15 +15,20 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         parent::__construct($registry, $entityClass);
         $this->dataFields = $this->defineDataFields();
     }
-
-    public function getEntityName(): string {
-        return call_user_func($this->_entityName . '::getClassName');
-    }
     
-    public function getDataFields(?array $names = null): array {
+    abstract protected function defineDataFields(): array;
+
+    protected function composeDataFields(?array $names = null): array {
         if (null === $names) return $this->dataFields;
 
         return array_filter($this->dataFields, fn ($e) => in_array($e, $names), ARRAY_FILTER_USE_KEY);
+    }
+
+    public function getDataFields(string $fields): array {
+        $func = 'getDataFields' . str_replace('_', '', ucwords($fields, '_'));
+
+        assert(method_exists($this, $func), $func . ' missing for ' . $this::class);
+        return $this->$func();
     }
 
     public function save(PinakesEntity $entity, bool $flush = true) {
@@ -57,6 +62,5 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         ]);
     }
 
-    abstract protected function defineDataFields(): array;
     abstract public function search(?string $search, ?array $orderBy = null): array;
 }
