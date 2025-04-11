@@ -2,12 +2,13 @@
   <thead>
     <tr>
     {% for key, field in fields %}
+      {% set direction = order_dir(app.request, field) %}
       <th
-          hx-get="/{{ name }}/filter?{{ order_query(app.request, field) }}"
+          hx-get="/{{ name }}/filter?{{ order_query(app.request, field, direction) }}"
           hx-trigger='click'
           hx-swap='outerHTML'
           hx-target="[hx-table-content]">
-        <div class="table-field {{ order_icon(app.request, field) }}">{{ field.caption }}</div>
+        <div class="table-field {{ direction }}">{{ field.caption }}</div>
       </th>
     {% endfor %}
     </tr>

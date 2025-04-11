@@ -12,7 +12,7 @@ class AppExtension extends AbstractExtension {
     public function getFunctions(): array {
         return [
             new TwigFunction('get_value', [$this, 'getValue']),
-            new TwigFunction('order_icon', [$this, 'getOrderIcon']),
+            new TwigFunction('order_dir', [$this, 'getOrderDir']),
             new TwigFunction('order_query', [$this, 'getOrderQuery']),
         ];
     }
@@ -45,7 +45,7 @@ class AppExtension extends AbstractExtension {
         $data = self::getData($field['data'], $entity);
 
         if (null === $data) {
-            return $field['default'] ?? '';
+            return $field['default'] ?? '-';
         }
 
         if ($data instanceof Collection) {
@@ -56,25 +56,24 @@ class AppExtension extends AbstractExtension {
         return self::getLink($field, $data);
     }
 
-    private static function getOrderDir(Request $request): string {
-        $dir = $request->query->get('order_dir', 'asc');
-        return  $dir === 'asc' ? 'desc' : 'asc';
-    }
     private static function getOrderBy(array $field): string {
-        if (isset($field['order'])) return $field['order'];
-        return $field['data'];
+        return $field['order'] ?? $field['data'];
     }
 
-    public function getOrderIcon(Request $request, array $field): string {
-        $orderby = $request->query->get('orderby');
+    public function getOrderDir(Request $request, array $field): string {
+        $orderby = $request->query->get('order_by');
         if (self::getOrderBy($field) !== $orderby) return '';
-        return self::getOrderDir($request);
+
+        return $request->query->get('order_dir', 'desc');
     }
 
-    public function getOrderQuery(Request $request, array $field): string {
+    public function getOrderQuery(Request $request, array $field, string $dir): string {
+        if (empty($dir)) $dir = 'desc';
+
         return http_build_query([
-            'orderby' => self::getOrderBy($field),
-            'order_dir' => self::getOrderDir($request)
+            'search' => $request->get('search'),
+            'order_by' => self::getOrderBy($field),
+            'order_dir' => $dir === 'asc' ? 'desc' : 'asc'
         ]);
     }
 }
