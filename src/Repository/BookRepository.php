@@ -22,19 +22,17 @@ class BookRepository extends PinakesRepository {
         return [
             'title' => array(
                 'caption' => 'Title',
-                'data' => 'self',
-                'link' => fn(Book $b) => $b->getLinkSelf(),
-                'order' => 'title'
+                'data' => 'title',
+                'link' => self::LINK_SELF
             ),
             'authors' => array(
                 'caption' => 'Author(s)',
-                'data' => 'authors',
-                'link' => fn(Author $a) => $a->getLinkSelf(),
+                'data' => fn(Book $b) => $b->getAuthorLinks(),
             ),
             'publisher' => array(
                 'caption' => 'Publisher',
                 'data' => 'publisher',
-                'link' => fn(Publisher $p) => $p->getLinkSelf(),
+                'link' => self::LINK_DATA
             ),
             'year' => array(
                 'caption' => 'Year Published',

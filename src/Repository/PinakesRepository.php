@@ -9,6 +9,9 @@ use Doctrine\Common\Collections\Criteria;
 
 abstract class PinakesRepository extends ServiceEntityRepository {
 
+    const LINK_SELF = 'link_self';
+    const LINK_DATA = 'link_data';
+
     private array $dataFields;
 
     public function __construct(ManagerRegistry $registry, string $entityClass) {

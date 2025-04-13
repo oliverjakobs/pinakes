@@ -62,6 +62,11 @@ class Book extends PinakesEntity {
     public function getAuthors(): Collection {
         return $this->authors;
     }
+    
+    public function getAuthorLinks(): string {
+        $links = array_map(fn ($a) => $a->getLinkSelf(), $this->authors->toArray());
+        return implode('; ', $links);
+    }
 
     public function addAuthor(Author $author): static {
         if (!$this->authors->contains($author)) {

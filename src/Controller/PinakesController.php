@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,6 +15,29 @@ abstract class PinakesController extends AbstractController {
 
     public function __construct(EntityManagerInterface $em) {
         $this->em = $em;
+    }
+
+    protected function getEntityList( Request $request, PinakesRepository $repository): array {
+        $search = $request->get('search');
+        $order_by = null;
+        
+        $order_field = $request->get('order_by');
+        if (null !== $order_field) {
+            $order_by = [ $order_field => $request->query->get('order_dir', 'asc')];
+        }
+        
+        return $repository->search($search, $order_by);
+    }
+
+    protected function getEntity(Request $request, PinakesRepository $repository): PinakesEntity {
+        $id = $request->attributes->get('id');
+        $entity = $repository->find($id);
+
+        if (null === $entity) {
+            throw $this->createNotFoundException('Book with id ' . $id . ' does not exist');
+        }
+
+        return $entity;
     }
 
     private function parseOrderString(?string $order_by): ?array {

@@ -3,7 +3,9 @@
 namespace App\Twig;
 
 use App\Entity\PinakesEntity;
+use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
+use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -22,47 +24,34 @@ class AppExtension extends AbstractExtension {
             return $data($entity);
         }
 
-        if ('self' === $data) {
-            return $entity;
-        }
-
-        if (method_exists($entity, $data)) {
-            return $entity->{$data}();
-        }
-
         $name = 'get' . ucwords($data, '-');
         return $entity->{$name}();
-    }
-
-    private static function getLink(array $field, mixed $value): string {
-        if (!isset($field['link'])) return (string) $value;
-
-        return $field['link']($value);
     }
 
     public function getValue(array $field, PinakesEntity $entity): string {
         assert(isset($field['data']), 'No data specified');
         $data = self::getData($field['data'], $entity);
 
-        if (null === $data) {
-            return $field['default'] ?? '-';
+        if (null === $data) return $field['default'] ?? '-';
+
+        if (!isset($field['link'])) return (string) $data;
+
+        $link = $field['link'];
+        if (PinakesRepository::LINK_SELF === $link) {
+            return $entity->getLinkSelf();
         }
 
-        if ($data instanceof Collection) {
-            $array = array_map(fn ($a) => self::getLink($field, $a), $data->toArray());
-            return implode('; ', $array);
+        if (PinakesRepository::LINK_DATA === $link) {
+            assert($data instanceof PinakesEntity, 'Can only link to entities');
+            return $data->getLinkSelf();
         }
 
-        return self::getLink($field, $data);
-    }
-
-    private static function getOrderBy(array $field): string {
-        return $field['order'] ?? $field['data'];
+        throw new Exception('Unkown link type');
     }
 
     public function getOrderDir(Request $request, array $field): string {
         $orderby = $request->query->get('order_by');
-        if (self::getOrderBy($field) !== $orderby) return '';
+        if ($field['data'] !== $orderby) return '';
 
         return $request->query->get('order_dir', 'desc');
     }
@@ -72,7 +61,7 @@ class AppExtension extends AbstractExtension {
 
         return http_build_query([
             'search' => $request->get('search'),
-            'order_by' => self::getOrderBy($field),
+            'order_by' => $field['data'],
             'order_dir' => $dir === 'asc' ? 'desc' : 'asc'
         ]);
     }
