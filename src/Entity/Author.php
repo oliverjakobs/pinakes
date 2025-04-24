@@ -23,16 +23,24 @@ class Author extends PinakesEntity {
     #[ORM\ManyToMany(targetEntity: Book::class, inversedBy: 'authors')]
     private Collection $books;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $openlibrary = null;
+
     public function __construct() {
         $this->books = new ArrayCollection();
     }
 
-    public function __toString() {
-        return $this->name;
+    public function __toString(): string {
+        return $this->name ?? 'Unknown author';
     }
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public function getLinkOpenLibrary(): ?string {
+        if (null === $this->openlibrary) return null;
+        return self::getLink('https://openlibrary.org/authors/' . $this->openlibrary, $this->openlibrary, true);
     }
 
     public function getName(): ?string {
@@ -63,6 +71,18 @@ class Author extends PinakesEntity {
         if ($this->books->removeElement($book)) {
             $book->removeAuthor($this);
         }
+        return $this;
+    }
+
+    public function getOpenlibrary(): ?string
+    {
+        return $this->openlibrary;
+    }
+
+    public function setOpenlibrary(?string $openlibrary): static
+    {
+        $this->openlibrary = $openlibrary;
+
         return $this;
     }
 }

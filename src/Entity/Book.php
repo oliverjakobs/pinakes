@@ -40,11 +40,16 @@ class Book extends PinakesEntity {
     }
 
     public function __toString(): string {
-        return $this->title;
+        return $this->title ?? 'Untitled book';
     }
 
     public function getId(): ?int {
         return $this->id;
+    }
+    
+    public function getLinksAuthors(): string {
+        $links = array_map(fn ($a) => $a->getLinkSelf(), $this->authors->toArray());
+        return implode('; ', $links);
     }
 
     public function getTitle(): ?string {
@@ -63,10 +68,6 @@ class Book extends PinakesEntity {
         return $this->authors;
     }
     
-    public function getAuthorLinks(): string {
-        $links = array_map(fn ($a) => $a->getLinkSelf(), $this->authors->toArray());
-        return implode('; ', $links);
-    }
 
     public function addAuthor(Author $author): static {
         if (!$this->authors->contains($author)) {

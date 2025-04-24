@@ -7,15 +7,18 @@
 {% block content %}
 <div class="container">
   <div class="table-control">
-    <input
+  <input
       class="search"
       type="search"
       placeholder="Search..."
       name="search"
-      hx-trigger="keyup changed delay:500ms, search"
-      hx-get="/{{ name }}/filter"
+      value="{{ query.search }}"
+      hx-trigger="keyup[key=='Enter']"
+      hx-get="{{ path(name ~ '_filter') }}"
       hx-target="[hx-table-content]">
   </div>
-  {% include '/tablecontent.html.twig' %}
+  <div hx-get="{{ path(name ~ '_filter', query) }}" hx-trigger="load">
+    {# TODO Spinner animation #}
+  </div>
 </div>
 {% endblock %}

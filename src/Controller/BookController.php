@@ -9,35 +9,33 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class BookController extends PinakesController {
 
+    public function getModelName(): string {
+        return 'book';
+    }
 
-    #[Route('/books', name: 'books', methods: ['GET'])]
-    public function list(BookRepository $repository, Request $request): Response {
+    #[Route('/book', name: 'book', methods: ['GET'])]
+    public function list(Request $request, BookRepository $repository): Response {
         return $this->render('table.html.twig', [
-            'name' => 'books',
-            'data' => $this->getEntityList($request, $repository),
-            'fields' => $repository->getDataFields('list')
+            'name' => $this->getModelName(),
+            'query' => [
+                'search' => $request->query->get('search'),
+                'order_by' => $request->query->get('order_by'),
+                'order_dir' => $request->query->get('order_dir', 'desc'),
+                'page' => $request->get('page', 1),
+                'pp' => 50
+            ]
         ]);
     }
 
-    #[Route('/books/filter', name: 'books_filter', methods: ['GET'])]
-    public function filter(BookRepository $repository, Request $request): Response {
-        $response = $this->render('tablecontent.html.twig', [
-            'name' => 'books',
-            'data' => $this->getEntityList($request, $repository),
-            'fields' => $repository->getDataFields('list'),
-        ]);
-
-        $search = $request->get('search');
-        $response->headers->set('HX-Push-Url', '/books?search=' . $search);
-
-        return $response;
+    #[Route('/book/filter', name: 'book_filter', methods: ['GET'])]
+    public function filter(Request $request, BookRepository $repository): Response {
+        return $this->renderFilter($request, $repository, 'list');
     }
 
-    #[Route('/book/{id}', name: 'books_show', methods: ['GET'])]
+    #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
     public function show(Request $request, BookRepository $repository): Response {
-
         return $this->render('show.html.twig', [
-            'name' => 'books',
+            'name' => 'book',
             'entity' => $this->getEntity($request, $repository),
             'fields' => $repository->getDataFields('show'),
         ]);

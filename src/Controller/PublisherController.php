@@ -2,21 +2,37 @@
 
 namespace App\Controller;
 
-use App\Repository\BookRepository;
 use App\Repository\PublisherRepository;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class PublisherController extends PinakesController {
 
-    #[Route('/publishers', name: 'publishers', methods: ['GET'])]
-    public function list(PublisherRepository $repository): Response {
-        return $this->renderTable($repository, 'list');
+    #[Route('/publisher', name: 'publisher', methods: ['GET'])]
+    public function list(Request $request, PublisherRepository $repository): Response {
+        return $this->render('table.html.twig', [
+            'name' => 'publisher',
+            'data' => $this->getEntityList($request, $repository),
+            'fields' => $repository->getDataFields('list')
+        ]);
     }
 
-    #[Route('/publisher/{id}', name: 'publisher_show', methods: ['GET'])]
-    public function show(int $id, PublisherRepository $repository, BookRepository $book_repository): Response {
-        $publisher = $repository->find($id);
-        return $this->renderTable($book_repository, 'list_publisher', $publisher->getBooks()->toArray());
+    #[Route('/publisher/filter', name: 'publisher_filter', methods: ['GET'])]
+    public function filter(Request $request, PublisherRepository $repository): Response {
+        return $this->renderFilter($request,
+            'publisher',
+            $this->getEntityList($request, $repository),
+            $repository->getDataFields('list')
+        );
+    }
+
+    #[Route('/publisher/show/{id}', name: 'publisher_show', methods: ['GET'])]
+    public function show(Request $request, PublisherRepository $repository): Response {
+        return $this->render('show.html.twig', [
+            'name' => 'author',
+            'entity' => $this->getEntity($request, $repository),
+            'fields' => $repository->getDataFields('show'),
+        ]);
     }
 }

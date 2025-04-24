@@ -12,19 +12,30 @@ class AuthorRepository extends PinakesRepository {
         parent::__construct($registry, Author::class);
     }
 
+    public function getOrCreate(string $name): Author {
+        $author = $this->findLike('name', $name);
+        if (!empty($author)) return $author[0];
+
+        $author = new Author();
+        $author->setName($name);
+        $this->save($author);
+
+        return $author;
+    }
+
     /** @return Author[] Returns an array of Author objects */
-     public function search(?string $search, ?array $orderBy = null): array {
-         return $this->findLike('name', $search, $orderBy);
+     public function search(?string $search, array $orderBy = null, int $limit = null, int $offset = null): array {
+         return $this->findLike('name', $search, $orderBy, $limit, $offset);
      }
 
     protected function defineDataFields(): array {
         return [
             'name' => array(
                 'caption' => 'Name',
-                'data' => 'self',
-                'link' => fn(Author $a) => $a->getLinkSelf(),
+                'data' => 'name',
+                'link' => self::LINK_SELF
             ),
-            'books' => array(
+            'book_list' => array(
                 'caption' => 'Books',
                 'data' => fn(Author $a) => PinakesEntity::toHtmlList($a->getBooks(), true),
             ),
@@ -32,12 +43,22 @@ class AuthorRepository extends PinakesRepository {
                 'caption' => 'Books',
                 'data' => fn(Author $a) => $a->getBooks()->count(),
             ),
+            'openlibrary' => array(
+                'caption' => 'OpenLibrary',
+                'data' => fn(Author $a) => $a->getLinkOpenLibrary(),
+            ),
         ];
     }
 
     public function getDataFieldsList(): array {
         return $this->composeDataFields(array(
             'name', 'book_count'
+        ));
+    }
+    
+    public function getDataFieldsShow(): array {
+        return $this->composeDataFields(array(
+            'book_list', 'openlibrary'
         ));
     }
 }

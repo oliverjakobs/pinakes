@@ -14,8 +14,6 @@ class AppExtension extends AbstractExtension {
     public function getFunctions(): array {
         return [
             new TwigFunction('get_value', [$this, 'getValue']),
-            new TwigFunction('order_dir', [$this, 'getOrderDir']),
-            new TwigFunction('order_query', [$this, 'getOrderQuery']),
         ];
     }
 
@@ -24,7 +22,7 @@ class AppExtension extends AbstractExtension {
             return $data($entity);
         }
 
-        $name = 'get' . ucwords($data, '-');
+        $name = 'get' . str_replace('_', '', ucwords($data, '_'));
         return $entity->{$name}();
     }
 
@@ -47,22 +45,5 @@ class AppExtension extends AbstractExtension {
         }
 
         throw new Exception('Unkown link type');
-    }
-
-    public function getOrderDir(Request $request, array $field): string {
-        $orderby = $request->query->get('order_by');
-        if ($field['data'] !== $orderby) return '';
-
-        return $request->query->get('order_dir', 'desc');
-    }
-
-    public function getOrderQuery(Request $request, array $field, string $dir): string {
-        if (empty($dir)) $dir = 'desc';
-
-        return http_build_query([
-            'search' => $request->get('search'),
-            'order_by' => $field['data'],
-            'order_dir' => $dir === 'asc' ? 'desc' : 'asc'
-        ]);
     }
 }

@@ -1,10 +1,13 @@
-<table class="table" hx-table-content>
+<div hx-table-content>
+
+<table class="table">
   <thead>
     <tr>
     {% for key, field in fields %}
-      {% set direction = order_dir(app.request, field) %}
+      {% set direction = (field.data == query.order_by) ? query.order_dir : '' %}
+      {% set next_dir = (direction == 'asc') ? 'desc' : 'asc' %}
       <th
-          hx-get="/{{ name }}/filter?{{ order_query(app.request, field, direction) }}"
+          hx-get="{{ path(name ~ '_filter', query|merge({'order_by': field.data, 'order_dir': next_dir, 'page': 1})) }}"
           hx-trigger='click'
           hx-swap='outerHTML'
           hx-target="[hx-table-content]">
@@ -14,7 +17,7 @@
     </tr>
   </thead>
   <tbody>
-  {% for entry in data %}
+  {% for entry in data|slice((query.page - 1) * query.pp, query.pp) %}
     <tr>
     {% for field in fields %}
       <td>{{ get_value(field, entry)|raw }}</td>
@@ -27,3 +30,65 @@
   {% endfor %}
   </tbody>
 </table>
+
+<ul class="pagination" hx-boost="true">
+  {% set max_pages = ((data|length) / query.pp)|round(0, 'ceil') %}
+  {% set start = max(min(query.page - 4, max_pages - 8), 1) %}
+  {% set end = min(start + 9, max_pages) %}
+
+  {% if query.page > 1 %}
+    <li class="icon">
+      <a href="{{ path(name ~ '_filter', query|merge({'page': query.page - 1})) }}"
+          hx-swap='outerHTML'
+          hx-target="[hx-table-content]">
+        Previous
+      </a>
+    </li>
+  {% endif %}
+
+  {% if start > 1 %}
+    {% set start = start + 1 %}
+    <li>
+      <a href="{{ path(name ~ '_filter', query|merge({'page': 1})) }}"
+          hx-swap='outerHTML'
+          hx-target="[hx-table-content]">
+        {{1}}
+      </a>
+    </li>
+    <li>...</li>
+  {% endif %}
+
+  {% for p in range(start, end) %}
+    <li>
+      <a href="{{ path(name ~ '_filter', query|merge({'page': p})) }}"
+          hx-swap='outerHTML'
+          hx-target="[hx-table-content]">
+        {{p}}
+      </a>
+    </li>
+  {% endfor %}
+
+  {% if end < max_pages %}
+    <li>...</li>
+    <li>
+      <a href="{{ path(name ~ '_filter', query|merge({'page': max_pages})) }}"
+          hx-swap='outerHTML'
+          hx-target="[hx-table-content]">
+        {{ max_pages }}
+      </a>
+    </li>
+  {% endif %}
+  
+  {% if query.page < max_pages %}
+    <li class="icon">
+      <a href="{{ path(name ~ '_filter', query|merge({'page': query.page + 1})) }}"
+          hx-swap='outerHTML'
+          hx-target="[hx-table-content]">
+        Next
+      </a>
+    </li>
+  {% endif %}
+
+</ul>
+
+</div>

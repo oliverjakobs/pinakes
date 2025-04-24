@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Book;
-use App\Entity\Author;
-use App\Entity\Publisher;
+use App\Entity\PinakesEntity;
 use Doctrine\Persistence\ManagerRegistry;
 
 class BookRepository extends PinakesRepository {
@@ -14,8 +13,8 @@ class BookRepository extends PinakesRepository {
     }
 
     /** @return Book[] Returns an array of Book objects */
-     public function search(?string $search, ?array $orderBy = null): array {
-         return $this->findLike('title', $search, $orderBy);
+     public function search(?string $search, array $orderBy = null, int $limit = null, int $offset = null): array {
+         return $this->findLike('title', $search, $orderBy, $limit, $offset);
      }
 
     protected function defineDataFields(): array {
@@ -27,16 +26,24 @@ class BookRepository extends PinakesRepository {
             ),
             'authors' => array(
                 'caption' => 'Author(s)',
-                'data' => fn(Book $b) => $b->getAuthorLinks(),
+                'data' => fn(Book $b) => $b->getLinksAuthors(),
+            ),
+            'author_list' => array(
+                'caption' => 'Author(s)',
+                'data' => fn(Book $b) => PinakesEntity::toHtmlList($b->getAuthors(), true),
             ),
             'publisher' => array(
                 'caption' => 'Publisher',
                 'data' => 'publisher',
                 'link' => self::LINK_DATA
             ),
-            'year' => array(
+            'published' => array(
                 'caption' => 'Year Published',
                 'data' => 'published',
+            ),
+            'first_published' => array(
+                'caption' => 'First Published',
+                'data' => 'first_published',
             ),
             'isbn' => array(
                 'caption' => 'ISBN',
@@ -47,22 +54,22 @@ class BookRepository extends PinakesRepository {
 
     public function getDataFieldsList(): array {
         return $this->composeDataFields(array(
-            'title', 'authors', 'publisher', 'year', 'isbn'
+            'title', 'authors', 'publisher', 'published', 'first_published', 'isbn'
         ));
     }
     public function getDataFieldsListAuthor(): array {
         return $this->composeDataFields(array(
-            'title', 'publisher', 'year', 'isbn'
+            'title', 'publisher', 'first_published', 'isbn'
         ));
     }
     public function getDataFieldsListPublisher(): array {
         return $this->composeDataFields(array(
-            'title', 'authors', 'year', 'isbn'
+            'title', 'authors', 'published', 'isbn'
         ));
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields(array(
-            'authors', 'publisher', 'year', 'isbn'
+            'author_list', 'publisher', 'published', 'first_published', 'isbn'
         ));
     }
 }

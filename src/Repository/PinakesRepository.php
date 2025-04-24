@@ -48,22 +48,25 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if ($flush) $em->flush();
     }
 
-    public function findAll(?array $orderBy = null, $limit = null, $offset = null): array {
+    public function findAll(array $orderBy = null, int $limit = null, int $offset = null): array {
         return $this->findBy([], $orderBy, $limit, $offset);
     }
 
-    public function findLike(string $key, ?string $value, ?array $orderBy = null): array {
-        if (is_null($value) || empty($value)) return $this->findAll($orderBy);
+    /** @return PinakesEntity[] */
+    public function findLike(string $key, ?string $value, array $orderBy = null, int $limit = null, int $offset = null): array {
+        if (is_null($value) || empty($value)) return $this->findAll($orderBy, $limit, $offset);
 
         $qb = $this->createQueryBuilder('p');
         $qb->where($qb->expr()->like('p.' . $key, ':value'));
 
         if (null !== $orderBy) $qb->addCriteria(Criteria::create()->orderBy($orderBy));
 
+        $qb->setFirstResult($offset)->setMaxResults($limit);
+
         return $qb->getQuery()->execute([
             'value' => '%' . $value . '%'
         ]);
     }
 
-    abstract public function search(?string $search, ?array $orderBy = null): array;
+    abstract public function search(?string $search, array $orderBy = null, int $limit = null, int $offset = null): array;
 }

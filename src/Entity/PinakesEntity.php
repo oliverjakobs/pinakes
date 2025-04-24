@@ -10,8 +10,9 @@ abstract class PinakesEntity {
     abstract public function getId(): ?int;
     abstract public function __toString(): string;
 
-    public static function getLink(string $href, string $caption): string {
-        return sprintf('<a href="%s">%s</a>', $href, $caption);
+    public static function getLink(string $href, string $caption, bool $extern = false): string {
+        $attr =  ($extern ? 'class="link-extern" target="_blank" rel="noopener noreferrer" ' : '');
+        return sprintf('<a ' . $attr . 'href="%s">%s</a>', $href, $caption);
     }
 
     public static function getClassName(): string {
@@ -20,7 +21,7 @@ abstract class PinakesEntity {
     }
 
     public function getLinkSelf(?string $value = null): string {
-        $href = '/' . self::getClassName() . '/' .  $this->getId();
+        $href = '/' . self::getClassName() . '/show/' .  $this->getId();
         return self::getLink($href, $value ?? (string)$this);
     }
 
