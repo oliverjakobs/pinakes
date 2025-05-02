@@ -9,18 +9,18 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AuthorController extends PinakesController {
 
+    public function getModelName(): string {
+        return 'author';
+    }
+
     #[Route('/author', name: 'author', methods: ['GET'])]
     public function list(Request $request, AuthorRepository $repository): Response {
-        return $this->render('table.html.twig', [
-            'name' => 'author',
-            'data' => $this->getEntityList($request, $repository),
-            'fields' => $repository->getDataFields('list')
-        ]);
+        return $this->renderList($request, $repository);
     }
 
     #[Route('/author/filter', name: 'author_filter', methods: ['GET'])]
     public function filter(Request $request, AuthorRepository $repository): Response {
-        return $this->renderFilter($request, $repository, 'list');
+        return $this->renderFilter($request, $repository);
     }
 
     #[Route('/author/show/{id}', name: 'author_show', methods: ['GET'])]

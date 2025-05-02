@@ -9,22 +9,18 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class PublisherController extends PinakesController {
 
+    public function getModelName(): string {
+        return 'publisher';
+    }
+
     #[Route('/publisher', name: 'publisher', methods: ['GET'])]
     public function list(Request $request, PublisherRepository $repository): Response {
-        return $this->render('table.html.twig', [
-            'name' => 'publisher',
-            'data' => $this->getEntityList($request, $repository),
-            'fields' => $repository->getDataFields('list')
-        ]);
+        return $this->renderList($request, $repository);
     }
 
     #[Route('/publisher/filter', name: 'publisher_filter', methods: ['GET'])]
     public function filter(Request $request, PublisherRepository $repository): Response {
-        return $this->renderFilter($request,
-            'publisher',
-            $this->getEntityList($request, $repository),
-            $repository->getDataFields('list')
-        );
+        return $this->renderFilter($request, $repository);
     }
 
     #[Route('/publisher/show/{id}', name: 'publisher_show', methods: ['GET'])]

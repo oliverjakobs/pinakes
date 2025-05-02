@@ -44,22 +44,33 @@ abstract class PinakesController extends AbstractController {
         return $entity;
     }
 
-    public function renderTable(Request $request, PinakesRepository $repository, string $fields): string {
-        return $this->renderView('tablecontent.html.twig', [
+    private function getQuery(Request $request): array {
+        return [
+            'search' => $request->query->get('search'),
+            'order_by' => $request->query->get('order_by'),
+            'order_dir' => $request->query->get('order_dir', 'desc'),
+            'page' => $request->query->get('page', 1),
+            'pp' => 30
+        ];
+    }
+
+    public function renderList(Request $request, PinakesRepository $repository, string $fields='list'): Response {
+        return $this->render('list.html.twig', [
             'name' => $this->getModelName(),
-            'data' => $this->getEntityList($request, $repository),
-            'fields' => $repository->getDataFields($fields),
-            'query' => [
-                'search' => $request->query->get('search'),
-                'order_by' => $request->query->get('order_by'),
-                'order_dir' => $request->query->get('order_dir', 'desc'),
-                'page' => $request->get('page', 1),
-                'pp' => 30
-            ]
+            'query' => $this->getQuery($request)
         ]);
     }
 
-    public function renderFilter(Request $request, PinakesRepository $repository, string $fields): Response {
+    public function renderTable(Request $request, PinakesRepository $repository, string $fields='list'): string {
+        return $this->renderView('table.html.twig', [
+            'name' => $this->getModelName(),
+            'data' => $this->getEntityList($request, $repository),
+            'fields' => $repository->getDataFields($fields),
+            'query' => $this->getQuery($request)
+        ]);
+    }
+
+    public function renderFilter(Request $request, PinakesRepository $repository, string $fields='list'): Response {
         $response = new Response();
 
         $response->setContent($this->renderTable($request, $repository, $fields));

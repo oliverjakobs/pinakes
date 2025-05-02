@@ -15,21 +15,12 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository): Response {
-        return $this->render('table.html.twig', [
-            'name' => $this->getModelName(),
-            'query' => [
-                'search' => $request->query->get('search'),
-                'order_by' => $request->query->get('order_by'),
-                'order_dir' => $request->query->get('order_dir', 'desc'),
-                'page' => $request->get('page', 1),
-                'pp' => 50
-            ]
-        ]);
+        return $this->renderList($request, $repository);
     }
 
     #[Route('/book/filter', name: 'book_filter', methods: ['GET'])]
     public function filter(Request $request, BookRepository $repository): Response {
-        return $this->renderFilter($request, $repository, 'list');
+        return $this->renderFilter($request, $repository);
     }
 
     #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
