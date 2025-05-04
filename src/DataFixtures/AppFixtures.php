@@ -5,13 +5,21 @@ namespace App\DataFixtures;
 use App\Entity\Author;
 use App\Entity\Book;
 use App\Entity\Publisher;
+use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
-    public function load(ObjectManager $manager): void
+    private $passwordHasher;
+
+    public function __construct(UserPasswordHasherInterface $passwordHasher)
     {
+        $this->passwordHasher = $passwordHasher;
+    }
+
+    private function loadBooks(ObjectManager $manager): void {
         $author_rep = $manager->getRepository(Author::class);
         $publisher_rep = $manager->getRepository(Publisher::class);
 
@@ -49,6 +57,18 @@ class AppFixtures extends Fixture
             fclose($handle);
         }
 
+        $manager->flush();
+
+    }
+
+    public function load(ObjectManager $manager): void {
+        $this->loadBooks($manager);
+
+        $user = new User();
+        $user->setUsername('admin');
+        $user->setPassword($this->passwordHasher->hashPassword($user, 'pinakes'));
+
+        $manager->persist($user);
         $manager->flush();
     }
 }

@@ -13,7 +13,7 @@ class BookRepository extends PinakesRepository {
     }
 
     /** @return Book[] Returns an array of Book objects */
-     public function search(?string $search, array $orderBy = null, int $limit = null, int $offset = null): array {
+     public function search(?string $search, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array {
          return $this->findLike('title', $search, $orderBy, $limit, $offset);
      }
 

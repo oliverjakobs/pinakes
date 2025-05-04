@@ -15,7 +15,7 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository): Response {
-        return $this->renderList($request, $repository);
+        return $this->renderList($request);
     }
 
     #[Route('/book/filter', name: 'book_filter', methods: ['GET'])]

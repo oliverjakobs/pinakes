@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 use Psr\Log\LoggerInterface;
 
@@ -28,6 +29,28 @@ class IndexController extends AbstractController {
             'results' => ''
         ]);
     }
+
+    #[Route('/admin', name: 'admin')]
+    public function admin(): Response {
+
+        return $this->render('index.html.twig', [
+            'results' => ''
+        ]);
+    }
+
+    // #[Route('/login', name: 'app_login')]
+    // public function login(AuthenticationUtils $authenticationUtils): Response {
+    //     // get the login error if there is one
+    //     $error = $authenticationUtils->getLastAuthenticationError();
+    //
+    //     // last username entered by the user
+    //     $lastUsername = $authenticationUtils->getLastUsername();
+    //
+    //     return $this->render('login.html.twig', [
+    //         'last_username' => $lastUsername,
+    //         'error'         => $error,
+    //     ]);
+    // }
     
     #[Route('/search', name: 'pinakes_search')]
     public function search(Request $request, LoggerInterface $logger): Response {

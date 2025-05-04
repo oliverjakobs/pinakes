@@ -23,7 +23,7 @@ class PublisherRepository extends PinakesRepository {
     }
 
     /** @return Publisher[] Returns an array of Publisher objects */
-     public function search(?string $search, array $orderBy = null, int $limit = null, int $offset = null): array {
+     public function search(?string $search, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array {
          return $this->findLike('name', $search, $orderBy, $limit, $offset);
      }
 

@@ -17,9 +17,7 @@ abstract class PinakesController extends AbstractController {
         $this->em = $em;
     }
 
-    public function getModelName(): string {
-        return '';
-    }
+    abstract public function getModelName(): string;
 
     protected function getEntityList( Request $request, PinakesRepository $repository): array {
         $search = $request->get('search');
@@ -54,7 +52,7 @@ abstract class PinakesController extends AbstractController {
         ];
     }
 
-    public function renderList(Request $request, PinakesRepository $repository, string $fields='list'): Response {
+    public function renderList(Request $request): Response {
         return $this->render('list.html.twig', [
             'name' => $this->getModelName(),
             'query' => $this->getQuery($request)

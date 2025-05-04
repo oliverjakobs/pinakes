@@ -48,12 +48,12 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if ($flush) $em->flush();
     }
 
-    public function findAll(array $orderBy = null, int $limit = null, int $offset = null): array {
+    public function findAll(?array $orderBy = null, ?int $limit = null, ?int $offset = null): array {
         return $this->findBy([], $orderBy, $limit, $offset);
     }
 
     /** @return PinakesEntity[] */
-    public function findLike(string $key, ?string $value, array $orderBy = null, int $limit = null, int $offset = null): array {
+    public function findLike(string $key, ?string $value, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array {
         if (is_null($value) || empty($value)) return $this->findAll($orderBy, $limit, $offset);
 
         $qb = $this->createQueryBuilder('p');
@@ -68,5 +68,5 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         ]);
     }
 
-    abstract public function search(?string $search, array $orderBy = null, int $limit = null, int $offset = null): array;
+    abstract public function search(?string $search, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array;
 }
