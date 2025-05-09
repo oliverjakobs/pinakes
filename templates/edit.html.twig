@@ -6,15 +6,14 @@
 
 {% block content %}
 <div class="detail">
+  <form>
   <h1>{{ entity }}</h1>
 
-  <ul>
-  {% for field in fields %}
-    <li>{{ field.caption }}: {{ get_value(field, entity)|raw }}</li>
+  {% for name, field in fields %}
+      <label for="name">{{ field.caption }}:</label>
+      {{ get_form(name, field, entity)|raw }}
   {% endfor %}
-  </ul>
-
-  <a href="/{{ name }}/edit/{{ entity.id }}">Edit</a>
+  </form>
 
 </div>
 {% endblock %}

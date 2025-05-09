@@ -6,6 +6,7 @@ use App\Repository\AuthorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Pinakes\Link;
 
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
 class Author extends PinakesEntity {
@@ -38,9 +39,9 @@ class Author extends PinakesEntity {
         return $this->id;
     }
 
-    public function getLinkOpenLibrary(): ?string {
+    public function getLinkOpenLibrary(): ?Link {
         if (null === $this->openlibrary) return null;
-        return self::getLink('https://openlibrary.org/authors/' . $this->openlibrary, $this->openlibrary, true);
+        return new Link($this->openlibrary, 'https://openlibrary.org/authors/' . $this->openlibrary, true);
     }
 
     public function getName(): ?string {

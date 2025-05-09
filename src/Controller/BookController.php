@@ -26,7 +26,16 @@ class BookController extends PinakesController {
     #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
     public function show(Request $request, BookRepository $repository): Response {
         return $this->render('show.html.twig', [
-            'name' => 'book',
+            'name' => $this->getModelName(),
+            'entity' => $this->getEntity($request, $repository),
+            'fields' => $repository->getDataFields('show'),
+        ]);
+    }
+
+    #[Route('/book/edit/{id}', name: 'book_edit', methods: ['GET'])]
+    public function edit(Request $request, BookRepository $repository): Response {
+        return $this->render('edit.html.twig', [
+            'name' => $this->getModelName(),
             'entity' => $this->getEntity($request, $repository),
             'fields' => $repository->getDataFields('show'),
         ]);

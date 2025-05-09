@@ -30,12 +30,12 @@ class BookRepository extends PinakesRepository {
             ),
             'author_list' => array(
                 'caption' => 'Author(s)',
-                'data' => fn(Book $b) => PinakesEntity::toHtmlList($b->getAuthors(), true),
+                'data' => 'authors',
             ),
             'publisher' => array(
                 'caption' => 'Publisher',
                 'data' => 'publisher',
-                'link' => self::LINK_DATA
+                'link' => self::LINK_DATA,
             ),
             'published' => array(
                 'caption' => 'Year Published',
@@ -69,7 +69,7 @@ class BookRepository extends PinakesRepository {
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields(array(
-            'author_list', 'publisher', 'published', 'first_published', 'isbn'
+            'title', 'author_list', 'publisher', 'published', 'first_published', 'isbn'
         ));
     }
 }

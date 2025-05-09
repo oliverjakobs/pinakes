@@ -68,5 +68,13 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         ]);
     }
 
+    public function getOptions(): array {
+        $options = [];
+        foreach ($this->findAll() as $entity) {
+            $options[$entity->getId()] = (string)$entity;
+        }
+        return $options;
+    }
+
     abstract public function search(?string $search, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array;
 }

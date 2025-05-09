@@ -5,19 +5,32 @@ namespace App\Twig;
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
+use App\Pinakes\Html;
 
 class AppExtension extends AbstractExtension {
+
+    private EntityManagerInterface $em;
+
+    public function __construct(EntityManagerInterface $em) {
+        $this->em = $em;
+    }
+
     public function getFunctions(): array {
         return [
             new TwigFunction('get_value', [$this, 'getValue']),
+            new TwigFunction('get_form', [$this, 'getForm']),
         ];
     }
 
-    private static function getData(callable|string $data, PinakesEntity $entity): mixed {
+    private static function getData(array $field, PinakesEntity $entity): mixed {
+        assert(isset($field['data']), 'No data specified');
+        $data = $field['data'];
+
         if (is_callable($data)) {
             return $data($entity);
         }
@@ -27,23 +40,41 @@ class AppExtension extends AbstractExtension {
     }
 
     public function getValue(array $field, PinakesEntity $entity): string {
-        assert(isset($field['data']), 'No data specified');
-        $data = self::getData($field['data'], $entity);
+        $data = self::getData($field, $entity);
 
         if (null === $data) return $field['default'] ?? '-';
+
+        if ($data instanceof Collection) return PinakesEntity::toHtmlList($data, true);
 
         if (!isset($field['link'])) return (string) $data;
 
         $link = $field['link'];
         if (PinakesRepository::LINK_SELF === $link) {
-            return $entity->getLinkSelf();
+            return $entity->getLinkSelf()->getHtml();
         }
 
         if (PinakesRepository::LINK_DATA === $link) {
             assert($data instanceof PinakesEntity, 'Can only link to entities');
-            return $data->getLinkSelf();
+            return $data->getLinkSelf()->getHtml();
         }
 
         throw new Exception('Unkown link type');
+    }
+
+    public function getForm(string $name, array $field, PinakesEntity $entity): string {
+        $data = self::getData($field, $entity);
+
+        if ($data instanceof Collection) {
+            $repository = $this->em->getRepository($data->first()::class);
+            $selected = array_map(fn($e) => $e->getId(), $data->toArray());
+            return Html::renderAutocomplete('text', $name, (string) $data->first(), $repository->getOptions());
+        }
+
+        if ($data instanceof PinakesEntity) {
+            $repository = $this->em->getRepository($data::class);
+            return Html::renderSelect($name, $repository->getOptions(), $data->getId());
+        }
+
+        return Html::renderInput('text', $name, $data);
     }
 }
