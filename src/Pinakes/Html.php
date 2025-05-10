@@ -19,8 +19,8 @@ class Html {
 
     public static function renderAutocomplete(string $type, string $name, $value, array $autocomplete=[]): string {
         $list = [];
-        foreach ($autocomplete as $value) {
-            $list[] = sprintf('<option value="%s"></option>', $value);
+        foreach ($autocomplete as $option) {
+            $list[] = sprintf('<option value="%s"></option>', $option);
         }
 
         $options_str = implode(PHP_EOL, $list);

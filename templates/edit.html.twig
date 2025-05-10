@@ -6,12 +6,12 @@
 
 {% block content %}
 <div class="detail">
-  <form>
   <h1>{{ entity }}</h1>
+  <form>
 
   {% for name, field in fields %}
-      <label for="name">{{ field.caption }}:</label>
-      {{ get_form(name, field, entity)|raw }}
+    <div><label for="name">{{ field.caption }}:</label></div>
+    <div>{{ get_form(name, field, entity)|raw }}</div>
   {% endfor %}
   </form>
 

@@ -66,8 +66,11 @@ class AppExtension extends AbstractExtension {
 
         if ($data instanceof Collection) {
             $repository = $this->em->getRepository($data->first()::class);
-            $selected = array_map(fn($e) => $e->getId(), $data->toArray());
-            return Html::renderAutocomplete('text', $name, (string) $data->first(), $repository->getOptions());
+            $result = [];
+            foreach ($data as $idx => $entity) {
+                $result[] = Html::renderAutocomplete('text', $name . $idx, (string) $entity, $repository->getOptions());
+            }
+            return implode(PHP_EOL, $result);
         }
 
         if ($data instanceof PinakesEntity) {
