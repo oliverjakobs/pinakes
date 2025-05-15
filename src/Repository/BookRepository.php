@@ -31,6 +31,7 @@ class BookRepository extends PinakesRepository {
             'author_list' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
+                'link' => self::LINK_DATA,
             ),
             'publisher' => array(
                 'caption' => 'Publisher',

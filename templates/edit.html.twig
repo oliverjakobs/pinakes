@@ -1,5 +1,9 @@
 {% extends "_base.html.twig" %}
 
+{% block scripts %}
+  <script src="{{ asset('js/edit.js') }}"></script>
+{% endblock %}
+
 {% block title %}
   Pinakes - {{ entity }}
 {% endblock %}
@@ -8,12 +12,14 @@
 <div class="detail">
   <h1>{{ entity }}</h1>
   <form>
-
   {% for name, field in fields %}
-    <div><label for="name">{{ field.caption }}:</label></div>
-    <div>{{ get_form(name, field, entity)|raw }}</div>
+    <div><label for="{{ name }}">{{ field.caption }}:</label></div>
+    {% set form = get_form(name, field, entity) %}
+    <div>{% include form.path with form %}</div>
   {% endfor %}
   </form>
+
+  <a href="/{{ name }}/show/{{ entity.id }}">Cancel</a>
 
 </div>
 {% endblock %}

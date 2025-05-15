@@ -1,0 +1,27 @@
+<div class="autocomplete">
+    {% set list_name = "options-" ~ name %}
+
+    <ul id="autocomplete-{{ name }}">
+    {% for value in values %}
+        <li id="{{ name ~ loop.index }}">
+            <input type="text" name="{{ name }}" value="{{ value }}" list="{{ list_name }}">
+            <div class="delete" onclick="deleteEntry('{{ name }}', {{ loop.index }})">X</div>
+        </li>
+    {% endfor %}
+    </ul>
+
+    <datalist id="{{ list_name }}">
+        {% for option in options %}
+            <option value="{{ option }}"></option>
+        {% endfor %}
+    </datalist>
+
+    <div onclick="newEntry('{{ name }}')">Add new</div>
+
+    <template id="new_entry">
+        <li>
+            <input type="text" name="{{ name }}" list="{{ list_name }}">
+            <div class="delete">X</div>
+        </li>
+    </template>
+</div>

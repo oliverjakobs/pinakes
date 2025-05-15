@@ -44,11 +44,16 @@ class AppExtension extends AbstractExtension {
 
         if (null === $data) return $field['default'] ?? '-';
 
-        if ($data instanceof Collection) return PinakesEntity::toHtmlList($data, true);
+        $link = $field['link'] ?? null;
 
-        if (!isset($field['link'])) return (string) $data;
+        if ($data instanceof Collection) {
+            assert(null === $link || PinakesRepository::LINK_DATA === $link, 'Collections can only link to data');
 
-        $link = $field['link'];
+            return PinakesEntity::toHtmlList($data, null !== $link);
+        }
+
+        if (null === $link) return (string) $data;
+
         if (PinakesRepository::LINK_SELF === $link) {
             return $entity->getLinkSelf()->getHtml();
         }
@@ -61,23 +66,34 @@ class AppExtension extends AbstractExtension {
         throw new Exception('Unkown link type');
     }
 
-    public function getForm(string $name, array $field, PinakesEntity $entity): string {
+    public function getForm(string $name, array $field, PinakesEntity $entity): array {
         $data = self::getData($field, $entity);
 
         if ($data instanceof Collection) {
             $repository = $this->em->getRepository($data->first()::class);
-            $result = [];
-            foreach ($data as $idx => $entity) {
-                $result[] = Html::renderAutocomplete('text', $name . $idx, (string) $entity, $repository->getOptions());
-            }
-            return implode(PHP_EOL, $result);
+            return [
+                'path' => '/component/autocomplete.html.twig',
+                'name' => $name,
+                'options' => $repository->getOptions(),
+                'values' => $data,
+            ];
         }
 
         if ($data instanceof PinakesEntity) {
             $repository = $this->em->getRepository($data::class);
-            return Html::renderSelect($name, $repository->getOptions(), $data->getId());
+            return [
+                'path' => '/component/select.html.twig',
+                'name' => $name,
+                'options' => $repository->getOptions(),
+                'selected' => $data->getId(),
+            ];
         }
 
-        return Html::renderInput('text', $name, $data);
+        return [
+            'path' => '/component/input.html.twig',
+            'name' => $name,
+            'type' =>'text',
+            'value' => $data,
+        ];
     }
 }

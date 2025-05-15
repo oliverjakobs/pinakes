@@ -17,18 +17,27 @@ class Html {
         XML;
     }
 
-    public static function renderAutocomplete(string $type, string $name, $value, array $autocomplete=[]): string {
-        $list = [];
-        foreach ($autocomplete as $option) {
-            $list[] = sprintf('<option value="%s"></option>', $option);
+    public static function renderAutocomplete(string $type, string $name, array $values, array $options): string {
+        $value_list = [];
+        foreach ($values as $idx => $value) {
+            $value_list[] = sprintf('<input type="%s" id="%s" name="%s" value="%s" list="options-%s">', $type, $name . $idx, $name, (string) $value, $name);
         }
 
-        $options_str = implode(PHP_EOL, $list);
+        $value_str = implode(PHP_EOL, $value_list);
+
+        $option_list = [];
+        foreach ($options as $option) {
+            $option_list[] = sprintf('<option value="%s"></option>', $option);
+        }
+
+        $options_str = implode(PHP_EOL, $option_list);
+
         return <<<XML
-        <input type="$type" id="$name" name="$name" value="$value" list="options-$name">
+        $value_str
         <datalist id="options-$name">
         $options_str
         </datalist>
+        <a>Add more...</a>
         XML;
     }
 
