@@ -3,6 +3,10 @@ function updateIds(name, element) {
     Array.from(element.children).forEach((child, idx) => {
         child.id = name + idx;
 
+        child.getElementsByTagName("input")[0].setAttribute(
+            "name",
+            child.id
+        );
         child.getElementsByClassName("delete")[0].setAttribute(
             "onclick",
             `deleteEntry('${name}', ${idx})`

@@ -9,17 +9,20 @@
 {% endblock %}
 
 {% block content %}
-<div class="detail">
+<div class="show">
   <h1>{{ entity }}</h1>
-  <form>
-  {% for name, field in fields %}
-    <div><label for="{{ name }}">{{ field.caption }}:</label></div>
-    {% set form = get_form(name, field, entity) %}
-    <div>{% include form.path with form %}</div>
-  {% endfor %}
+  <form action="/{{ name }}/submit/{{ entity.id }}">
+    <div class="show-content">
+    {% for name, field in fields %}
+      <div><label for="{{ name }}">{{ field.caption }}:</label></div>
+      {% set form = get_form(name, field, entity) %}
+      <div>{% include form.path with form %}</div>
+    {% endfor %}
+    </div>
+    <input type="submit" value="Submit">
+    <a href="/{{ name }}/show/{{ entity.id }}">Cancel</a>
   </form>
 
-  <a href="/{{ name }}/show/{{ entity.id }}">Cancel</a>
 
 </div>
 {% endblock %}

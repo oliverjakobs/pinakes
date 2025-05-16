@@ -18,7 +18,6 @@ body {
   min-height: 100vh;
 }
 
-
 header {
   font-size: 3rem;
   font-weight: 500;
@@ -234,24 +233,22 @@ button:hover, a.button:hover {
 }
 
 
-/* --------------------------| detail |----------------------------- */
-.detail {
+/* --------------------------| show |----------------------------- */
+.show {
   width: 40%;
   display: block;
   margin-right: auto;
   margin-left: auto;
 }
 
-
-/* --------------------------| form |------------------------------- */
-form, .show {
+.show-content {
   display: grid;
   grid-template-columns: 1fr 2fr;
   border-top: 1px solid var(--border-color);
   border-left: 1px solid var(--border-color);
 }
 
-form > div, .show > div {
+.show-content > div {
   border-bottom: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
   padding: 0.2em 1em;
@@ -259,14 +256,33 @@ form > div, .show > div {
   flex-direction: column;
 }
 
+.show-content ul {
+  margin: 0;
+  padding-left: 1em;
+}
 
-form .autocomplete > ul {
+/* --------------------------| autocomplete |--------------------- */
+.autocomplete > ul {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-form .autocomplete > ul > li {
+.autocomplete > ul > li {
   display: flex;
   flex-direction: row;
+  margin-bottom: 0.2em;
+}
+
+.autocomplete .add {
+  cursor: pointer;
+  color: blue;
+  text-decoration:underline;
+}
+
+.autocomplete .delete {
+  cursor: pointer;
+  color: red;
+  font-weight: bold;
+  padding-left: 0.4em;
 }

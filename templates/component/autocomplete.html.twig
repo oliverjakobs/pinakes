@@ -3,9 +3,9 @@
 
     <ul id="autocomplete-{{ name }}">
     {% for value in values %}
-        <li id="{{ name ~ loop.index }}">
-            <input type="text" name="{{ name }}" value="{{ value }}" list="{{ list_name }}">
-            <div class="delete" onclick="deleteEntry('{{ name }}', {{ loop.index }})">X</div>
+        <li id="{{ name ~ loop.index0 }}">
+            <input type="text" name="{{ name ~ loop.index0 }}" value="{{ value }}" list="{{ list_name }}">
+            <div class="delete" onclick="deleteEntry('{{ name }}', {{ loop.index0 }})">X</div>
         </li>
     {% endfor %}
     </ul>
@@ -16,7 +16,7 @@
         {% endfor %}
     </datalist>
 
-    <div onclick="newEntry('{{ name }}')">Add new</div>
+    <div class="add" onclick="newEntry('{{ name }}')">+ Add new</div>
 
     <template id="new_entry">
         <li>

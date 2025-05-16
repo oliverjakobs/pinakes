@@ -5,9 +5,9 @@
 {% endblock %}
 
 {% block content %}
-<div class="detail">
+<div class="show">
   <h1>{{ entity }}</h1>
-  <div class="show">
+  <div class="show-content">
   {% for field in fields %}
     <div>{{ field.caption }}:</div>
     <div>{{ get_value(field, entity)|raw }}</div>

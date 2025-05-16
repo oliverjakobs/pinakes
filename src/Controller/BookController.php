@@ -40,4 +40,22 @@ class BookController extends PinakesController {
             'fields' => $repository->getDataFields('show'),
         ]);
     }
+
+    #[Route('/book/submit/{id}', name: 'book_submit', methods: ['GET'])]
+    public function submit(Request $request, BookRepository $repository): Response {
+        echo $request->query->get('title') . PHP_EOL;
+
+        for ($i = 0; ; ++$i) {
+            $author = $request->query->get('authors' . $i);
+            if (empty($author)) break;
+
+            echo $author . PHP_EOL;
+        }
+        echo $request->query->get('publisher') . PHP_EOL;
+        echo $request->query->get('published') . PHP_EOL;
+        echo $request->query->get('first_published') . PHP_EOL;
+        echo $request->query->get('isbn') . PHP_EOL;
+
+        return $this->redirectHx('book');
+    }
 }
