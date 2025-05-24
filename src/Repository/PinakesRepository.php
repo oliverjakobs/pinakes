@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\PinakesEntity;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Common\Collections\Criteria;
 
 abstract class PinakesRepository extends ServiceEntityRepository {
@@ -52,20 +53,24 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         return $this->findBy([], $orderBy, $limit, $offset);
     }
 
+    protected function getQueryBuilder(array $filter): QueryBuilder {
+        $qb = $this->createQueryBuilder('e');
+
+        if (!empty($filter['search'])) {
+            $qb->where($qb->expr()->like('e.' . $this->getSearchKey(), ':search'));
+            $qb->setParameter('search', '%' . $filter['search'] . '%');
+        }
+
+        if (isset($filter['order_by'])) {
+            $qb->orderBy('e.' . $filter['order_by'], $filter['order_dir'] ?? 'asc');
+        }
+
+        return $qb;
+    }
+
     /** @return PinakesEntity[] */
-    public function findLike(string $key, ?string $value, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array {
-        if (is_null($value) || empty($value)) return $this->findAll($orderBy, $limit, $offset);
-
-        $qb = $this->createQueryBuilder('p');
-        $qb->where($qb->expr()->like('p.' . $key, ':value'));
-
-        if (null !== $orderBy) $qb->addCriteria(Criteria::create()->orderBy($orderBy));
-
-        $qb->setFirstResult($offset)->setMaxResults($limit);
-
-        return $qb->getQuery()->execute([
-            'value' => '%' . $value . '%'
-        ]);
+    public function applyFilter(array $filter): array {
+        return $this->getQueryBuilder($filter)->getQuery()->execute();
     }
 
     public function getOptions(): array {
@@ -76,5 +81,5 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         return $options;
     }
 
-    abstract public function search(?string $search, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array;
+    abstract public function getSearchKey(): string;
 }

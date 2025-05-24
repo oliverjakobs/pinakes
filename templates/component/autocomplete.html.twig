@@ -1,27 +1,24 @@
 <div class="autocomplete">
     {% set list_name = "options-" ~ name %}
-
-    <ul id="autocomplete-{{ name }}">
-    {% for value in values %}
-        <li id="{{ name ~ loop.index0 }}">
-            <input type="text" name="{{ name ~ loop.index0 }}" value="{{ value }}" list="{{ list_name }}">
-            <div class="delete" onclick="deleteEntry('{{ name }}', {{ loop.index0 }})">X</div>
-        </li>
-    {% endfor %}
-    </ul>
-
     <datalist id="{{ list_name }}">
         {% for option in options %}
             <option value="{{ option }}"></option>
         {% endfor %}
     </datalist>
 
-    <div class="add" onclick="newEntry('{{ name }}')">+ Add new</div>
+    {% if values is iterable %}
+        <ul id="autocomplete-{{ name }}">
+        {% for value in values %}
+            <li id="{{ name ~ loop.index0 }}">
+                <input type="text" name="{{ name ~ loop.index0 }}" value="{{ value }}" list="{{ list_name }}">
+                <div class="delete" onclick="deleteEntry('{{ name }}', {{ loop.index0 }})">X</div>
+            </li>
+        {% endfor %}
+        </ul>
 
-    <template id="new_entry">
-        <li>
-            <input type="text" name="{{ name }}" list="{{ list_name }}">
-            <div class="delete">X</div>
-        </li>
-    </template>
+        <div class="add" onclick="newEntry('{{ name }}', '{{ list_name }}')">+ Add new</div>
+
+    {% else %}
+        <input type="text" name="{{ name }}" value="{{ values }}" list="{{ list_name }}">
+    {% endif %}
 </div>

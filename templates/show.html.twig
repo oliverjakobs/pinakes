@@ -7,14 +7,25 @@
 {% block content %}
 <div class="show">
   <h1>{{ entity }}</h1>
-  <div class="show-content">
-  {% for field in fields %}
-    <div>{{ field.caption }}:</div>
-    <div>{{ get_value(field, entity)|raw }}</div>
-  {% endfor %}
+  <div class="show-main">
+    <div class="show-table">
+      {% for field in fields %}
+        <div>{{ field.caption }}:</div>
+        <div>{{ get_value(field, entity)|raw }}</div>
+      {% endfor %}
+    </div>
+
+    {% if is_granted('ROLE_LIBRARIAN') %}
+      <a class="button" href="/{{ name }}/edit/{{ entity.id }}">Edit</a>
+    {% endif %}
   </div>
 
-  <a href="/{{ name }}/edit/{{ entity.id }}">Edit</a>
+  {% for caption, view in content|default %}
+  <div>
+    <h2>{{ caption }}</h2>
+    {{ view|raw }}
+  </div>
+  {% endfor %}
 
 </div>
 {% endblock %}

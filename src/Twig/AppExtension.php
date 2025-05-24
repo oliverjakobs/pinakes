@@ -82,10 +82,10 @@ class AppExtension extends AbstractExtension {
         if ($data instanceof PinakesEntity) {
             $repository = $this->em->getRepository($data::class);
             return [
-                'path' => '/component/select.html.twig',
+                'path' => '/component/autocomplete.html.twig',
                 'name' => $name,
                 'options' => $repository->getOptions(),
-                'selected' => $data->getId(),
+                'values' => $data,
             ];
         }
 

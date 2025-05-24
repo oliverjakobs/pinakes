@@ -11,16 +11,16 @@
 {% block content %}
 <div class="show">
   <h1>{{ entity }}</h1>
-  <form action="/{{ name }}/submit/{{ entity.id }}">
-    <div class="show-content">
+  <form action="/{{ name }}/submit/{{ entity.id }}" method="post">
+    <div class="show-table">
     {% for name, field in fields %}
       <div><label for="{{ name }}">{{ field.caption }}:</label></div>
       {% set form = get_form(name, field, entity) %}
       <div>{% include form.path with form %}</div>
     {% endfor %}
     </div>
-    <input type="submit" value="Submit">
-    <a href="/{{ name }}/show/{{ entity.id }}">Cancel</a>
+    <input class="button" type="submit" value="Submit">
+    <a class="button" href="/{{ name }}/show/{{ entity.id }}">Cancel</a>
   </form>
 
 

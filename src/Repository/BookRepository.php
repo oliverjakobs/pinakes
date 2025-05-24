@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Book;
 use App\Entity\PinakesEntity;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\QueryBuilder;
 
 class BookRepository extends PinakesRepository {
 
@@ -12,10 +13,25 @@ class BookRepository extends PinakesRepository {
         parent::__construct($registry, Book::class);
     }
 
-    /** @return Book[] Returns an array of Book objects */
-     public function search(?string $search, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array {
-         return $this->findLike('title', $search, $orderBy, $limit, $offset);
-     }
+    public function getSearchKey(): string{
+        return 'title';
+    }
+
+    protected function getQueryBuilder(array $filter): QueryBuilder {
+        $qb = parent::getQueryBuilder($filter);
+
+        if (!empty($filter['author'])) {
+            $qb->andWhere($qb->expr()->isMemberOf(':author', 'e.authors'));
+            $qb->setParameter('author', $filter['author']);
+        }
+
+        if (!empty($filter['publisher'])) {
+            $qb->andWhere($qb->expr()->eq(':publisher', 'e.publisher'));
+            $qb->setParameter('publisher', $filter['publisher']);
+        }
+
+        return $qb;
+    }
 
     protected function defineDataFields(): array {
         return [
@@ -49,6 +65,11 @@ class BookRepository extends PinakesRepository {
             'isbn' => array(
                 'caption' => 'ISBN',
                 'data' => 'isbn',
+            ),
+            'openlibrary' => array(
+                'caption' => 'OpenLibrary',
+                'data' => fn(Book $b) => $b->getLinkOpenLibrary(),
+                'edit' => false
             )
         ];
     }
@@ -70,7 +91,7 @@ class BookRepository extends PinakesRepository {
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields(array(
-            'title', 'authors', 'publisher', 'published', 'first_published', 'isbn'
+            'title', 'authors', 'publisher', 'published', 'first_published', 'isbn', 'openlibrary'
         ));
     }
 }

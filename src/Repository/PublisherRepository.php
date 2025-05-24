@@ -11,32 +11,27 @@ class PublisherRepository extends PinakesRepository {
         parent::__construct($registry, Publisher::class);
     }
 
-    public function getOrCreate(string $name): Publisher {
-        $publisher = $this->findLike('name', $name);
-        if (!empty($publisher)) return $publisher[0];
-
-        $publisher = new Publisher();
-        $publisher->setName($name);
-        $this->save($publisher);
+    public function getOrCreate(string $name, bool $flush = true): Publisher {
+        $publisher = $this->findOneBy(['name' => $name]);
+        if (null === $publisher) {
+            $publisher = new Publisher();
+            $publisher->setName($name);
+            $this->save($publisher, $flush);
+        }
 
         return $publisher;
     }
 
-    /** @return Publisher[] Returns an array of Publisher objects */
-     public function search(?string $search, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array {
-         return $this->findLike('name', $search, $orderBy, $limit, $offset);
-     }
+    public function getSearchKey(): string{
+        return 'name';
+    }
 
-     protected function defineDataFields(): array {
+    protected function defineDataFields(): array {
         return [
             'name' => array(
                 'caption' => 'Name',
                 'data' => 'name',
                 'link' => self::LINK_SELF
-            ),
-            'book_list' => array(
-                'caption' => 'Books',
-                'data' => fn(Publisher $p) => PinakesEntity::toHtmlList($p->getBooks(), true),
             ),
             'book_count' => array(
                 'caption' => 'Books',
@@ -53,7 +48,7 @@ class PublisherRepository extends PinakesRepository {
 
     public function getDataFieldsShow(): array {
         return $this->composeDataFields(array(
-            'book_list', 'openlibrary'
+            'name'
         ));
     }
 }

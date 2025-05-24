@@ -66,9 +66,18 @@ class AppFixtures extends Fixture
 
         $user = new User();
         $user->setUsername('admin');
+        $user->setRoles([User::ROLE_ADMIN]);
         $user->setPassword($this->passwordHasher->hashPassword($user, 'pinakes'));
 
         $manager->persist($user);
+
+        $user = new User();
+        $user->setUsername('librarian');
+        $user->setRoles([User::ROLE_LIBRARIAN]);
+        $user->setPassword($this->passwordHasher->hashPassword($user, 'pinakes'));
+
+        $manager->persist($user);
+
         $manager->flush();
     }
 }

@@ -12,21 +12,20 @@ class AuthorRepository extends PinakesRepository {
         parent::__construct($registry, Author::class);
     }
 
-    public function getOrCreate(string $name): Author {
-        $author = $this->findLike('name', $name);
-        if (!empty($author)) return $author[0];
-
-        $author = new Author();
-        $author->setName($name);
-        $this->save($author);
+    public function getOrCreate(string $name, bool $flush = true): Author {
+        $author = $this->findOneBy(['name' => $name]);
+        if (null === $author) {
+            $author = new Author();
+            $author->setName($name);
+            $this->save($author, $flush);
+        }
 
         return $author;
     }
 
-    /** @return Author[] Returns an array of Author objects */
-     public function search(?string $search, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array {
-         return $this->findLike('name', $search, $orderBy, $limit, $offset);
-     }
+    public function getSearchKey(): string{
+        return 'name';
+    }
 
     protected function defineDataFields(): array {
         return [
@@ -35,10 +34,6 @@ class AuthorRepository extends PinakesRepository {
                 'data' => 'name',
                 'link' => self::LINK_SELF
             ),
-            'book_list' => array(
-                'caption' => 'Books',
-                'data' => fn(Author $a) => PinakesEntity::toHtmlList($a->getBooks(), true),
-            ),
             'book_count' => array(
                 'caption' => 'Books',
                 'data' => fn(Author $a) => $a->getBooks()->count(),
@@ -46,6 +41,7 @@ class AuthorRepository extends PinakesRepository {
             'openlibrary' => array(
                 'caption' => 'OpenLibrary',
                 'data' => fn(Author $a) => $a->getLinkOpenLibrary(),
+                'edit' => fn(Author $a, $value) => $a->setOpenlibrary($value)
             ),
         ];
     }
@@ -58,7 +54,7 @@ class AuthorRepository extends PinakesRepository {
     
     public function getDataFieldsShow(): array {
         return $this->composeDataFields(array(
-            'book_list', 'openlibrary'
+            'name', 'openlibrary'
         ));
     }
 }

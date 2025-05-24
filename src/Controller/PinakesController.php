@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 abstract class PinakesController extends AbstractController {
 
@@ -17,19 +18,7 @@ abstract class PinakesController extends AbstractController {
         $this->em = $em;
     }
 
-    abstract public function getModelName(): string;
-
-    protected function getEntityList( Request $request, PinakesRepository $repository): array {
-        $search = $request->get('search');
-        $order_by = null;
-        
-        $order_field = $request->get('order_by');
-        if (null !== $order_field) {
-            $order_by = [ $order_field => $request->query->get('order_dir', 'asc')];
-        }
-
-        return $repository->search($search, $order_by);
-    }
+    abstract public static function getModelName(): string;
 
     protected function getEntity(Request $request, PinakesRepository $repository): PinakesEntity {
         $id = $request->attributes->get('id');
@@ -42,49 +31,66 @@ abstract class PinakesController extends AbstractController {
         return $entity;
     }
 
-    private function getQuery(Request $request): array {
-        return [
+    protected function tryGetEntity(Request $request, PinakesRepository $repository): ?PinakesEntity {
+        try {
+            return $this->getEntity($request, $repository);
+        } catch (NotFoundHttpException) {
+            return null;
+        }
+    }
+
+    protected function getFilter(Request $request): array {
+        $filter = [
             'search' => $request->query->get('search'),
             'order_by' => $request->query->get('order_by'),
             'order_dir' => $request->query->get('order_dir', 'desc'),
             'page' => $request->query->get('page', 1),
             'pp' => 30
         ];
+
+        return array_merge($request->query->all(), $filter);
     }
 
     public function renderList(Request $request): Response {
         return $this->render('list.html.twig', [
-            'name' => $this->getModelName(),
-            'query' => $this->getQuery($request)
+            'name' => static::getModelName(),
+            'query' => $this->getFilter($request)
         ]);
     }
 
-    public function renderTable(Request $request, PinakesRepository $repository, string $fields='list'): string {
+    public function renderTable(PinakesRepository|string $repository, array $filter, string $fields='list', ?string $filter_route = null): string {
+
+        if (is_string($repository)) $repository = $this->em->getRepository($repository);
+
         return $this->renderView('table.html.twig', [
-            'name' => $this->getModelName(),
-            'data' => $this->getEntityList($request, $repository),
+            'filter_route' => $filter_route ?? (static::getModelName() . '_filter'),
+            'data' => $repository->applyFilter($filter),
             'fields' => $repository->getDataFields($fields),
-            'query' => $this->getQuery($request)
+            'query' => $filter
         ]);
     }
 
-    public function renderFilter(Request $request, PinakesRepository $repository, string $fields='list'): Response {
+    public function renderFilter(Request $request, PinakesRepository $repository, string $fields='list', ?string $filter_route = null): Response {
         $response = new Response();
 
-        $response->setContent($this->renderTable($request, $repository, $fields));
+        $filter = $this->getFilter($request);
+
+        $response->setContent($this->renderTable($repository, $filter, $fields, $filter_route));
         $response->setStatusCode(Response::HTTP_OK);
 
-        $page = $request->get('page');
-
+        $page = $filter['page'];
         $query = array_filter([
-            'search' => $request->query->get('search'),
+            'search' => $filter['search'] ?? null,
             'page' => $page > 1 ? $page : null,
         ]);
 
-        $url = $this->generateUrl($this->getModelName());
+        $referer = $request->headers->get('referer');
+        $url = parse_url($referer, PHP_URL_PATH);
         if (!empty($query)) {
             $url .= '?' . http_build_query($query);
         }
+
+        // TODO Push only if changed
         $response->headers->set('HX-Push-Url', $url);
 
         return $response;

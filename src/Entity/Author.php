@@ -21,7 +21,7 @@ class Author extends PinakesEntity {
     /**
      * @var Collection<int, Book>
      */
-    #[ORM\ManyToMany(targetEntity: Book::class, inversedBy: 'authors')]
+    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'authors')]
     private Collection $books;
 
     #[ORM\Column(length: 255, nullable: true)]

@@ -14,9 +14,12 @@ function updateIds(name, element) {
     });
 }
 
-function newEntry(name) {
+function newEntry(name, list_name) {
+    let new_entry = document.createElement('li');
+    new_entry.innerHTML = `<input type="text" list="${list_name}"><div class="delete">X</div>`;
+
     let element = htmx.find('#autocomplete-' + name);
-    element.appendChild(htmx.find('#new_entry').content.cloneNode(true));
+    element.appendChild(new_entry);
     updateIds(name, element);
 }
 

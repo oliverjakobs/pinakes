@@ -6,6 +6,7 @@ use App\Repository\BookRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Pinakes\Link;
 
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 class Book extends PinakesEntity {
@@ -20,7 +21,7 @@ class Book extends PinakesEntity {
     /**
      * @var Collection<int, Author>
      */
-    #[ORM\ManyToMany(targetEntity: Author::class, mappedBy: 'books')]
+    #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'books')]
     private Collection $authors;
 
     #[ORM\Column(nullable: true)]
@@ -52,6 +53,11 @@ class Book extends PinakesEntity {
         return implode('; ', $links);
     }
 
+    public function getLinkOpenLibrary(): ?Link {
+        if (null === $this->isbn) return null;
+        return new Link('', 'https://openlibrary.org/isbn/' . $this->isbn, true);
+    }
+
     public function getTitle(): ?string {
         return $this->title;
     }
@@ -67,8 +73,13 @@ class Book extends PinakesEntity {
     public function getAuthors(): Collection {
         return $this->authors;
     }
-    
 
+    public function clearAuthors(): void {
+        foreach ($this->authors as $author) {
+            $this->removeAuthor($author);
+        }
+    }
+    
     public function addAuthor(Author $author): static {
         if (!$this->authors->contains($author)) {
             $this->authors->add($author);

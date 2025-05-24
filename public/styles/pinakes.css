@@ -79,8 +79,10 @@ a.link-extern::after {
   margin-left: auto;
 }
 
-button, a.button {
+button, .button {
   padding: 0.3rem 1.4rem;
+  text-decoration: none;
+  color: var(--main-color);
   font-size: 0.875rem;
   font-weight: 300;
   text-align: center;
@@ -91,7 +93,7 @@ button, a.button {
   transition: all .6s ease;
 }
 
-button:hover, a.button:hover {
+button:hover, .button:hover {
   border-color: var(--border-hover);
   background-color: var(--hover-color);
 }
@@ -241,14 +243,19 @@ button:hover, a.button:hover {
   margin-left: auto;
 }
 
-.show-content {
+.show-main {
+  margin-bottom: 2em;
+}
+
+.show-table {
   display: grid;
   grid-template-columns: 1fr 2fr;
   border-top: 1px solid var(--border-color);
   border-left: 1px solid var(--border-color);
+  margin-bottom: 1rem;
 }
 
-.show-content > div {
+.show-table > div {
   border-bottom: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
   padding: 0.2em 1em;
@@ -256,9 +263,13 @@ button:hover, a.button:hover {
   flex-direction: column;
 }
 
-.show-content ul {
+.show-table ul {
   margin: 0;
   padding-left: 1em;
+}
+
+.show-table input {
+  width: 100%;
 }
 
 /* --------------------------| autocomplete |--------------------- */
@@ -278,6 +289,7 @@ button:hover, a.button:hover {
   cursor: pointer;
   color: blue;
   text-decoration:underline;
+  font-size: 0.8em;
 }
 
 .autocomplete .delete {
