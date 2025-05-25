@@ -40,8 +40,8 @@ class AuthorRepository extends PinakesRepository {
             ),
             'openlibrary' => array(
                 'caption' => 'OpenLibrary',
-                'data' => fn(Author $a) => $a->getLinkOpenLibrary(),
-                'edit' => fn(Author $a, $value) => $a->setOpenlibrary($value)
+                'data' => 'openlibrary',
+                'link' => fn(Author $a) => $a->getLinkOpenLibrary(),
             ),
         ];
     }

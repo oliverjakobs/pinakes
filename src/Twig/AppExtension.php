@@ -48,7 +48,6 @@ class AppExtension extends AbstractExtension {
 
         if ($data instanceof Collection) {
             assert(null === $link || PinakesRepository::LINK_DATA === $link, 'Collections can only link to data');
-
             return PinakesEntity::toHtmlList($data, null !== $link);
         }
 
@@ -63,10 +62,16 @@ class AppExtension extends AbstractExtension {
             return $data->getLinkSelf()->getHtml();
         }
 
+        if (is_callable($link)) {
+            return $link($entity)->getHtml();
+        }
+
         throw new Exception('Unkown link type');
     }
 
     public function getForm(string $name, array $field, PinakesEntity $entity): array {
+        if (isset($field['edit']) && !$field['edit']) return [];
+
         $data = self::getData($field, $entity);
 
         if ($data instanceof Collection) {
