@@ -7,10 +7,8 @@ use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
-use Symfony\Component\HttpFoundation\Request;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
-use App\Pinakes\Html;
 
 class AppExtension extends AbstractExtension {
 
