@@ -9,14 +9,25 @@
     {% if values is iterable %}
         <ul id="autocomplete-{{ name }}">
         {% for value in values %}
-            <li id="{{ name ~ loop.index0 }}">
-                <input type="text" name="{{ name ~ loop.index0 }}" value="{{ value }}" list="{{ list_name }}">
-                <div class="delete" onclick="deleteEntry('{{ name }}', {{ loop.index0 }})">X</div>
+            <li>
+                <input type="text" name="{{ name }}[]" value="{{ value }}" list="{{ list_name }}">
+                <div class="delete" onclick="htmx.remove(this.parentElement)">X</div>
             </li>
         {% endfor %}
         </ul>
 
-        <div class="add" onclick="newEntry('{{ name }}', '{{ list_name }}')">+ Add new</div>
+        <div
+            class="add"
+            onclick="htmx.find('#autocomplete-{{ name }}').appendChild(htmx.find('#autocomplete-{{ name }}-tmpl').content.cloneNode(true))">
+            + Add new
+        </div>
+
+        <template id="autocomplete-{{ name }}-tmpl">
+            <li>
+                <input type="text" name="{{ name }}[]" list="{{ list_name }}">
+                <div class="delete" onclick="htmx.remove(this.parentElement)">X</div>
+            </li>
+        </template>
 
     {% else %}
         <input type="text" name="{{ name }}" value="{{ values }}" list="{{ list_name }}">

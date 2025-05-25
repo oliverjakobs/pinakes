@@ -67,10 +67,9 @@ class BookController extends PinakesController {
 
         $author_rep = $this->em->getRepository(Author::class);
         $book->clearAuthors();
-        for ($i = 0; ; ++$i) {
-            $author = $request->request->get('authors' . $i);
-            if (empty($author)) break;
-
+        $authors = $request->request->all('authors');
+        foreach ($authors as $author) {
+            if (empty($author)) continue;
             $book->addAuthor($author_rep->getOrCreate($author), false);
         }
 

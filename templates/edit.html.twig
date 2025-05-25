@@ -1,9 +1,5 @@
 {% extends "_base.html.twig" %}
 
-{% block scripts %}
-  <script src="{{ asset('js/edit.js') }}"></script>
-{% endblock %}
-
 {% block title %}
   Pinakes - {{ entity }}
 {% endblock %}
@@ -22,7 +18,5 @@
     <input class="button" type="submit" value="Submit">
     <a class="button" href="/{{ name }}/show/{{ entity.id }}">Cancel</a>
   </form>
-
-
 </div>
 {% endblock %}
