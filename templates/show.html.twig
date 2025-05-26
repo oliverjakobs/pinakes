@@ -11,7 +11,7 @@
     <div class="show-table">
       {% for field in fields %}
         <div>{{ field.caption }}:</div>
-        <div>{{ get_value(field, entity)|raw }}</div>
+        <div>{% include '/component/datafield.html.twig' %}</div>
       {% endfor %}
     </div>
 

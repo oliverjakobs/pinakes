@@ -30,14 +30,6 @@ class IndexController extends AbstractController {
         ]);
     }
 
-    #[Route('/admin', name: 'admin')]
-    public function admin(): Response {
-
-        return $this->render('index.html.twig', [
-            'results' => ''
-        ]);
-    }
-
     // #[Route('/login', name: 'app_login')]
     // public function login(AuthenticationUtils $authenticationUtils): Response {
     //     // get the login error if there is one

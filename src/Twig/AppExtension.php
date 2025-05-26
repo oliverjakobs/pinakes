@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Pinakes\Link;
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
@@ -37,7 +38,7 @@ class AppExtension extends AbstractExtension {
         return $entity->{$name}();
     }
 
-    public function getValue(array $field, PinakesEntity $entity): string {
+    public function getValue(array $field, PinakesEntity $entity): string|array|Link {
         $data = self::getData($field, $entity);
 
         if (null === $data) return $field['default'] ?? '-';
@@ -45,23 +46,27 @@ class AppExtension extends AbstractExtension {
         $link = $field['link'] ?? null;
 
         if ($data instanceof Collection) {
-            assert(null === $link || PinakesRepository::LINK_DATA === $link, 'Collections can only link to data');
-            return PinakesEntity::toHtmlList($data, null !== $link);
+            $data = $data->toArray();
+            if (null !== $link) {
+                assert(PinakesRepository::LINK_DATA === $link, 'Collections can only link to data');
+                $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
+            }
+            return $data;
         }
 
         if (null === $link) return (string) $data;
 
         if (PinakesRepository::LINK_SELF === $link) {
-            return $entity->getLinkSelf()->getHtml();
+            return $entity->getLinkSelf();
         }
 
         if (PinakesRepository::LINK_DATA === $link) {
             assert($data instanceof PinakesEntity, 'Can only link to entities');
-            return $data->getLinkSelf()->getHtml();
+            return $data->getLinkSelf();
         }
 
         if (is_callable($link)) {
-            return $link($entity)->getHtml();
+            return $link($entity);
         }
 
         throw new Exception('Unkown link type');

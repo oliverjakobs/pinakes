@@ -17,10 +17,10 @@
     </tr>
   </thead>
   <tbody>
-  {% for entry in data|slice((query.page - 1) * query.pp, query.pp) %}
+  {% for entity in data|slice((query.page - 1) * query.pp, query.pp) %}
     <tr>
     {% for field in fields %}
-      <td>{{ get_value(field, entry)|raw }}</td>
+      <td>{% include '/component/datafield.html.twig' %}</td>
     {% endfor %}
     </tr>
   {% else %}
