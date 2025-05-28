@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Pinakes\Link;
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -9,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Doctrine\ORM\Exception\MissingIdentifierField;
 
 abstract class PinakesController extends AbstractController {
 
@@ -19,6 +21,10 @@ abstract class PinakesController extends AbstractController {
     }
 
     abstract public static function getModelName(): string;
+
+    public function createLink(string $caption, string $route, array $parameters = []): ?Link {
+        return new Link($caption, $this->generateUrl($route, $parameters));
+    }
 
     protected function getEntity(Request $request, PinakesRepository $repository): PinakesEntity {
         $id = $request->attributes->get('id');
@@ -34,7 +40,7 @@ abstract class PinakesController extends AbstractController {
     protected function tryGetEntity(Request $request, PinakesRepository $repository): ?PinakesEntity {
         try {
             return $this->getEntity($request, $repository);
-        } catch (NotFoundHttpException) {
+        } catch (NotFoundHttpException | MissingIdentifierField) {
             return null;
         }
     }
@@ -51,10 +57,11 @@ abstract class PinakesController extends AbstractController {
         return array_merge($request->query->all(), $filter);
     }
 
-    public function renderList(Request $request): Response {
+    public function renderList(Request $request, ?array $control = null): Response {
         return $this->render('list.html.twig', [
             'name' => static::getModelName(),
-            'query' => $this->getFilter($request)
+            'query' => $this->getFilter($request),
+            'control' => $control
         ]);
     }
 

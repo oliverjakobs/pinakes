@@ -78,7 +78,8 @@ class AppExtension extends AbstractExtension {
         $data = self::getData($field, $entity);
 
         if ($data instanceof Collection) {
-            $repository = $this->em->getRepository($data->first()::class);
+            assert(isset($field['class']), 'Collections need "class" to be set');
+            $repository = $this->em->getRepository($field['class']);
             return [
                 'path' => '/component/autocomplete.html.twig',
                 'name' => $name,

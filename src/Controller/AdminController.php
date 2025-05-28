@@ -15,7 +15,7 @@ class AdminController extends PinakesController {
 
     #[Route('/admin', name: 'admin', methods: ['GET'])]
     public function list(Request $request, UserRepository $repository): Response {
-        return $this->renderList($request, $repository);
+        return $this->renderList($request);
     }
 
     #[Route('/admin/filter', name: 'admin_filter', methods: ['GET'])]

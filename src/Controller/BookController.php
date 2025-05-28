@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\BookRepository;
+use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\Publisher;
 use App\Entity\User;
@@ -18,7 +19,10 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository): Response {
-        return $this->renderList($request);
+        return $this->renderList($request, [
+            $this->createLink('Import Books', 'book_import'),
+            $this->createLink('New Book', 'book_edit'),
+        ]);
     }
 
     #[Route('/book/filter', name: 'book_filter', methods: ['GET'])]
@@ -45,12 +49,22 @@ class BookController extends PinakesController {
         ]);
     }
 
+    #[Route('/book/import', name: 'book_import', methods: ['GET'])]
+    public function import(Request $request, BookRepository $repository): Response {
+        return new Response();
+    }
+
     #[Route('/book/edit/{id}', name: 'book_edit', methods: ['GET'])]
-    public function edit(Request $request, BookRepository $repository): Response {
+    public function edit(Request $request, BookRepository $repository, int $id = null): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+        $book = $this->tryGetEntity($request, $repository);
+        if (null === $book) {
+            $book = new Book();
+        }
+
         return $this->render('edit.html.twig', [
             'name' => self::getModelName(),
-            'entity' => $this->getEntity($request, $repository),
+            'entity' => $book,
             'fields' => $repository->getDataFields('show'),
         ]);
     }

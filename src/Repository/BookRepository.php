@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Book;
+use App\Entity\Author;
 use App\Entity\PinakesEntity;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
@@ -47,6 +48,7 @@ class BookRepository extends PinakesRepository {
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
+                'class' => Author::class,
                 'link' => self::LINK_DATA,
             ),
             'publisher' => array(

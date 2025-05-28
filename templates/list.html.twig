@@ -7,7 +7,7 @@
 {% block content %}
 <div class="container">
   <div class="table-control">
-  <input
+    <input
       class="search"
       type="search"
       placeholder="Search..."
@@ -16,6 +16,13 @@
       hx-trigger="keyup[key=='Enter']"
       hx-get="{{ path(name ~ '_filter') }}"
       hx-target="[hx-table-content]">
+    {% if control|default and is_granted('ROLE_LIBRARIAN') %}
+      <div>
+        {% for link in control %}
+          {{ link|raw }}
+        {% endfor %}
+      </div>
+    {% endif %}
   </div>
   <div>
     {{ render(path(name ~ '_filter', query)) }}

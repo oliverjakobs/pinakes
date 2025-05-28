@@ -13,6 +13,11 @@
                 <input type="text" name="{{ name }}[]" value="{{ value }}" list="{{ list_name }}">
                 <div class="delete" onclick="htmx.remove(this.parentElement)">X</div>
             </li>
+        {% else %}
+            <li>
+                <input type="text" name="{{ name }}[]" list="{{ list_name }}">
+                <div class="delete" onclick="htmx.remove(this.parentElement)">X</div>
+            </li>
         {% endfor %}
         </ul>
 
