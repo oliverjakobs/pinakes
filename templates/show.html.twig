@@ -16,16 +16,16 @@
     </div>
 
     {% if is_granted('ROLE_LIBRARIAN') %}
-      <a class="button" href="/{{ name }}/edit/{{ entity.id }}">Edit</a>
+      <a class="button" href="/{{ name }}/form/{{ entity.id }}">Edit</a>
     {% endif %}
   </div>
 
-  {% for caption, view in content|default %}
+  {% if content|default %}
   <div>
-    <h2>{{ caption }}</h2>
-    {{ view|raw }}
+    <h2>{{ content.title }}</h2>
+    {{ render(path(content.route, content.filter|merge({ id: entity.id }))) }}
   </div>
-  {% endfor %}
+  {% endif %}
 
 </div>
 {% endblock %}

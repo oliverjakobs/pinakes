@@ -21,23 +21,13 @@ class BookController extends PinakesController {
     public function list(Request $request, BookRepository $repository): Response {
         return $this->renderList($request, [
             $this->createLink('Import Books', 'book_import'),
-            $this->createLink('New Book', 'book_edit'),
+            $this->createLink('New Book', 'book_form'),
         ]);
     }
 
     #[Route('/book/filter', name: 'book_filter', methods: ['GET'])]
     public function filter(Request $request, BookRepository $repository): Response {
         return $this->renderFilter($request, $repository);
-    }
-
-    #[Route('/book/filter_author', name: 'book_filter_author', methods: ['GET'])]
-    public function filterAuthor(Request $request, BookRepository $repository): Response {
-        return $this->renderFilter($request, $repository, 'list_author', 'book_filter_author');
-    }
-
-    #[Route('/book/filter_publisher', name: 'book_filter_publisher', methods: ['GET'])]
-    public function filterPublisher(Request $request, BookRepository $repository): Response {
-        return $this->renderFilter($request, $repository, 'list_publisher', 'book_filter_publisher');
     }
 
     #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
@@ -49,33 +39,21 @@ class BookController extends PinakesController {
         ]);
     }
 
-    #[Route('/book/import', name: 'book_import', methods: ['GET'])]
-    public function import(Request $request, BookRepository $repository): Response {
-        return new Response();
-    }
-
-    #[Route('/book/edit/{id}', name: 'book_edit', methods: ['GET'])]
-    public function edit(Request $request, BookRepository $repository, int $id = null): Response {
+    #[Route('/book/form/{id?}', name: 'book_form', methods: ['GET'])]
+    public function form(Request $request, BookRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $book = $this->tryGetEntity($request, $repository);
-        if (null === $book) {
-            $book = new Book();
-        }
 
-        return $this->render('edit.html.twig', [
+        return $this->render('form.html.twig', [
             'name' => self::getModelName(),
-            'entity' => $book,
+            'entity' => $this->getEntity($request, $repository) ?? new Book(),
             'fields' => $repository->getDataFields('show'),
         ]);
     }
 
-    #[Route('/book/submit/{id}', name: 'book_submit', methods: ['POST'])]
+    #[Route('/book/submit/{id?}', name: 'book_submit', methods: ['POST'])]
     public function submit(Request $request, BookRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $book = $this->tryGetEntity($request, $repository);
-        if (null === $book) {
-            $book = new Book();
-        }
+        $book = $this->getEntity($request, $repository) ?? new Book();
 
         $book->setTitle($request->request->get('title'));
 
@@ -96,5 +74,10 @@ class BookController extends PinakesController {
 
         $repository->save($book);
         return $this->redirectToRoute('book_show', [ 'id' => $book->getId() ]);
+    }
+
+    #[Route('/book/import', name: 'book_import', methods: ['GET'])]
+    public function import(Request $request, BookRepository $repository): Response {
+        return new Response();
     }
 }

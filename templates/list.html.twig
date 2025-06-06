@@ -12,7 +12,7 @@
       type="search"
       placeholder="Search..."
       name="search"
-      value="{{ query.search }}"
+      value="{{ filter.search|default }}"
       hx-trigger="keyup[key=='Enter']"
       hx-get="{{ path(name ~ '_filter') }}"
       hx-target="[hx-table-content]">
@@ -24,8 +24,6 @@
       </div>
     {% endif %}
   </div>
-  <div>
-    {{ render(path(name ~ '_filter', query)) }}
-  </div>
+  {{ render(path(name ~ '_filter', filter)) }}
 </div>
 {% endblock %}

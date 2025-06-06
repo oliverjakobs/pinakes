@@ -26,10 +26,11 @@ abstract class PinakesController extends AbstractController {
         return new Link($caption, $this->generateUrl($route, $parameters));
     }
 
-    protected function getEntity(Request $request, PinakesRepository $repository): PinakesEntity {
+    protected function getEntity(Request $request, PinakesRepository $repository): ?PinakesEntity {
         $id = $request->attributes->get('id');
-        $entity = $repository->find($id);
+        if (null === $id) return null;
 
+        $entity = $repository->find($id);
         if (null === $entity) {
             throw $this->createNotFoundException('entity with id ' . $id . ' does not exist');
         }
@@ -37,21 +38,12 @@ abstract class PinakesController extends AbstractController {
         return $entity;
     }
 
-    protected function tryGetEntity(Request $request, PinakesRepository $repository): ?PinakesEntity {
-        try {
-            return $this->getEntity($request, $repository);
-        } catch (NotFoundHttpException | MissingIdentifierField) {
-            return null;
-        }
-    }
-
     protected function getFilter(Request $request): array {
         $filter = [
-            'search' => $request->query->get('search'),
             'order_by' => $request->query->get('order_by'),
             'order_dir' => $request->query->get('order_dir', 'desc'),
             'page' => $request->query->get('page', 1),
-            'pp' => 30
+            'pp' => $request->query->get('pp', 30),
         ];
 
         return array_merge($request->query->all(), $filter);
@@ -60,29 +52,32 @@ abstract class PinakesController extends AbstractController {
     public function renderList(Request $request, ?array $control = null): Response {
         return $this->render('list.html.twig', [
             'name' => static::getModelName(),
-            'query' => $this->getFilter($request),
+            'filter' => $this->getFilter($request),
             'control' => $control
         ]);
     }
 
-    public function renderTable(PinakesRepository|string $repository, array $filter, string $fields='list', ?string $filter_route = null): string {
-
+    public function renderTable(PinakesRepository|string $repository, array $filter, string $fields='list'): string {
         if (is_string($repository)) $repository = $this->em->getRepository($repository);
 
         return $this->renderView('table.html.twig', [
-            'filter_route' => $filter_route ?? (static::getModelName() . '_filter'),
             'data' => $repository->applyFilter($filter),
             'fields' => $repository->getDataFields($fields),
-            'query' => $filter
+            'filter' => $filter
         ]);
     }
 
-    public function renderFilter(Request $request, PinakesRepository $repository, string $fields='list', ?string $filter_route = null): Response {
+    public function renderFilter(Request $request, PinakesRepository $repository, string $fields='list'): Response {
         $response = new Response();
 
         $filter = $this->getFilter($request);
 
-        $response->setContent($this->renderTable($repository, $filter, $fields, $filter_route));
+        $id = $request->attributes->get('id');
+        if (null !== $id) {
+            $filter[static::getModelName()] = $id;
+        }
+
+        $response->setContent($this->renderTable($repository, $filter, $fields));
         $response->setStatusCode(Response::HTTP_OK);
 
         $page = $filter['page'];
@@ -91,14 +86,11 @@ abstract class PinakesController extends AbstractController {
             'page' => $page > 1 ? $page : null,
         ]);
 
-        $referer = $request->headers->get('referer');
-        $url = parse_url($referer, PHP_URL_PATH);
         if (!empty($query)) {
-            $url .= '?' . http_build_query($query);
+            $referer = $request->headers->get('referer');
+            $url = parse_url($referer, PHP_URL_PATH) . '?' . http_build_query($query);
+            $response->headers->set('HX-Push-Url', $url);
         }
-
-        // TODO Push only if changed
-        $response->headers->set('HX-Push-Url', $url);
 
         return $response;
     }

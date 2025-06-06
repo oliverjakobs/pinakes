@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Book;
+use App\Entity\User;
 use App\Repository\AuthorRepository;
+use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -26,34 +28,38 @@ class AuthorController extends PinakesController {
 
     #[Route('/author/show/{id}', name: 'author_show', methods: ['GET'])]
     public function show(Request $request, AuthorRepository $repository): Response {
-        $author = $this->getEntity($request, $repository);
-        $filter = $this->getFilter($request) + ['author' => $author->getId()];
-
         return $this->render('show.html.twig', [
             'name' => self::getModelName(),
-            'entity' => $author,
+            'entity' => $this->getEntity($request, $repository),
             'fields' => $repository->getDataFields('show'),
             'content' => [
-                'Books' => $this->renderTable(Book::class, $filter, 'list_author', 'book_filter_author')
+                'title' => 'Books',
+                'filter' => ['pp' => 10] + $this->getFilter($request),
+                'route' => 'author_show_filter'
             ]
         ]);
     }
 
-    #[Route('/author/edit/{id}', name: 'author_edit', methods: ['GET'])]
-    public function edit(Request $request, AuthorRepository $repository): Response {
-        return $this->render('edit.html.twig', [
+    #[Route('/author/show/{id}/filter', name: 'author_show_filter', methods: ['GET'])]
+    public function showFilter(Request $request, BookRepository $repository): Response {
+        return $this->renderFilter($request, $repository, 'list_author');
+    }
+
+    #[Route('/author/form/{id?}', name: 'author_form', methods: ['GET'])]
+    public function form(Request $request, AuthorRepository $repository): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        return $this->render('form.html.twig', [
             'name' => self::getModelName(),
-            'entity' => $this->getEntity($request, $repository),
+            'entity' => $this->getEntity($request, $repository) ?? new Author(),
             'fields' => $repository->getDataFields('show'),
         ]);
     }
 
     #[Route('/author/submit/{id}', name: 'author_submit', methods: ['POST'])]
     public function submit(Request $request, AuthorRepository $repository): Response {
-        $author = $this->tryGetEntity($request, $repository);
-        if (null === $author) {
-            $author = new Author();
-        }
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+        $author = $this->getEntity($request, $repository) ?? new Author();
 
         $author->setName($request->request->get('name'));
         $author->setOpenlibrary($request->request->get('openlibrary'));

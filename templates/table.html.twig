@@ -1,13 +1,16 @@
 <div hx-table-content>
 
+{% set route = app.request.attributes.get('_route') %}
+{% set params = app.request.attributes.get('_route_params')|merge(filter) %}
+
 <table class="table">
   <thead>
     <tr>
     {% for key, field in fields %}
-      {% set direction = (field.data == query.order_by) ? query.order_dir : '' %}
+      {% set direction = (field.data == filter.order_by) ? filter.order_dir : '' %}
       {% set next_dir = (direction == 'asc') ? 'desc' : 'asc' %}
       <th
-          hx-get="{{ path(filter_route, query|merge({'order_by': field.data, 'order_dir': next_dir, 'page': 1})) }}"
+          hx-get="{{ path(route, params|merge({'order_by': field.data, 'order_dir': next_dir, 'page': 1})) }}"
           hx-trigger="click"
           hx-swap="outerHTML"
           hx-target="[hx-table-content]">
@@ -17,7 +20,7 @@
     </tr>
   </thead>
   <tbody>
-  {% for entity in data|slice((query.page - 1) * query.pp, query.pp) %}
+  {% for entity in data|slice((filter.page - 1) * filter.pp, filter.pp) %}
     <tr>
     {% for field in fields %}
       <td>{% include '/component/datafield.html.twig' %}</td>
@@ -32,19 +35,18 @@
 </table>
 
 
-{% set max_pages = ((data|length) / query.pp)|round(0, 'ceil') %}
+{% set max_pages = ((data|length) / filter.pp)|round(0, 'ceil') %}
 {% if max_pages > 1 %}
   <ul class="table-pagination" hx-boost="true">
-    {% set max_pages = ((data|length) / query.pp)|round(0, 'ceil') %}
-    {% set start = max(min(query.page - 4, max_pages - 8), 1) %}
+    {% set start = max(min(filter.page - 4, max_pages - 8), 1) %}
     {% set end = min(start + 8, max_pages) %}
 
     {% if start > 1 %} {% set start = start + 1 %} {% endif %}
     {% if end < max_pages %} {% set end = end - 1 %} {% endif %}
 
-    {% if query.page > 1 %}
+    {% if filter.page > 1 %}
       <li class="icon">
-        <a href="{{ path(filter_route, query|merge({'page': query.page - 1})) }}"
+        <a href="{{ path(route, params|merge({'page': filter.page - 1})) }}"
             hx-swap="outerHTML"
             class="prev-next"
             hx-target="[hx-table-content]">
@@ -55,7 +57,7 @@
 
     {% if start > 1 %}
       <li>
-        <a href="{{ path(filter_route, query|merge({'page': 1})) }}"
+        <a href="{{ path(route, params|merge({'page': 1})) }}"
             hx-swap="outerHTML"
             hx-target="[hx-table-content]">
           {{1}}
@@ -66,8 +68,8 @@
 
     {% for p in range(start, end) %}
       <li>
-        <a href="{{ path(filter_route, query|merge({'page': p})) }}"
-            {% if p == query.page %}class="active"{% endif %}
+        <a href="{{ path(route, params|merge({'page': p})) }}"
+            {% if p == filter.page %}class="active"{% endif %}
             hx-swap="outerHTML"
             hx-target="[hx-table-content]">
           {{p}}
@@ -78,7 +80,7 @@
     {% if end < max_pages %}
       <li>&#8230;</li>
       <li>
-        <a href="{{ path(filter_route, query|merge({'page': max_pages})) }}"
+        <a href="{{ path(route, params|merge({'page': max_pages})) }}"
             hx-swap="outerHTML"
             hx-target="[hx-table-content]">
           {{ max_pages }}
@@ -86,9 +88,9 @@
       </li>
     {% endif %}
 
-    {% if query.page < max_pages %}
+    {% if filter.page < max_pages %}
       <li class="icon">
-        <a href="{{ path(filter_route, query|merge({'page': query.page + 1})) }}"
+        <a href="{{ path(route, params|merge({'page': filter.page + 1})) }}"
             hx-swap="outerHTML"
             class="prev-next"
             hx-target="[hx-table-content]">
