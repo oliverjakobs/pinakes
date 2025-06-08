@@ -36,8 +36,12 @@ class Book extends PinakesEntity {
     #[ORM\Column(length: 13, nullable: true)]
     private ?string $isbn = null;
 
+    #[ORM\OneToOne(mappedBy: 'book')]
+    private ?SeriesVolume $volume = null;
+
     public function __construct() {
         $this->authors = new ArrayCollection();
+        $this->series_volumes = new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -56,6 +60,18 @@ class Book extends PinakesEntity {
     public function getLinkOpenLibrary(): ?Link {
         if (null === $this->isbn) return null;
         return new Link('', 'https://openlibrary.org/isbn/' . $this->isbn, true);
+    }
+
+    public function getLinkSeries(): ?Link {
+        return $this->getSeries()?->getLinkSelf();
+    }
+
+    public function getSeries(): ?Series {
+        return $this->volume?->series;
+    }
+
+    public function getSeriesVolume(): ?string {
+        return $this->volume?->volume;
     }
 
     public function getTitle(): ?string {

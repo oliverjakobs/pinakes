@@ -263,7 +263,7 @@ button:hover, .button:hover {
   flex-direction: column;
 }
 
-.show-table ul {
+.show-table ul, .show-table ol {
   margin: 0;
   padding-left: 1em;
 }

@@ -18,7 +18,7 @@ class PublisherController extends PinakesController {
 
     #[Route('/publisher', name: 'publisher', methods: ['GET'])]
     public function list(Request $request, PublisherRepository $repository): Response {
-        return $this->renderList($request, $repository);
+        return $this->renderList($request);
     }
 
     #[Route('/publisher/filter', name: 'publisher_filter', methods: ['GET'])]

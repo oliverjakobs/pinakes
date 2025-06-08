@@ -6,6 +6,7 @@ use App\Entity\PinakesEntity;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Common\Collections\Criteria;
 
 abstract class PinakesRepository extends ServiceEntityRepository {
@@ -70,7 +71,7 @@ abstract class PinakesRepository extends ServiceEntityRepository {
 
     /** @return PinakesEntity[] */
     public function applyFilter(array $filter): array {
-        return $this->getQueryBuilder($filter)->getQuery()->execute();
+        return $this->getQueryBuilder($filter)->getQuery()->getResult();
     }
 
     public function getOptions(): array {

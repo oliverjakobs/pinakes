@@ -5,6 +5,8 @@ namespace App\DataFixtures;
 use App\Entity\Author;
 use App\Entity\Book;
 use App\Entity\Publisher;
+use App\Entity\Series;
+use App\Entity\SeriesVolume;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -22,6 +24,7 @@ class AppFixtures extends Fixture
     private function loadBooks(ObjectManager $manager): void {
         $author_rep = $manager->getRepository(Author::class);
         $publisher_rep = $manager->getRepository(Publisher::class);
+        $series_rep = $manager->getRepository(Series::class);
 
         $row = 0;
         if (($handle = fopen("books.csv", "r")) !== FALSE) {
@@ -34,10 +37,12 @@ class AppFixtures extends Fixture
                 $publisher = $data[3];
                 $year_published = $data[4];
                 $first_published = $data[5];
+                $series_name = $data[6];
+                $volume = $data[7];
 
                 $book = new Book();
                 $book->setTitle($title);
-                $book->setPublisher($publisher_rep->getOrCreate($publisher));
+                $book->setPublisher(empty($publisher) ? null : $publisher_rep->getOrCreate($publisher));
                 $book->setPublished(empty($year_published) ? null : intval($year_published));
                 $book->setFirstPublished(empty($first_published) ? null : intval($first_published));
                 $book->setIsbn($isbn);
@@ -48,6 +53,14 @@ class AppFixtures extends Fixture
                     $author = trim($author);
                     if (empty($author)) continue;
                     $book->addAuthor($author_rep->getOrCreate($author));
+                }
+                $manager->persist($book);
+
+                if (!empty($series_name)) {
+                    $series_name = trim($series_name);
+                    $series = $series_rep->getOrCreate($series_name);
+                    $series->addVolume(SeriesVolume::create($book, intval($volume)));
+                    $manager->persist($series);
                 }
 
                 $manager->persist($book);

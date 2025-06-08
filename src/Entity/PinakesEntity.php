@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\Collection;
 use ReflectionClass;
 use App\Pinakes\Link;
+use App\Pinakes\DataType;
 
 abstract class PinakesEntity {
 
@@ -14,6 +15,10 @@ abstract class PinakesEntity {
     public static function getClassName(): string {
         $reflection = new ReflectionClass(get_called_class());
         return strtolower($reflection->getShortName());
+    }
+
+    public static function getDataType(): DataType {
+        return new DataType(static::class);
     }
 
     public function getLinkSelf(?string $value = null): Link {

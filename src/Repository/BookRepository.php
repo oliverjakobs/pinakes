@@ -19,7 +19,7 @@ class BookRepository extends PinakesRepository {
     }
 
     protected function getQueryBuilder(array $filter): QueryBuilder {
-        $qb = parent::getQueryBuilder($filter);
+        $qb = parent::getQueryBuilder($filter)->addSelect('v')->join('e.volume', 'v');
 
         if (!empty($filter['author'])) {
             $qb->andWhere($qb->expr()->isMemberOf(':author', 'e.authors'));
@@ -48,7 +48,7 @@ class BookRepository extends PinakesRepository {
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'class' => Author::class,
+                'data_type' => Author::getDataType(),
                 'link' => self::LINK_DATA,
             ),
             'publisher' => array(
@@ -72,7 +72,17 @@ class BookRepository extends PinakesRepository {
                 'caption' => 'OpenLibrary',
                 'data' => fn(Book $b) => $b->getLinkOpenLibrary(),
                 'edit' => false
-            )
+            ),
+            'series' => array(
+                'caption' => 'Series',
+                'data' => fn(Book $b) => $b->getLinkSeries(),
+                'edit' => false
+            ),
+            'volume' => array(
+                'caption' => 'Volume',
+                'data' => fn(Book $b) => $b->getSeriesVolume(),
+                'edit' => false
+            ),
         ];
     }
 
@@ -93,7 +103,7 @@ class BookRepository extends PinakesRepository {
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields(array(
-            'title', 'authors', 'publisher', 'published', 'first_published', 'isbn', 'openlibrary'
+            'title', 'authors', 'publisher', 'published', 'first_published', 'isbn', 'openlibrary', 'series', 'volume'
         ));
     }
 }
