@@ -10,22 +10,27 @@ use App\Pinakes\Link;
 
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
 class Author extends PinakesEntity {
+
+    const ROLE_AUTHOR = 'author';
+    const ROLE_TRANSLATOR = 'translator';
+    const ROLE_EDITOR = 'editor';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $name = null;
+    public ?string $name = null;
 
     /**
      * @var Collection<int, Book>
      */
     #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'authors')]
-    private Collection $books;
+    public Collection $books;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $openlibrary = null;
+    public ?string $openlibrary = null;
 
     public function __construct() {
         $this->books = new ArrayCollection();
@@ -44,22 +49,6 @@ class Author extends PinakesEntity {
         return new Link($this->openlibrary, 'https://openlibrary.org/authors/' . $this->openlibrary, true);
     }
 
-    public function getName(): ?string {
-        return $this->name;
-    }
-
-    public function setName(string $name): static {
-        $this->name = $name;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Book>
-     */
-    public function getBooks(): Collection {
-        return $this->books;
-    }
-
     public function addBook(Book $book): static {
         if (!$this->books->contains($book)) {
             $this->books->add($book);
@@ -72,18 +61,6 @@ class Author extends PinakesEntity {
         if ($this->books->removeElement($book)) {
             $book->removeAuthor($this);
         }
-        return $this;
-    }
-
-    public function getOpenlibrary(): ?string
-    {
-        return $this->openlibrary;
-    }
-
-    public function setOpenlibrary(?string $openlibrary): static
-    {
-        $this->openlibrary = $openlibrary;
-
         return $this;
     }
 }

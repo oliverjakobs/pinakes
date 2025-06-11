@@ -41,7 +41,4 @@ class Series extends PinakesEntity {
         $volume->series = $this;
         return $this;
     }
-
-    public function getName() { return $this->name; }
-    public function getVolumes() { return $this->volumes; }
 }

@@ -16,28 +16,28 @@ class Book extends PinakesEntity {
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $title = null;
+    public ?string $title = null;
 
     /**
      * @var Collection<int, Author>
      */
     #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'books')]
-    private Collection $authors;
+    public Collection $authors;
 
     #[ORM\Column(nullable: true)]
-    private ?int $published = null;
+    public ?int $published = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $first_published = null;
+    public ?int $first_published = null;
 
     #[ORM\ManyToOne(inversedBy: 'books')]
-    private ?Publisher $publisher = null;
+    public ?Publisher $publisher = null;
 
     #[ORM\Column(length: 13, nullable: true)]
-    private ?string $isbn = null;
+    public ?string $isbn = null;
 
     #[ORM\OneToOne(mappedBy: 'book')]
-    private ?SeriesVolume $volume = null;
+    public ?SeriesVolume $volume = null;
 
     public function __construct() {
         $this->authors = new ArrayCollection();
@@ -74,22 +74,6 @@ class Book extends PinakesEntity {
         return $this->volume?->volume;
     }
 
-    public function getTitle(): ?string {
-        return $this->title;
-    }
-
-    public function setTitle(string $title): static {
-        $this->title = $title;
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Author>
-     */
-    public function getAuthors(): Collection {
-        return $this->authors;
-    }
-
     public function clearAuthors(): void {
         foreach ($this->authors as $author) {
             $this->removeAuthor($author);
@@ -109,45 +93,6 @@ class Book extends PinakesEntity {
         if ($this->authors->removeElement($author)) {
             $author->removeBook($this);
         }
-
-        return $this;
-    }
-
-    public function getPublished(): ?int {
-        return $this->published;
-    }
-
-    public function setPublished(?int $published): static {
-        $this->published = $published;
-        return $this;
-    }
-
-    public function getFirstPublished(): ?int {
-        return $this->first_published;
-    }
-
-    public function setFirstPublished(?int $first_published): static {
-        $this->first_published = $first_published;
-        return $this;
-    }
-
-    public function getPublisher(): ?Publisher {
-        return $this->publisher;
-    }
-
-    public function setPublisher(?Publisher $publisher): static {
-        $this->publisher = $publisher;
-        return $this;
-    }
-
-    public function getIsbn(): ?string
-    {
-        return $this->isbn;
-    }
-
-    public function setIsbn(?string $isbn): static
-    {
-        $this->isbn = $isbn;
 
         return $this;
     }

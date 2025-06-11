@@ -3,6 +3,9 @@
 {% set route = app.request.attributes.get('_route') %}
 {% set params = app.request.attributes.get('_route_params')|merge(filter) %}
 
+
+{% set offset = (filter.page - 1) * filter.pp %}
+
 <table class="table">
   <thead>
     <tr>
@@ -20,7 +23,7 @@
     </tr>
   </thead>
   <tbody>
-  {% for entity in data|slice((filter.page - 1) * filter.pp, filter.pp) %}
+  {% for entity in data|slice(offset, filter.pp) %}
     <tr>
     {% for field in fields %}
       <td>{% include '/component/datafield.html.twig' %}</td>
@@ -34,6 +37,11 @@
   </tbody>
 </table>
 
+{% if data|length == 1 %}
+  <div>Found {{ data|length }} entry</div>
+{% else %}
+  <div>Found {{ data|length }} entries</div>
+{% endif %}
 
 {% set max_pages = ((data|length) / filter.pp)|round(0, 'ceil') %}
 {% if max_pages > 1 %}

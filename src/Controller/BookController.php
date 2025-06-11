@@ -55,7 +55,7 @@ class BookController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
         $book = $this->getEntity($request, $repository) ?? new Book();
 
-        $book->setTitle($request->request->get('title'));
+        $book->title = $request->request->get('title');
 
         $author_rep = $this->em->getRepository(Author::class);
         $book->clearAuthors();
@@ -65,12 +65,21 @@ class BookController extends PinakesController {
             $book->addAuthor($author_rep->getOrCreate($author), false);
         }
 
-        $publisher_rep = $this->em->getRepository(Publisher::class);
-        $book->setPublisher($publisher_rep->getOrCreate($request->request->get('publisher')));
+        $book->clearTranslators();
+        $translators = $request->request->all('translators');
+        foreach ($translators as $author) {
+            if (empty($author)) continue;
+            $book->addTranslator($author_rep->getOrCreate($author), false);
+        }
 
-        $book->setPublished(intval($request->request->get('published')));
-        $book->setFirstPublished(intval($request->request->get('first_published')));
-        $book->setIsbn($request->request->get('isbn'));
+        $publisher_rep = $this->em->getRepository(Publisher::class);
+        $book->publisher = $publisher_rep->getOrCreate($request->request->get('publisher'));
+
+        $published = $request->request->get('published');
+        $book->published = !empty($published) ? intval($published) : null;
+        $first_published = $request->request->get('first_published');
+        $book->first_published = !empty($first_published) ? intval($first_published) : null;
+        $book->isbn = $request->request->get('isbn');
 
         $repository->save($book);
         return $this->redirectToRoute('book_show', [ 'id' => $book->getId() ]);

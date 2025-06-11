@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Series;
 use App\Entity\User;
 use App\Repository\SeriesRepository;
+use App\Repository\SeriesVolumeRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -31,7 +32,17 @@ class SeriesController extends PinakesController {
             'name' => self::getModelName(),
             'entity' => $this->getEntity($request, $repository),
             'fields' => $repository->getDataFields('show'),
+            'content' => [
+                'title' => 'Volumes',
+                'filter' => ['pp' => 10] + $this->getFilter($request),
+                'route' => 'series_show_filter'
+            ]
         ]);
+    }
+
+    #[Route('/series/show/{id}/filter', name: 'series_show_filter', methods: ['GET'])]
+    public function showFilter(Request $request, SeriesVolumeRepository $repository): Response {
+        return $this->renderFilter($request, $repository, 'list');
     }
 
     #[Route('/series/form/{id?}', name: 'series_form', methods: ['GET'])]

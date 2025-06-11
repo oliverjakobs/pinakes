@@ -41,11 +41,11 @@ class AppFixtures extends Fixture
                 $volume = $data[7];
 
                 $book = new Book();
-                $book->setTitle($title);
-                $book->setPublisher(empty($publisher) ? null : $publisher_rep->getOrCreate($publisher));
-                $book->setPublished(empty($year_published) ? null : intval($year_published));
-                $book->setFirstPublished(empty($first_published) ? null : intval($first_published));
-                $book->setIsbn($isbn);
+                $book->title = $title;
+                $book->publisher = empty($publisher) ? null : $publisher_rep->getOrCreate($publisher);
+                $book->published = empty($year_published) ? null : intval($year_published);
+                $book->first_published = empty($first_published) ? null : intval($first_published);
+                $book->isbn = $isbn;
 
                 $manager->persist($book);
 

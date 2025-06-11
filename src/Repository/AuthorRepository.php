@@ -16,7 +16,7 @@ class AuthorRepository extends PinakesRepository {
         $author = $this->findOneBy(['name' => $name]);
         if (null === $author) {
             $author = new Author();
-            $author->setName($name);
+            $author->name = $name;
             $this->save($author, $flush);
         }
 
@@ -36,7 +36,7 @@ class AuthorRepository extends PinakesRepository {
             ),
             'book_count' => array(
                 'caption' => 'Books',
-                'data' => fn(Author $a) => $a->getBooks()->count(),
+                'data' => fn(Author $a) => $a->books->count(),
             ),
             'openlibrary' => array(
                 'caption' => 'OpenLibrary',

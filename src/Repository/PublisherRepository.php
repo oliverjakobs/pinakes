@@ -15,7 +15,7 @@ class PublisherRepository extends PinakesRepository {
         $publisher = $this->findOneBy(['name' => $name]);
         if (null === $publisher) {
             $publisher = new Publisher();
-            $publisher->setName($name);
+            $publisher->name = $name;
             $this->save($publisher, $flush);
         }
 

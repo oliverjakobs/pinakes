@@ -42,7 +42,4 @@ class SeriesVolume extends PinakesEntity {
         if (null === $this->book) return parent::getLinkSelf();
         return $this->book->getLinkSelf($value);
     }
-
-    public function getName() { return $this->name; }
-    public function getVolume() { return $this->volume; }
 }

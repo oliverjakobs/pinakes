@@ -34,6 +34,10 @@ class AppExtension extends AbstractExtension {
             return $data($entity);
         }
 
+        if (array_key_exists($data, get_object_vars($entity))) {
+            return $entity->$data;
+        }
+
         $name = 'get' . str_replace('_', '', ucwords($data, '_'));
         return $entity->{$name}();
     }

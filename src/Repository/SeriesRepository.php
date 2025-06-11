@@ -35,15 +35,9 @@ class SeriesRepository extends PinakesRepository {
                 'data' => 'name',
                 'link' => self::LINK_SELF
             ),
-            'volumes' => array(
-                'caption' => 'Volumes',
-                'data' => 'volumes',
-                'data_type' => SeriesVolume::getDataType(),
-                'link' => self::LINK_DATA
-            ),
             'volume_count' => array(
                 'caption' => 'Volumes',
-                'data' => fn(Series $s) => $s->getVolumes()->count(),
+                'data' => fn(Series $s) => $s->volumes->count(),
             ),
         ];
     }
@@ -55,7 +49,7 @@ class SeriesRepository extends PinakesRepository {
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields(array(
-            'name', 'volumes'
+            'name'
         ));
     }
 }

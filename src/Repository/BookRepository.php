@@ -19,7 +19,7 @@ class BookRepository extends PinakesRepository {
     }
 
     protected function getQueryBuilder(array $filter): QueryBuilder {
-        $qb = parent::getQueryBuilder($filter)->addSelect('v')->join('e.volume', 'v');
+        $qb = parent::getQueryBuilder($filter)->addSelect('v')->leftJoin('e.volume', 'v');
 
         if (!empty($filter['author'])) {
             $qb->andWhere($qb->expr()->isMemberOf(':author', 'e.authors'));
