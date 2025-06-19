@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Author;
 use App\Entity\Series;
 use App\Entity\SeriesVolume;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -35,6 +36,12 @@ class SeriesRepository extends PinakesRepository {
                 'data' => 'name',
                 'link' => self::LINK_SELF
             ),
+            'authors' => array(
+                'caption' => 'Author(s)',
+                'data' => fn (Series $s) => $this->getEntityManager()->getRepository(Author::class)->findBySeries($s),
+                'data_type' => Author::getDataType(),
+                'link' => self::LINK_DATA,
+            ),
             'volume_count' => array(
                 'caption' => 'Volumes',
                 'data' => fn(Series $s) => $s->volumes->count(),
@@ -49,7 +56,7 @@ class SeriesRepository extends PinakesRepository {
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields(array(
-            'name'
+            'name', 'authors'
         ));
     }
 }

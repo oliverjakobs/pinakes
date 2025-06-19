@@ -49,8 +49,8 @@ class AppExtension extends AbstractExtension {
 
         $link = $field['link'] ?? null;
 
-        if ($data instanceof Collection) {
-            $data = $data->toArray();
+        if (is_iterable($data)) {
+            if ($data instanceof Collection) $data = $data->toArray();
             if (null !== $link) {
                 assert(PinakesRepository::LINK_DATA === $link, 'Collections can only link to data');
                 $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
@@ -81,7 +81,7 @@ class AppExtension extends AbstractExtension {
 
         $data = self::getData($field, $entity);
 
-        if ($data instanceof Collection) {
+        if (is_iterable($data)) {
             assert(isset($field['data_type']), 'Collections need "data_type" to be set');
             $repository = $this->em->getRepository($field['data_type']->entity);
             return [

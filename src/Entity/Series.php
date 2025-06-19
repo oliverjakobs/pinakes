@@ -41,4 +41,18 @@ class Series extends PinakesEntity {
         $volume->series = $this;
         return $this;
     }
+
+    /**
+     * @var array<Author>
+     */
+    public function getAuthors(): array {
+        $books = $this->volumes->map(fn($v) => $v->book);
+        return $books->toArray();
+
+        $result = [];
+        foreach ($books as $book) {
+            $result = array_merge($result, $book->authors->toArray());
+        }
+        return array_unique($result);
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Author;
+use App\Entity\Series;
 use App\Entity\PinakesEntity;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -10,6 +11,10 @@ class AuthorRepository extends PinakesRepository {
 
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, Author::class);
+    }
+
+    public function getSearchKey(): string{
+        return 'name';
     }
 
     public function getOrCreate(string $name, bool $flush = true): Author {
@@ -23,8 +28,15 @@ class AuthorRepository extends PinakesRepository {
         return $author;
     }
 
-    public function getSearchKey(): string{
-        return 'name';
+    public function findBySeries(Series $series): array {
+        $books = $series->volumes->map(fn($v) => $v->book);
+
+        $qb = $this->createQueryBuilder('a');
+        foreach ($books as $idx => $book) {
+            $qb->orWhere('?' . $idx . ' MEMBER OF a.books');
+            $qb->setParameter($idx, $book);
+        }
+        return $qb->getQuery()->getResult();
     }
 
     protected function defineDataFields(): array {
