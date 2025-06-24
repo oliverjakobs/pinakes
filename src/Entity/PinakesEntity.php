@@ -25,18 +25,4 @@ abstract class PinakesEntity {
         $url = '/' . self::getClassName() . '/show/' .  $this->getId();
         return new Link($value ?? (string)$this, $url);
     }
-
-    public static function toHtmlList(Collection $collection, bool $link): string {
-        if ($collection->isEmpty()) return '';
-        if (1 === $collection->count()) {
-            return $link ? $collection->first()->getLinkSelf()->getHTML() : (string) $collection->first();
-        }
-
-        $result = '';
-        foreach ($collection as $entry) {
-            $result .= '<li>' . ($link ? $entry->getLinkSelf()->getHTML() : (string) $entry) . '</li>';
-        }
-
-        return '<ul>' . $result . '</ul>';
-    }
 }

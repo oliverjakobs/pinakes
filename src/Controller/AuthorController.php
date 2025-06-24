@@ -67,4 +67,14 @@ class AuthorController extends PinakesController {
         $repository->save($author);
         return $this->redirectToRoute('author_show', [ 'id' => $author->getId() ]);
     }
+
+    #[Route('/author/delete/{id}', name: 'author_delete', methods: ['DELETE'])]
+    public function delete(Request $request, AuthorRepository $repository): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        $author = $this->getEntity($request, $repository);
+        $repository->delete($author);
+
+        return $this->redirectToRoute('author');
+    }
 }

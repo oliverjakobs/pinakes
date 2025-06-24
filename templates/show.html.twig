@@ -16,7 +16,15 @@
     </div>
 
     {% if is_granted('ROLE_LIBRARIAN') %}
-      <a class="button" href="/{{ name }}/form/{{ entity.id }}">Edit</a>
+      {% if route_exists(name ~ '_form') %}
+        {# TODO edit replace 'show-main' with form #}
+        <a class="button" href="{{ path(name ~ '_form', { id: entity.id })}}">Edit</a>
+      {% endif %}
+      {#
+      {% if route_exists(name ~ '_delete') %}
+        <a class="button" href="{{ path(name ~ '_delete', { id: entity.id })}}">Delete</a>
+      {% endif %}
+      #}
     {% endif %}
   </div>
 

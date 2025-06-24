@@ -35,7 +35,7 @@ class PublisherRepository extends PinakesRepository {
             ),
             'book_count' => array(
                 'caption' => 'Books',
-                'data' => fn(Publisher $p) => $p->getBooks()->count(),
+                'data' => fn(Publisher $p) => $p->books->count(),
             ),
         ];
     }

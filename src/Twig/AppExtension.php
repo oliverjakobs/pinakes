@@ -7,23 +7,48 @@ use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Exception;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
+use Twig\TwigFilter;
 
 class AppExtension extends AbstractExtension {
 
     private EntityManagerInterface $em;
+    private RouterInterface $router;
 
-    public function __construct(EntityManagerInterface $em) {
+    public function __construct(EntityManagerInterface $em, RouterInterface $router) {
         $this->em = $em;
+        $this->router = $router;
     }
 
     public function getFunctions(): array {
         return [
             new TwigFunction('get_value', [$this, 'getValue']),
             new TwigFunction('get_form', [$this, 'getForm']),
+            new TwigFunction('route_exists', [$this, 'routeExists']),
         ];
+    }
+
+    public function getFilters(): array {
+        return [
+            new TwigFilter('fmt_currency', [$this, 'formatCurrency']),
+        ];
+    }
+
+    public function formatCurrency(float $amount): string {
+        return sprintf('%.2f €', $amount);
+    }
+
+    public function routeExists(string $name): bool {
+        try {
+            $this->router->generate($name);
+        } catch (RouteNotFoundException $e) {
+            return false;
+        }
+        return true;
     }
 
     private static function getData(array $field, PinakesEntity $entity): mixed {
@@ -52,12 +77,13 @@ class AppExtension extends AbstractExtension {
         if (is_iterable($data)) {
             if ($data instanceof Collection) $data = $data->toArray();
             if (null !== $link) {
-                assert(PinakesRepository::LINK_DATA === $link, 'Collections can only link to data');
+                assert(PinakesRepository::LINK_DATA === $link, 'Iterables can only link to data');
                 $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
             }
             return $data;
         }
 
+        // TODO format data
         if (null === $link) return (string) $data;
 
         if (PinakesRepository::LINK_SELF === $link) {
@@ -82,7 +108,7 @@ class AppExtension extends AbstractExtension {
         $data = self::getData($field, $entity);
 
         if (is_iterable($data)) {
-            assert(isset($field['data_type']), 'Collections need "data_type" to be set');
+            assert(isset($field['data_type']), 'Iterables need "data_type" to be set');
             $repository = $this->em->getRepository($field['data_type']->entity);
             return [
                 'path' => '/component/autocomplete.html.twig',

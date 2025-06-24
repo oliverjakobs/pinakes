@@ -1,0 +1,37 @@
+{% extends "_base.html.twig" %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href={{ asset('styles/pinakes.css') }}>
+    <link rel="stylesheet" href={{ asset('styles/bookfund.css') }}>
+{% endblock %}
+
+{% block title %}
+  Pinakes - Bookfund
+{% endblock %}
+
+{% block content %}
+<div class="bookfund-container">
+    <div class="control centered">
+        <h1>Balance:</h1>
+        <div class="balance">
+            {{ balance | fmt_currency }}
+        </div>
+        <div>
+            <button class="button deposit" hx-get="{{ path('bookfund_modal', { type: 'deposit' }) }}" hx-target="body" hx-swap="beforeend">+</button>
+            <button class="button withdrawal" hx-get="{{ path('bookfund_modal', { type: 'withdrawal' }) }}" hx-target="body" hx-swap="beforeend">-</button>
+        </div>
+    </div>
+    <ul class="transactions">
+        {% for transaction in transactions %}
+            <li class="{% if transaction.amount < 0.0 %}withdrawal{% else %}deposit{% endif %}">
+                <div class="amount">{{ transaction.amount | abs | fmt_currency }}</div>
+                <div>{{ transaction.reason }}</div>
+                <div class="timestamp">{{ transaction.timestamp|date("d.m.Y") }}</div>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="centered">
+        <a class="fancy-link" href="{{ path('transaction') }}">View All</a>
+    </div>
+</div>
+{% endblock %}

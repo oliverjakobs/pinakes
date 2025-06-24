@@ -7,6 +7,7 @@ use App\Entity\Book;
 use App\Entity\Publisher;
 use App\Entity\Series;
 use App\Entity\SeriesVolume;
+use App\Entity\Transaction;
 use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -74,8 +75,34 @@ class AppFixtures extends Fixture
 
     }
 
+    private function loadTransactions(ObjectManager $manager): void {
+        $rep = $manager->getRepository(Transaction::class);
+
+        $row = 0;
+        if (($handle = fopen("bookfund.csv", "r")) !== FALSE) {
+            while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                if (0 === $row++) continue; // skip header
+
+                $amount = $data[1];
+                $reason = $data[2];
+                $timestamp = $data[3];
+
+                $transaction = new Transaction();
+                $transaction->amount = empty($amount) ? null : floatval($amount);
+                $transaction->reason = $reason;
+                $transaction->timestamp = (new \DateTime())->setTimestamp(intval($timestamp));
+
+                $manager->persist($transaction);
+            }
+            fclose($handle);
+        }
+
+        $manager->flush();
+    }
+
     public function load(ObjectManager $manager): void {
         $this->loadBooks($manager);
+        $this->loadTransactions($manager);
 
         $user = new User();
         $user->setUsername('admin');

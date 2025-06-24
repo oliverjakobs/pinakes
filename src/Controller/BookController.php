@@ -50,6 +50,7 @@ class BookController extends PinakesController {
         ]);
     }
 
+    // TODO? rework edit data + merge 'form' and 'submit' ($request->getMethod() === Request::METHOD_POST)
     #[Route('/book/submit/{id?}', name: 'book_submit', methods: ['POST'])]
     public function submit(Request $request, BookRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
@@ -63,13 +64,6 @@ class BookController extends PinakesController {
         foreach ($authors as $author) {
             if (empty($author)) continue;
             $book->addAuthor($author_rep->getOrCreate($author), false);
-        }
-
-        $book->clearTranslators();
-        $translators = $request->request->all('translators');
-        foreach ($translators as $author) {
-            if (empty($author)) continue;
-            $book->addTranslator($author_rep->getOrCreate($author), false);
         }
 
         $publisher_rep = $this->em->getRepository(Publisher::class);
