@@ -18,15 +18,43 @@ class IndexController extends AbstractController {
     #[Route('/', name: 'pinakes')]
     public function index(): Response {
 
-        // $client = HttpClient::create();
-        // $response = $client->request('GET', 'https://openlibrary.org/isbn/0330258648.json');
-
-        // return JsonResponse::fromJsonString($response->getContent());
+        $navigation = [
+            [
+                'icon' => 'book',
+                'route' => 'book',
+                'caption' => 'Books'
+            ],
+            [
+                'icon' => 'vector-pen',
+                'route' => 'author',
+                'caption' => 'Authors'
+            ],
+            [
+                'icon' => 'send',
+                'route' => 'publisher',
+                'caption' => 'Publishers'
+            ],
+            [
+                'icon' => 'bookmark',
+                'route' => 'series',
+                'caption' => 'Series'
+            ],
+            [
+                'icon' => 'bank',
+                'route' => 'bookfund',
+                'caption' => 'Bookfund'
+            ],
+            [
+                'icon' => 'database',
+                'route' => 'admin',
+                'caption' => 'Admin'
+            ],
+        ];
         
 
 
         return $this->render('index.html.twig', [
-            'results' => ''
+            'navigation' => $navigation
         ]);
     }
 

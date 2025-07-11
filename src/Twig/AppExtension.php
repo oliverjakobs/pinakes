@@ -13,6 +13,7 @@ use Exception;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 use Twig\TwigFilter;
+use Twig\Markup;
 
 class AppExtension extends AbstractExtension {
 
@@ -29,6 +30,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('get_value', [$this, 'getValue']),
             new TwigFunction('get_form', [$this, 'getForm']),
             new TwigFunction('route_exists', [$this, 'routeExists']),
+            new TwigFunction('icon', [$this, 'getIcon'])
         ];
     }
 
@@ -49,6 +51,12 @@ class AppExtension extends AbstractExtension {
             return false;
         }
         return true;
+    }
+
+    public function getIcon(string $name): ?Markup {
+        $filename = 'icons/bootstrap/' . $name . '.svg';
+        if (!file_exists($filename)) return null;
+        return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
     private static function getData(array $field, PinakesEntity $entity): mixed {

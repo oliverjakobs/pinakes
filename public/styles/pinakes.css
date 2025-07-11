@@ -1,10 +1,11 @@
 :root {
   --main-color: #442d2d;
-  --main-bg-color: #F9F6EE;
+  --main-hover: #7c7373;
+  --main-bg-color: #f9f1cc;
   --border-color: #b6b6b6;
   --border-hover: #6b6b6b;
-  --table-border: #e0e0e0;
-  --hover-color: rgba(0, 0, 0, 0.05);
+  --table-border: #a9a9a9;
+  --table-hover: rgba(0, 0, 0, 0.1);
 }
 
 body {
@@ -95,45 +96,52 @@ button, .button {
 
 button:hover, .button:hover {
   border-color: var(--border-hover);
-  background-color: var(--hover-color);
+  background-color: var(--table-hover);
 }
 
 /* --------------------------| overview |--------------------------- */
 .card-container {
-  width: 100%;
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  width: 80%;
+  margin-right: auto;
+  margin-left: auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.6em;
 }
 
 .card {
-  width: 240px;
-  height: 120px;
+  aspect-ratio: 2/1;
   border-radius: 8px;
-  margin: 20px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: all .6s ease;
-  border: 1px solid var(--border-color);
+  transition: 0.4s ease-out;
+  text-decoration: none;
+  color: var(--main-color);
+  border: 1px solid var(--main-color);
 }
 
 .card:hover {
-  transform: scale(1.04);
-  border-color: var(--border-hover);
+  border-color: var(--main-hover);
 }
 
-.card .icon {
-  margin: 0px;
-  font-size: 4rem;
+.card .icon svg {
+  margin-top: 0.8rem;
+  margin-bottom: 0.4rem;
+  height: 5rem;
+  width: 5rem;
+  fill: var(--main-color);
+}
+
+.card:hover .icon svg {
+  fill: var(--main-hover);
 }
 
 .card .title {
+  font-size: 1.4rem;
   margin: 0px;
-  font-size: 2rem;
 }
 
 /* --------------------------| table |------------------------------ */
@@ -189,18 +197,26 @@ button:hover, .button:hover {
 }
 
 .table tr:not(.empty):hover {
-  background-color: var(--hover-color);
+  background-color: var(--table-hover);
 }
 
 .table tr.empty {
   text-align: center;
 }
 
+.table-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+}
+
 .table-pagination {
   display: flex;
   align-items: center;
+  align-self: center;
   justify-content: center;
+  flex-grow: 2;
   padding: 0;
+  margin: 0;
   list-style: none;
 }
 
@@ -231,7 +247,7 @@ button:hover, .button:hover {
 
 .table-pagination li a:hover {
   border: 1px solid var(--border-hover);
-  background-color: var(--hover-color);
+  background-color: var(--table-hover);
 }
 
 
