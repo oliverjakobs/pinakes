@@ -32,10 +32,13 @@ class BookController extends PinakesController {
 
     #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
     public function show(Request $request, BookRepository $repository): Response {
+        $entity = $this->getEntity($request, $repository);
+
         return $this->render('show.html.twig', [
             'name' => self::getModelName(),
-            'entity' => $this->getEntity($request, $repository),
+            'entity' => $entity,
             'fields' => $repository->getDataFields('show'),
+            'actions' => []
         ]);
     }
 
@@ -57,6 +60,7 @@ class BookController extends PinakesController {
         $book = $this->getEntity($request, $repository) ?? new Book();
 
         $book->title = $request->request->get('title');
+        $repository->save($book);
 
         $author_rep = $this->em->getRepository(Author::class);
         $book->clearAuthors();
@@ -77,6 +81,16 @@ class BookController extends PinakesController {
 
         $repository->save($book);
         return $this->redirectToRoute('book_show', [ 'id' => $book->getId() ]);
+    }
+
+    #[Route('/book/delete/{id}', name: 'book_delete', methods: ['DELETE'])]
+    public function delete(Request $request, BookRepository $repository): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        $book = $this->getEntity($request, $repository);
+        $repository->delete($book);
+
+        return $this->redirectHx('book');
     }
 
     #[Route('/book/import', name: 'book_import', methods: ['GET'])]

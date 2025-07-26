@@ -4,6 +4,9 @@ namespace App\Twig;
 
 use App\Pinakes\Link;
 use App\Entity\PinakesEntity;
+use App\Pinakes\DataType;
+use App\Pinakes\DataTypeEntity;
+use App\Pinakes\DataTypeCollection;
 use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,24 +14,24 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Exception;
 use Twig\Extension\AbstractExtension;
+use Twig\Environment;
 use Twig\TwigFunction;
 use Twig\TwigFilter;
 use Twig\Markup;
 
 class AppExtension extends AbstractExtension {
 
-    private EntityManagerInterface $em;
-    private RouterInterface $router;
-
-    public function __construct(EntityManagerInterface $em, RouterInterface $router) {
-        $this->em = $em;
-        $this->router = $router;
+    public function __construct(
+        private EntityManagerInterface $em,
+        private RouterInterface $router,
+        private Environment $twig
+    ) {
     }
 
     public function getFunctions(): array {
         return [
             new TwigFunction('get_value', [$this, 'getValue']),
-            new TwigFunction('get_form', [$this, 'getForm']),
+            new TwigFunction('render_form', [$this, 'renderForm']),
             new TwigFunction('route_exists', [$this, 'routeExists']),
             new TwigFunction('icon', [$this, 'getIcon'])
         ];
@@ -75,72 +78,51 @@ class AppExtension extends AbstractExtension {
         return $entity->{$name}();
     }
 
-    public function getValue(array $field, PinakesEntity $entity): string|array|Link {
-        $data = self::getData($field, $entity);
+    private static function getDataType(array $field, PinakesEntity $entity, $data): DataType {
+        if (isset($field['data_type'])) return $field['data_type'];
 
-        if (null === $data) return $field['default'] ?? '-';
-
-        $link = $field['link'] ?? null;
-
-        if (is_iterable($data)) {
-            if ($data instanceof Collection) $data = $data->toArray();
-            if (null !== $link) {
-                assert(PinakesRepository::LINK_DATA === $link, 'Iterables can only link to data');
-                $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
-            }
-            return $data;
+        if ($data instanceof PinakesEntity) {
+            return $data->getDataType();
         }
 
-        // TODO format data
-        if (null === $link) return (string) $data;
-
-        if (PinakesRepository::LINK_SELF === $link) {
-            return $entity->getLinkSelf();
-        }
-
-        if (PinakesRepository::LINK_DATA === $link) {
-            assert($data instanceof PinakesEntity, 'Can only link to entities');
-            return $data->getLinkSelf();
-        }
-
-        if (is_callable($link)) {
-            return $link($entity);
-        }
-
-        throw new Exception('Unkown link type');
+        return new DataType();
     }
 
-    public function getForm(string $name, array $field, PinakesEntity $entity): array {
-        if (isset($field['edit']) && !$field['edit']) return [];
+    public function getValue(array $field, PinakesEntity $entity): string|array|Link {
+        $data = self::getData($field, $entity);
+        $data_type = self::getDataType($field, $entity, $data);
+
+        if (null === $data) return '-';
+        return $data_type->renderValue($entity, $data, $field['link'] ?? null);
+    }
+
+    public function renderForm(string $name, array $field, PinakesEntity $entity): string {
+        if (isset($field['edit']) && !$field['edit']) return '';
 
         $data = self::getData($field, $entity);
+        $data_type = self::getDataType($field, $entity, $data);
 
         if (is_iterable($data)) {
-            assert(isset($field['data_type']), 'Iterables need "data_type" to be set');
-            $repository = $this->em->getRepository($field['data_type']->entity);
-            return [
-                'path' => '/component/autocomplete.html.twig',
+            $repository = $this->em->getRepository($data_type->entity);
+            return $this->twig->render('/component/autocomplete.html.twig', [
                 'name' => $name,
                 'options' => $repository->getOptions(),
                 'values' => $data,
-            ];
+            ]);
         }
 
         if ($data instanceof PinakesEntity) {
             $repository = $this->em->getRepository($data::class);
-            return [
-                'path' => '/component/autocomplete.html.twig',
+            return $this->twig->render('/component/autocomplete.html.twig', [
                 'name' => $name,
                 'options' => $repository->getOptions(),
                 'values' => $data,
-            ];
+            ]);
         }
-
-        return [
-            'path' => '/component/input.html.twig',
+        return $this->twig->render('/component/input.html.twig', [
             'name' => $name,
             'type' =>'text',
             'value' => $data,
-        ];
+        ]);
     }
 }

@@ -3,7 +3,6 @@
 {% set route = app.request.attributes.get('_route') %}
 {% set params = app.request.attributes.get('_route_params')|merge(filter) %}
 
-
 {% set offset = (filter.page - 1) * filter.pp %}
 
 <table class="table">
@@ -26,7 +25,7 @@
   {% for entity in data|slice(offset, filter.pp) %}
     <tr>
     {% for field in fields %}
-      <td>{% include '/component/datafield.html.twig' %}</td>
+      <td>{{ get_value(field, entity) | raw }}</td>
     {% endfor %}
     </tr>
   {% else %}

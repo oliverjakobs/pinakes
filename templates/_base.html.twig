@@ -15,7 +15,15 @@
     <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
   </head>
   <body>
-    <header class="container"><a class="logo" href="/">Pinakes</a></header>
+    <header class="container">
+      <div></div>
+      <div class="logo"><a href="/">Pinakes</a></div>
+      {% if app.user is null %}
+        <a href="{{ path('app_login') }}" title="Login">{{ icon('box-arrow-in-right') }}</a>
+      {% else %}
+        <a href="{{ path('app_logout') }}" title="Logout">{{ icon('box-arrow-right') }}</a>
+      {% endif %}
+    </header>
 
     <div class="content">
       {% block content %}{% endblock %}

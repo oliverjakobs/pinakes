@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -10,99 +11,51 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
-use Psr\Log\LoggerInterface;
-
 class IndexController extends AbstractController {
-
 
     #[Route('/', name: 'pinakes')]
     public function index(): Response {
-
         $navigation = [
             [
                 'icon' => 'book',
                 'route' => 'book',
-                'caption' => 'Books'
+                'caption' => 'Books',
+                'role' => ''
             ],
             [
                 'icon' => 'vector-pen',
                 'route' => 'author',
-                'caption' => 'Authors'
+                'caption' => 'Authors',
+                'role' => ''
             ],
             [
                 'icon' => 'send',
                 'route' => 'publisher',
-                'caption' => 'Publishers'
+                'caption' => 'Publishers',
+                'role' => ''
             ],
             [
                 'icon' => 'bookmark',
                 'route' => 'series',
-                'caption' => 'Series'
+                'caption' => 'Series',
+                'role' => ''
             ],
             [
                 'icon' => 'bank',
                 'route' => 'bookfund',
-                'caption' => 'Bookfund'
+                'caption' => 'Bookfund',
+                'role' => User::ROLE_LIBRARIAN
             ],
             [
                 'icon' => 'database',
                 'route' => 'admin',
-                'caption' => 'Admin'
+                'caption' => 'Admin',
+                'role' => User::ROLE_ADMIN
             ],
         ];
         
-
-
         return $this->render('index.html.twig', [
             'navigation' => $navigation
-        ]);
-    }
-
-    // #[Route('/login', name: 'app_login')]
-    // public function login(AuthenticationUtils $authenticationUtils): Response {
-    //     // get the login error if there is one
-    //     $error = $authenticationUtils->getLastAuthenticationError();
-    //
-    //     // last username entered by the user
-    //     $lastUsername = $authenticationUtils->getLastUsername();
-    //
-    //     return $this->render('login.html.twig', [
-    //         'last_username' => $lastUsername,
-    //         'error'         => $error,
-    //     ]);
-    // }
-    
-    #[Route('/search', name: 'pinakes_search')]
-    public function search(Request $request, LoggerInterface $logger): Response {
-
-        $client = HttpClient::create();
-
-        // return JsonResponse::fromJsonString($response->getContent());
-
-        $isbn = $request->get('isbn', '');
-        $title = $request->get('title', '');
-        $author = $request->get('author', '');
-
-
-        $results = [];
-        if (!empty($isbn)) {
-            $response = $client->request('GET', 'https://openlibrary.org/isbn/' . str_replace('-', '', $isbn) . '.json?fields=key,title,author_name,editions');
-            //$results[] = $response->toArray()['title'];
-            $results[] = json_decode($response->getContent(), flags: JSON_OBJECT_AS_ARRAY);
-        }
-
-        // $query = [];
-        // if (!empty($title)) $query[] = 'title:"' . $title . '"';
-        // if (!empty($author)) $query[] = 'author:"' . $author . '"';
-
-        // if (!empty($query)) {
-        //     $query_str = urlencode(implode(' AND ', $query));
-        //     $response = $client->request('GET', 'https://openlibrary.org/search.json?q=' . $query_str . '&fields=key,title,author_name,editions');
-        //     $results[] = $response->getContent();
-        // }
-
-        return $this->render('searchresult.html.twig', [
-            'results' => $results
         ]);
     }
 }

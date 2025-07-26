@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\PinakesEntity;
+use App\Pinakes\DataTypeCollection;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
 
@@ -43,12 +44,14 @@ class BookRepository extends PinakesRepository {
             ),
             'authors_short' => array(
                 'caption' => 'Author(s)',
-                'data' => fn(Book $b) => $b->getLinksAuthors(),
+                'data' => 'authors',
+                'data_type' => new DataTypeCollection(Author::class)->setInline('; '),
+                'link' => self::LINK_DATA,
             ),
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'data_type' => Author::getDataType(),
+                'data_type' => new DataTypeCollection(Author::class),
                 'link' => self::LINK_DATA,
             ),
             'publisher' => array(
@@ -75,7 +78,8 @@ class BookRepository extends PinakesRepository {
             ),
             'series' => array(
                 'caption' => 'Series',
-                'data' => fn(Book $b) => $b->getLinkSeries(),
+                'data' => 'series',
+                'link' => self::LINK_DATA,
                 'edit' => false
             ),
             'volume' => array(

@@ -1,7 +1,7 @@
 :root {
   --main-color: #442d2d;
   --main-hover: #7c7373;
-  --main-bg-color: #f9f1cc;
+  --main-bg-color: #f9f3db;
   --border-color: #b6b6b6;
   --border-hover: #6b6b6b;
   --table-border: #a9a9a9;
@@ -26,6 +26,45 @@ header {
   padding: 0.6rem;
   border-bottom: 2px solid var(--border-color);
   margin-bottom: 3rem;
+  display: grid;
+  grid-template-columns: 32px auto 32px;
+}
+
+header a .bi {
+  width: 32px;
+  height: 32px;
+}
+
+header a .bi:hover {
+  fill: var(--main-hover);
+}
+
+header a {
+  text-decoration: none;
+  color: var(--main-color);
+}
+
+.logo a::before, .logo a::after {
+  display: inline-block;
+  transition: transform .5s ease;
+  content: '~';
+}
+
+.logo a:hover {
+  transition: transform .5s ease;
+}
+
+.logo a:hover::before {
+  transform: translateX(-.2em);
+}
+
+.logo a:hover::after {
+  transform: translateX(.2em);
+}
+
+.bi {
+  width: 1em;
+  height: 1em;
 }
 
 .content {
@@ -40,31 +79,8 @@ footer {
   margin-bottom: 1.8rem;
 }
 
-a.logo {
-  text-decoration: none;
-  color: var(--main-color);
-}
-
 a.link-extern::after {
   content: '\2BA9';
-}
-
-.logo::before, .logo::after {
-  display: inline-block;
-  transition: transform .5s ease;
-  content: '~';
-}
-
-.logo:hover {
-  transition: transform .5s ease;
-}
-
-.logo:hover::before {
-  transform: translateX(-.2em);
-}
-
-.logo:hover::after {
-  transform: translateX(.2em);
 }
 
 .copyright::before {
@@ -75,7 +91,6 @@ a.link-extern::after {
 
 .container {
   width: 80%;
-  display: block;
   margin-right: auto;
   margin-left: auto;
 }
@@ -104,13 +119,15 @@ button:hover, .button:hover {
   width: 80%;
   margin-right: auto;
   margin-left: auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1.6em;
 }
 
 .card {
-  aspect-ratio: 2/1;
+  width: 240px;
+  height: 120px;
   border-radius: 8px;
   padding: 1.5rem;
   display: flex;
@@ -132,7 +149,6 @@ button:hover, .button:hover {
   margin-bottom: 0.4rem;
   height: 5rem;
   width: 5rem;
-  fill: var(--main-color);
 }
 
 .card:hover .icon svg {

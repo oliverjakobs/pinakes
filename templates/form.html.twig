@@ -7,13 +7,13 @@
 {% block content %}
 <div class="show">
   <h1>{{ entity }}</h1>
-  <form action="/{{ name }}/submit/{{ entity.id }}" method="post">
+  <form action="{{ path(name ~ '_submit', { id: entity.id }) }}" method="post">
     <div class="show-table">
     {% for name, field in fields %}
-      {% set form = get_form(name, field, entity) %}
+      {% set form = render_form(name, field, entity) %}
       {% if form is not empty %}
         <div><label for="{{ name }}">{{ field.caption }}:</label></div>
-        <div>{% include form.path with form %}</div>
+        <div>{{ form | raw }}</div>
       {% endif %}
     {% endfor %}
     </div>

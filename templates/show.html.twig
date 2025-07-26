@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="show">
   <h1>{{ entity }}</h1>
   <div class="show-main">
@@ -20,9 +21,9 @@
         {# TODO edit replace 'show-main' with form #}
         <a class="button" href="{{ path(name ~ '_form', { id: entity.id })}}">Edit</a>
       {% endif %}
+      <button class="button" hx-delete="{{ path(name ~ '_delete', { id: entity.id })}}">Delete</button>
       {#
       {% if route_exists(name ~ '_delete') %}
-        <a class="button" href="{{ path(name ~ '_delete', { id: entity.id })}}">Delete</a>
       {% endif %}
       #}
     {% endif %}

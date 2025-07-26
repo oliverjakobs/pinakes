@@ -16,9 +16,9 @@
       hx-trigger="keyup[key=='Enter']"
       hx-get="{{ path(name ~ '_filter') }}"
       hx-target="[hx-table-content]">
-    {% if control|default and is_granted('ROLE_LIBRARIAN') %}
+    {% if is_granted('ROLE_LIBRARIAN') %}
       <div>
-        {% for link in control %}
+        {% for link in actions %}
           {{ link|raw }}
         {% endfor %}
       </div>

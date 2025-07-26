@@ -2,10 +2,24 @@
 
 namespace App\Pinakes;
 
-class DataType {
-    public string $entity;
+use App\Entity\PinakesEntity;
+use App\Repository\PinakesRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
-    public function __construct(string $entity) {
-        $this->entity = $entity;
+class DataType {
+    public function renderValue(PinakesEntity $entity, mixed $data, mixed $link): string {
+        $value = (string) $data;
+
+        if (PinakesRepository::LINK_SELF === $link) {
+            return $entity->getLinkSelf($value)->getHtml();
+        }
+
+        if (PinakesRepository::LINK_DATA === $link) {
+            assert($data instanceof PinakesEntity, 'Can only link to entities');
+            return $data->getLinkSelf($value)->getHtml();
+        }
+
+        assert(null === $link, 'Unkown link type');
+        return $value;
     }
 }

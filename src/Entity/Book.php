@@ -51,19 +51,10 @@ class Book extends PinakesEntity {
     public function getId(): ?int {
         return $this->id;
     }
-    
-    public function getLinksAuthors(): string {
-        $links = array_map(fn ($a) => $a->getLinkSelf(), $this->authors->toArray());
-        return implode('; ', $links);
-    }
 
     public function getLinkOpenLibrary(): ?Link {
-        if (null === $this->isbn) return null;
+        if (empty($this->isbn)) return null;
         return new Link('', 'https://openlibrary.org/isbn/' . $this->isbn, true);
-    }
-
-    public function getLinkSeries(): ?Link {
-        return $this->getSeries()?->getLinkSelf();
     }
 
     public function getSeries(): ?Series {

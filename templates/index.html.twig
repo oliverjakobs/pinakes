@@ -3,14 +3,16 @@
 {% block content %}
 
 <div class="container">
-<div class="card-container">
-  {% for item in navigation %}
-    <a class="card" href="{{ path(item.route) }}">
-      <div class="icon">{{ icon(item.icon)}}</div>
-      <div class="title">{{ item.caption }}</div>
-    </a>
-  {% endfor %}
-</div>
+  <div class="card-container">
+    {% for item in navigation %}
+      {% if (item.role is empty) or is_granted(item.role) %}
+        <a class="card" href="{{ path(item.route) }}">
+          <div class="icon">{{ icon(item.icon)}}</div>
+          <div class="title">{{ item.caption }}</div>
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
 </div>
 
 {% endblock %}

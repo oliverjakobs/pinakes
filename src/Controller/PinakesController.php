@@ -49,11 +49,11 @@ abstract class PinakesController extends AbstractController {
         return array_merge($request->query->all(), $filter);
     }
 
-    public function renderList(Request $request, ?array $control = null): Response {
+    public function renderList(Request $request, array $actions = []): Response {
         return $this->render('list.html.twig', [
             'name' => static::getModelName(),
             'filter' => $this->getFilter($request),
-            'control' => $control
+            'actions' => $actions
         ]);
     }
 
@@ -95,9 +95,9 @@ abstract class PinakesController extends AbstractController {
         return $response;
     }
 
-    public function redirectHx(string $route): Response {
+    public function redirectHx(string $route, array $parameters = []): Response {
         return new Response(headers: [
-            'HX-Redirect' => $this->generateUrl($route)
+            'HX-Redirect' => $this->generateUrl($route, $parameters)
         ]);
     }
 }
