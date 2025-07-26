@@ -7,6 +7,7 @@
 {% block content %}
 <div class="show">
   <h1>{{ entity }}</h1>
+
   <form action="{{ path(name ~ '_submit', { id: entity.id }) }}" method="post">
     <div class="show-table">
     {% for name, field in fields %}
@@ -20,5 +21,6 @@
     <input class="button" type="submit" value="Submit">
     <a class="button" href="{% if entity.id %}{{ path(name ~ '_show', { id: entity.id }) }}{% else %} {{ path(name) }}{% endif %}">Cancel</a>
   </form>
+
 </div>
 {% endblock %}

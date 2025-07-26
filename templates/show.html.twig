@@ -5,14 +5,14 @@
 {% endblock %}
 
 {% block content %}
-
 <div class="show">
   <h1>{{ entity }}</h1>
+
   <div class="show-main">
     <div class="show-table">
       {% for field in fields %}
         <div>{{ field.caption }}:</div>
-        <div>{% include '/component/datafield.html.twig' %}</div>
+        <div>{{ render_value(field, entity) | raw }}</div>
       {% endfor %}
     </div>
 

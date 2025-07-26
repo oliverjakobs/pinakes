@@ -39,7 +39,6 @@ class SeriesRepository extends PinakesRepository {
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => fn (Series $s) => $this->getEntityManager()->getRepository(Author::class)->findBySeries($s),
-                'data_type' => Author::getDataType(),
                 'link' => self::LINK_DATA,
             ),
             'volume_count' => array(

@@ -10,6 +10,7 @@ use App\Pinakes\DataTypeCollection;
 use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Exception;
@@ -18,6 +19,9 @@ use Twig\Environment;
 use Twig\TwigFunction;
 use Twig\TwigFilter;
 use Twig\Markup;
+
+use function App\Pinakes\RenderCollection;
+use function App\Pinakes\RenderValue;
 
 class AppExtension extends AbstractExtension {
 
@@ -30,7 +34,7 @@ class AppExtension extends AbstractExtension {
 
     public function getFunctions(): array {
         return [
-            new TwigFunction('get_value', [$this, 'getValue']),
+            new TwigFunction('render_value', [$this, 'renderValue']),
             new TwigFunction('render_form', [$this, 'renderForm']),
             new TwigFunction('route_exists', [$this, 'routeExists']),
             new TwigFunction('icon', [$this, 'getIcon'])
@@ -78,32 +82,46 @@ class AppExtension extends AbstractExtension {
         return $entity->{$name}();
     }
 
-    private static function getDataType(array $field, PinakesEntity $entity, $data): DataType {
-        if (isset($field['data_type'])) return $field['data_type'];
-
-        if ($data instanceof PinakesEntity) {
-            return $data->getDataType();
-        }
-
-        return new DataType();
-    }
-
-    public function getValue(array $field, PinakesEntity $entity): string|array|Link {
+    public function renderValue(array $field, PinakesEntity $entity): string {
         $data = self::getData($field, $entity);
-        $data_type = self::getDataType($field, $entity, $data);
 
         if (null === $data) return '-';
-        return $data_type->renderValue($entity, $data, $field['link'] ?? null);
+        $link = $field['link'] ?? null;
+
+        if (is_iterable($data)) {
+            if (null !== $link) {
+                assert(PinakesRepository::LINK_DATA === $link, 'Iterables can only link to data');
+                assert($data instanceof Collection, 'Can only link to entities');
+                $data = $data->map(fn (PinakesEntity $e) => $e->getLinkSelf());
+            }
+            if (isset($field['render'])) return $field['render']($data);
+
+            return RenderCollection($data);
+        }
+
+        $value = isset($field['render']) ? $field['render']($data) : (string) $data;
+
+        if (PinakesRepository::LINK_SELF === $link) {
+            return $entity->getLinkSelf($value)->getHtml();
+        }
+
+        if (PinakesRepository::LINK_DATA === $link) {
+            assert($data instanceof PinakesEntity, 'Can only link to entities');
+            return $data->getLinkSelf($value)->getHtml();
+        }
+
+        assert(null === $link, 'Unkown link type');
+        return $value;
     }
 
     public function renderForm(string $name, array $field, PinakesEntity $entity): string {
         if (isset($field['edit']) && !$field['edit']) return '';
 
         $data = self::getData($field, $entity);
-        $data_type = self::getDataType($field, $entity, $data);
 
-        if (is_iterable($data)) {
-            $repository = $this->em->getRepository($data_type->entity);
+        if ($data instanceof PersistentCollection) {
+            $entity_name = $data->getTypeClass()->rootEntityName;
+            $repository = $this->em->getRepository($entity_name);
             return $this->twig->render('/component/autocomplete.html.twig', [
                 'name' => $name,
                 'options' => $repository->getOptions(),

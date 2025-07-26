@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Transaction;
-use App\Pinakes\DataTypeCurrency;
+use function App\Pinakes\RenderCurrency;
 use Doctrine\Persistence\ManagerRegistry;
 
 class TransactionRepository extends PinakesRepository {
@@ -31,7 +31,7 @@ class TransactionRepository extends PinakesRepository {
             'amount' => array(
                 'caption' => 'Amount',
                 'data' => 'amount',
-                'data_type' => new DataTypeCurrency()
+                'render' => fn($data) => RenderCurrency($data),
             ),
             'timestamp' => array(
                 'caption' => 'Timestamp',

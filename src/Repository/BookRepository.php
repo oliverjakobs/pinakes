@@ -6,6 +6,7 @@ use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\PinakesEntity;
 use App\Pinakes\DataTypeCollection;
+use function App\Pinakes\RenderCollectionInline;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
 
@@ -45,13 +46,12 @@ class BookRepository extends PinakesRepository {
             'authors_short' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'data_type' => new DataTypeCollection(Author::class)->setInline('; '),
+                'render' => fn($data) => RenderCollectionInline($data),
                 'link' => self::LINK_DATA,
             ),
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'data_type' => new DataTypeCollection(Author::class),
                 'link' => self::LINK_DATA,
             ),
             'publisher' => array(
