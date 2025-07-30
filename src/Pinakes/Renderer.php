@@ -10,6 +10,10 @@ function RenderCurrency(float $data): string {
     return sprintf('%.2f €', $data);
 }
 
+function RenderDateTime(\DateTime $data, string $format = 'd.m.Y'): string {
+    return $data->format($format);
+}
+
 function RenderCollection(Collection|array $data): string {
     if ($data instanceof Collection) $data = $data->toArray();
 
@@ -21,8 +25,13 @@ function RenderCollection(Collection|array $data): string {
     HTML;
 }
 
-function RenderCollectionInline(Collection|array $data): string {
+function RenderCollectionInline(Collection|array $data, ?int $limit = null): string {
     if ($data instanceof Collection) $data = $data->toArray();
 
-    return implode('; ', $data);
+    $separator = '; ';
+    if (null !== $limit && count($data) > $limit) {
+        return implode($separator, array_slice($data, 0, $limit)) . ' ...';
+    }
+
+    return implode($separator, $data);
 }

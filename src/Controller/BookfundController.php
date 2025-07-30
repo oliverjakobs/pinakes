@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Transaction;
+use App\Entity\User;
 use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,7 +27,7 @@ class BookfundController extends PinakesController {
     #[Route('/bookfund/modal/{type}', name: 'bookfund_modal', methods: ['GET', 'POST'])]
     public function modal(Request $request, string $type, TransactionRepository $repository): Response {
 
-        if ($request->getMethod() === Request::METHOD_POST) {
+        if (Request::METHOD_POST === $request->getMethod()) {
             $amount = floatval($request->request->get('amount'));
             if ($type === 'withdrawal') $amount *= -1.0;
 
@@ -42,7 +43,7 @@ class BookfundController extends PinakesController {
             return $this->redirectHx('bookfund');
         }
 
-        return $this->render('modal.html.twig', [
+        return $this->render('component/modal.html.twig', [
             'type' => $type
         ]);
     }
@@ -59,10 +60,43 @@ class BookfundController extends PinakesController {
 
     #[Route('/transaction/show/{id}', name: 'transaction_show', methods: ['GET'])]
     public function show(Request $request, TransactionRepository $repository): Response {
+        $transaction = $this->getEntity($request, $repository);
+
         return $this->render('show.html.twig', [
             'name' => self::getModelName(),
-            'entity' => $this->getEntity($request, $repository),
-            'fields' => $repository->getDataFields('list'),
+            'entity' => $transaction,
+            'fields' => $repository->getDataFields('show'),
+            'actions' => [
+                $this->getActionEdit($transaction),
+                $this->getActionDelete($transaction),
+            ],
         ]);
+    }
+
+    #[Route('/transaction/delete/{id}', name: 'transaction_delete', methods: ['DELETE'])]
+    public function delete(Request $request, TransactionRepository $repository): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
+
+        $transaction = $this->getEntity($request, $repository);
+        $repository->delete($transaction);
+
+        return $this->redirectToRoute('transaction');
+    }
+
+    #[Route('/transaction/form/{id}', name: 'transaction_form', methods: ['GET', 'POST'])]
+    public function form(Request $request, TransactionRepository $repository): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+        $transaction = $this->getEntity($request, $repository);
+
+        if (Request::METHOD_POST === $request->getMethod()) {
+            $transaction->reason = $request->request->get('reason');
+            $transaction->amount = floatval($request->request->get('amount'));
+            $transaction->timestamp = new \DateTime($request->request->get('timestamp'));
+
+            $repository->save($transaction);
+            return $this->redirectToRoute('transaction_show', [ 'id' => $transaction->getId() ]);
+        }
+
+        return $this->renderForm($repository, $transaction);
     }
 }

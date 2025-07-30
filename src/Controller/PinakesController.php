@@ -26,6 +26,16 @@ abstract class PinakesController extends AbstractController {
         return new Link($caption, $this->generateUrl($route, $parameters));
     }
 
+    public function getActionEdit(PinakesEntity $entity): Link {
+        $route = static::getModelName() . '_form';
+        return $this->createLink('Edit', $route, [ 'id' => $entity->getId() ])->setHx('GET', '.show-main');
+    }
+
+    public function getActionDelete(PinakesEntity $entity): Link {
+        $route = static::getModelName() . '_delete';
+        return $this->createLink('Delete', $route, [ 'id' => $entity->getId() ])->setHx('DELETE');
+    }
+
     protected function getEntity(Request $request, PinakesRepository $repository): ?PinakesEntity {
         $id = $request->attributes->get('id');
         if (null === $id) return null;
@@ -57,10 +67,18 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
+    public function renderForm(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show'): Response {
+        return $this->render('component/form.html.twig', [
+            'name' => static::getModelName(),
+            'entity' => $entity,
+            'fields' => $repository->getDataFields($fields),
+        ]);
+    }
+
     public function renderTable(PinakesRepository|string $repository, array $filter, string $fields='list'): string {
         if (is_string($repository)) $repository = $this->em->getRepository($repository);
 
-        return $this->renderView('table.html.twig', [
+        return $this->renderView('component/table.html.twig', [
             'data' => $repository->applyFilter($filter),
             'fields' => $repository->getDataFields($fields),
             'filter' => $filter

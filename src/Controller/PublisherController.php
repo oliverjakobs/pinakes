@@ -28,10 +28,16 @@ class PublisherController extends PinakesController {
 
     #[Route('/publisher/show/{id}', name: 'publisher_show', methods: ['GET'])]
     public function show(Request $request, PublisherRepository $repository): Response {
+        $publisher = $this->getEntity($request, $repository);
+
         return $this->render('show.html.twig', [
             'name' => self::getModelName(),
-            'entity' => $this->getEntity($request, $repository),
+            'entity' => $publisher,
             'fields' => $repository->getDataFields('show'),
+            'actions' => [
+                $this->getActionEdit($publisher),
+                $this->getActionDelete($publisher),
+            ],
             'content' => [
                 'title' => 'Books',
                 'filter' => ['pp' => 10] + $this->getFilter($request),
@@ -45,25 +51,28 @@ class PublisherController extends PinakesController {
         return $this->renderFilter($request, $repository, 'list_publisher');
     }
 
-    #[Route('/publisher/form/{id?}', name: 'publisher_form', methods: ['GET'])]
-    public function form(Request $request, PublisherRepository $repository): Response {
+    #[Route('/publisher/delete/{id}', name: 'publisher_delete', methods: ['DELETE'])]
+    public function delete(Request $request, AuthorRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        return $this->render('form.html.twig', [
-            'name' => self::getModelName(),
-            'entity' => $this->getEntity($request, $repository) ?? new Publisher(),
-            'fields' => $repository->getDataFields('show'),
-        ]);
+        $publisher = $this->getEntity($request, $repository);
+        $repository->delete($publisher);
+
+        return $this->redirectToRoute('publisher');
     }
 
-    #[Route('/publisher/submit/{id}', name: 'publisher_submit', methods: ['POST'])]
-    public function submit(Request $request, PublisherRepository $repository): Response {
+    #[Route('/publisher/form/{id}', name: 'publisher_form', methods: ['GET', 'POST'])]
+    public function form(Request $request, PublisherRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $publisher = $this->getEntity($request, $repository) ?? new Publisher();
+        $publisher = $this->getEntity($request, $repository);
 
-        $publisher->setName($request->request->get('name'));
+        if (Request::METHOD_POST === $request->getMethod()) {
+            $publisher->name = $request->request->get('name');
 
-        $repository->save($publisher);
-        return $this->redirectToRoute('publisher_show', [ 'id' => $publisher->getId() ]);
+            $repository->save($publisher);
+            return $this->redirectToRoute('publisher_show', [ 'id' => $publisher->getId() ]);
+        }
+
+        return $this->renderForm($repository, $author);
     }
 }

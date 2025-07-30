@@ -16,20 +16,14 @@
       {% endfor %}
     </div>
 
-    {% if is_granted('ROLE_LIBRARIAN') %}
-      {% if route_exists(name ~ '_form') %}
-        {# TODO edit replace 'show-main' with form #}
-        <a class="button" href="{{ path(name ~ '_form', { id: entity.id })}}">Edit</a>
-      {% endif %}
-      <button class="button" hx-delete="{{ path(name ~ '_delete', { id: entity.id })}}">Delete</button>
-      {#
-      {% if route_exists(name ~ '_delete') %}
-      {% endif %}
-      #}
+    {% if is_granted('ROLE_LIBRARIAN') and (actions is defined and actions is iterable) %}
+      {% for action in actions %}
+        {{ action | raw }}
+      {% endfor %}
     {% endif %}
   </div>
 
-  {% if content|default %}
+  {% if content is defined %}
   <div>
     <h2>{{ content.title }}</h2>
     {{ render(path(content.route, content.filter|merge({ id: entity.id }))) }}

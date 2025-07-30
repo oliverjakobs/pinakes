@@ -28,10 +28,16 @@ class SeriesController extends PinakesController {
 
     #[Route('/series/show/{id}', name: 'series_show', methods: ['GET'])]
     public function show(Request $request, SeriesRepository $repository): Response {
+        $series = $this->getEntity($request, $repository);
+
         return $this->render('show.html.twig', [
             'name' => self::getModelName(),
-            'entity' => $this->getEntity($request, $repository),
+            'entity' => $series,
             'fields' => $repository->getDataFields('show'),
+            'actions' => [
+                $this->getActionEdit($series),
+                $this->getActionDelete($series),
+            ],
             'content' => [
                 'title' => 'Volumes',
                 'filter' => ['pp' => 10] + $this->getFilter($request),
@@ -45,25 +51,28 @@ class SeriesController extends PinakesController {
         return $this->renderFilter($request, $repository, 'list');
     }
 
-    #[Route('/series/form/{id?}', name: 'series_form', methods: ['GET'])]
-    public function form(Request $request, seriesRepository $repository): Response {
+    #[Route('/series/delete/{id}', name: 'series_delete', methods: ['DELETE'])]
+    public function delete(Request $request, BookRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        return $this->render('form.html.twig', [
-            'name' => self::getModelName(),
-            'entity' => $this->getEntity($request, $repository) ?? new Series(),
-            'fields' => $repository->getDataFields('show'),
-        ]);
+        $series = $this->getEntity($request, $repository);
+        $repository->delete($series);
+
+        return $this->redirectHx('series');
     }
 
-    #[Route('/series/submit/{id}', name: 'series_submit', methods: ['POST'])]
-    public function submit(Request $request, seriesRepository $repository): Response {
+    #[Route('/series/form/{id}', name: 'series_form', methods: ['GET', 'POST'])]
+    public function form(Request $request, seriesRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $series = $this->getEntity($request, $repository) ?? new Series();
+        $series = $this->getEntity($request, $repository);
 
-        $series->setName($request->request->get('name'));
+        if (Request::METHOD_POST === $request->getMethod()) {
+            $series->name = $request->request->get('name');
 
-        $repository->save($series);
-        return $this->redirectToRoute('series_show', [ 'id' => $series->getId() ]);
+            $repository->save($series);
+            return $this->redirectToRoute('series_show', [ 'id' => $series->getId() ]);
+        }
+
+        return $this->renderForm($repository, $series);
     }
 }

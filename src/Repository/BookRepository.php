@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\PinakesEntity;
-use App\Pinakes\DataTypeCollection;
 use function App\Pinakes\RenderCollectionInline;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
@@ -43,7 +42,7 @@ class BookRepository extends PinakesRepository {
                 'data' => 'title',
                 'link' => self::LINK_SELF
             ),
-            'authors_short' => array(
+            'authors_inline' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
                 'render' => fn($data) => RenderCollectionInline($data),
@@ -92,7 +91,7 @@ class BookRepository extends PinakesRepository {
 
     public function getDataFieldsList(): array {
         return $this->composeDataFields(array(
-            'title', 'authors_short', 'publisher', 'published', 'first_published', 'isbn'
+            'title', 'authors_inline', 'publisher', 'published', 'first_published', 'isbn'
         ));
     }
     public function getDataFieldsListAuthor(): array {
@@ -102,7 +101,7 @@ class BookRepository extends PinakesRepository {
     }
     public function getDataFieldsListPublisher(): array {
         return $this->composeDataFields(array(
-            'title', 'authors_short', 'published', 'isbn'
+            'title', 'authors_inline', 'published', 'isbn'
         ));
     }
     public function getDataFieldsShow(): array {

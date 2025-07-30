@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Transaction;
 use function App\Pinakes\RenderCurrency;
+use function App\Pinakes\RenderDateTime;
 use Doctrine\Persistence\ManagerRegistry;
 
 class TransactionRepository extends PinakesRepository {
@@ -36,13 +37,20 @@ class TransactionRepository extends PinakesRepository {
             'timestamp' => array(
                 'caption' => 'Timestamp',
                 'data' => 'timestamp',
+                'render' => fn($data) => RenderDateTime($data),
             ),
         ];
     }
 
     public function getDataFieldsList(): array {
         return $this->composeDataFields(array(
-            'reason', 'amount', //'timestamp'
+            'timestamp', 'reason', 'amount'
+        ));
+    }
+
+    public function getDataFieldsShow(): array {
+        return $this->composeDataFields(array(
+            'reason', 'amount', 'timestamp'
         ));
     }
 }

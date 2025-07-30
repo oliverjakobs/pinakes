@@ -6,7 +6,6 @@ use App\Entity\PinakesEntity;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Common\Collections\Criteria;
 
 abstract class PinakesRepository extends ServiceEntityRepository {
@@ -14,19 +13,24 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     const LINK_SELF = 'link_self';
     const LINK_DATA = 'link_data';
 
-    private array $dataFields;
+    private array $data_fields;
 
     public function __construct(ManagerRegistry $registry, string $entityClass) {
         parent::__construct($registry, $entityClass);
-        $this->dataFields = $this->defineDataFields();
+        $this->data_fields = $this->defineDataFields();
     }
     
     abstract protected function defineDataFields(): array;
 
     protected function composeDataFields(?array $names = null): array {
-        if (null === $names) return $this->dataFields;
+        if (null === $names) return $this->data_fields;
 
-        return array_filter($this->dataFields, fn ($e) => in_array($e, $names), ARRAY_FILTER_USE_KEY);
+        $result = [];
+        foreach ($names as $name) {
+            assert(array_key_exists($name, $this->data_fields), 'Unknown data field ' . $name);
+            $result[$name] = $this->data_fields[$name];
+        }
+        return $result;
     }
 
     public function getDataFields(string $fields): array {

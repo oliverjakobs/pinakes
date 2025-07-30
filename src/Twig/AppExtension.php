@@ -4,9 +4,6 @@ namespace App\Twig;
 
 use App\Pinakes\Link;
 use App\Entity\PinakesEntity;
-use App\Pinakes\DataType;
-use App\Pinakes\DataTypeEntity;
-use App\Pinakes\DataTypeCollection;
 use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -85,14 +82,14 @@ class AppExtension extends AbstractExtension {
     public function renderValue(array $field, PinakesEntity $entity): string {
         $data = self::getData($field, $entity);
 
-        if (null === $data) return '-';
+        if (empty($data)) return '-';
         $link = $field['link'] ?? null;
 
         if (is_iterable($data)) {
             if (null !== $link) {
                 assert(PinakesRepository::LINK_DATA === $link, 'Iterables can only link to data');
-                assert($data instanceof Collection, 'Can only link to entities');
-                $data = $data->map(fn (PinakesEntity $e) => $e->getLinkSelf());
+                if ($data instanceof Collection) $data = $data->toArray();
+                $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
             }
             if (isset($field['render'])) return $field['render']($data);
 
@@ -122,7 +119,7 @@ class AppExtension extends AbstractExtension {
         if ($data instanceof PersistentCollection) {
             $entity_name = $data->getTypeClass()->rootEntityName;
             $repository = $this->em->getRepository($entity_name);
-            return $this->twig->render('/component/autocomplete.html.twig', [
+            return $this->twig->render('/component/form/autocomplete.html.twig', [
                 'name' => $name,
                 'options' => $repository->getOptions(),
                 'values' => $data,
@@ -131,13 +128,22 @@ class AppExtension extends AbstractExtension {
 
         if ($data instanceof PinakesEntity) {
             $repository = $this->em->getRepository($data::class);
-            return $this->twig->render('/component/autocomplete.html.twig', [
+            return $this->twig->render('/component/form/autocomplete.html.twig', [
                 'name' => $name,
                 'options' => $repository->getOptions(),
                 'values' => $data,
             ]);
         }
-        return $this->twig->render('/component/input.html.twig', [
+
+        if ($data instanceof \DateTime) {
+            return $this->twig->render('/component/form/input.html.twig', [
+                'name' => $name,
+                'type' => 'date', // TODO DateTime form different formats (time, datetime-local)
+                'value' => $data->format('Y-m-d'),
+            ]);
+        }
+
+        return $this->twig->render('/component/form/input.html.twig', [
             'name' => $name,
             'type' =>'text',
             'value' => $data,
