@@ -135,17 +135,15 @@ class AppExtension extends AbstractExtension {
             ]);
         }
 
+        $type = 'text';
         if ($data instanceof \DateTime) {
-            return $this->twig->render('/component/form/input.html.twig', [
-                'name' => $name,
-                'type' => 'date', // TODO DateTime form different formats (time, datetime-local)
-                'value' => $data->format('Y-m-d'),
-            ]);
+            $type = $field['input_type'] ?? PinakesRepository::INPUT_DATE;
+            $data = $data->format('Y-m-d');
         }
 
         return $this->twig->render('/component/form/input.html.twig', [
             'name' => $name,
-            'type' =>'text',
+            'type' => $type,
             'value' => $data,
         ]);
     }

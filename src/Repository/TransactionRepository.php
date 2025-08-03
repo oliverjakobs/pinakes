@@ -33,11 +33,13 @@ class TransactionRepository extends PinakesRepository {
                 'caption' => 'Amount',
                 'data' => 'amount',
                 'render' => fn($data) => RenderCurrency($data),
+                'style_class' => 'align-right fit-content'
             ),
             'timestamp' => array(
                 'caption' => 'Timestamp',
                 'data' => 'timestamp',
                 'render' => fn($data) => RenderDateTime($data),
+                'style_class' => 'align-right fit-content'
             ),
         ];
     }

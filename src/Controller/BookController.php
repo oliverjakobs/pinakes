@@ -20,6 +20,7 @@ class BookController extends PinakesController {
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository): Response {
         return $this->renderList($request, [
+            // TODO add from openlibrary isbn
             $this->createLink('Import Books', 'book_import'),
             $this->createLink('New Book', 'book_create')->setHx('POST'),
         ]);

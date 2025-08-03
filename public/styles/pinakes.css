@@ -5,6 +5,7 @@
   --border-color: #b6b6b6;
   --border-hover: #6b6b6b;
   --table-border: #a9a9a9;
+  --table-header: #c7c2af;
   --table-hover: rgba(0, 0, 0, 0.1);
 }
 
@@ -189,8 +190,7 @@ button:hover, .button:hover {
 
 .table th {
   text-align: left;
-  border-color: var(--table-border);
-  background-color: var(--table-border);
+  background-color: var(--table-header);
 }
 
 .table-field {
@@ -212,7 +212,7 @@ button:hover, .button:hover {
   content: '\1F83B';
 }
 
-.table tr:not(.empty):hover {
+.table tbody tr:not(.empty):hover {
   background-color: var(--table-hover);
 }
 
@@ -264,6 +264,15 @@ button:hover, .button:hover {
 .table-pagination li a:hover {
   border: 1px solid var(--border-hover);
   background-color: var(--table-hover);
+}
+
+.table td.align-right {
+  text-align: right;
+}
+
+.table td.fit-content {
+  width: 0;
+  min-width: fit-content;
 }
 
 

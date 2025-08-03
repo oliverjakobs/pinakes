@@ -61,10 +61,12 @@ class BookRepository extends PinakesRepository {
             'published' => array(
                 'caption' => 'Year Published',
                 'data' => 'published',
+                'style_class' => 'align-right fit-content'
             ),
             'first_published' => array(
                 'caption' => 'First Published',
                 'data' => 'first_published',
+                'style_class' => 'align-right fit-content'
             ),
             'isbn' => array(
                 'caption' => 'ISBN',

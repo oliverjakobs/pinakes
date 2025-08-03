@@ -31,20 +31,30 @@ class SeriesVolumeRepository extends PinakesRepository {
     protected function defineDataFields(): array {
         return [
             'volume' => array(
-                'caption' => 'Vol.',
+                'caption' => '#',
                 'data' => 'volume',
+                'style_class' => 'align-right fit-content'
             ),
             'book' => array(
                 'caption' => 'Book',
                 'data' => 'book',
                 'link' => self::LINK_DATA
             ),
+            'publisher' => array(
+                'caption' => 'Publisher',
+                'data' => fn(SeriesVolume $sv) => $sv->book->publisher,
+                'link' => self::LINK_DATA
+            ),
+            'isbn' => array(
+                'caption' => 'ISBN',
+                'data' => fn(SeriesVolume $sv) => $sv->book->isbn,
+            )
         ];
     }
 
     public function getDataFieldsList(): array {
         return $this->composeDataFields(array(
-            'volume', 'book'
+            'volume', 'book', 'publisher', 'isbn'
         ));
     }
 }

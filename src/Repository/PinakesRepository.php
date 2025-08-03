@@ -13,6 +13,10 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     const LINK_SELF = 'link_self';
     const LINK_DATA = 'link_data';
 
+    const INPUT_DATE = 'date';
+    const INPUT_DATETIME = 'datetime-local';
+    const INPUT_TIME = 'time';
+
     private array $data_fields;
 
     public function __construct(ManagerRegistry $registry, string $entityClass) {

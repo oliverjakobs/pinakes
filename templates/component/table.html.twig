@@ -25,7 +25,9 @@
   {% for entity in data|slice(offset, filter.pp) %}
     <tr>
     {% for field in fields %}
-      <td>{{ render_value(field, entity) | raw }}</td>
+      <td {% if field.style_class is defined %}class="{{ field.style_class }}"{% endif %}>
+        {{ render_value(field, entity) | raw }}
+      </td>
     {% endfor %}
     </tr>
   {% else %}
