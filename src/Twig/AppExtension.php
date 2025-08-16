@@ -63,10 +63,7 @@ class AppExtension extends AbstractExtension {
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
-    private static function getData(array $field, PinakesEntity $entity): mixed {
-        assert(isset($field['data']), 'No data specified');
-        $data = $field['data'];
-
+    private static function getData(mixed $data, PinakesEntity $entity): mixed {
         if (is_callable($data)) {
             return $data($entity);
         }
@@ -80,7 +77,8 @@ class AppExtension extends AbstractExtension {
     }
 
     public function renderValue(array $field, PinakesEntity $entity): string {
-        $data = self::getData($field, $entity);
+        assert(isset($field['data']), 'No data specified');
+        $data = self::getData($field['data'], $entity);
 
         if (empty($data)) return '-';
         $link = $field['link'] ?? null;
@@ -112,9 +110,14 @@ class AppExtension extends AbstractExtension {
     }
 
     public function renderForm(string $name, array $field, PinakesEntity $entity): string {
-        if (isset($field['edit']) && !$field['edit']) return '';
+        $edit = $field['edit'] ?? true;
+        if (!$edit) return '';
 
-        $data = self::getData($field, $entity);
+        if (is_string($edit)) {
+            $data = self::getData($edit, $entity);
+        } else {
+            $data = self::getData($field['data'] ?? null, $entity);
+        }
 
         if ($data instanceof PersistentCollection) {
             $entity_name = $data->getTypeClass()->rootEntityName;
@@ -135,9 +138,9 @@ class AppExtension extends AbstractExtension {
             ]);
         }
 
-        $type = 'text';
+        $type = $field['input_type'] ?? 'text';
         if ($data instanceof \DateTime) {
-            $type = $field['input_type'] ?? PinakesRepository::INPUT_DATE;
+            if ('text' === $type) $type = PinakesRepository::INPUT_DATE;
             $data = $data->format('Y-m-d');
         }
 

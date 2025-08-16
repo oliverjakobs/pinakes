@@ -4,9 +4,9 @@ namespace App\Pinakes;
 
 class Link {
 
-    private string $caption;
-    private string $url;
-    private bool $extern;
+    public string $caption;
+    public string $url;
+    public bool $extern;
 
     private ?string $hx_method = null;
     private ?string $hx_target = null;
@@ -33,12 +33,17 @@ class Link {
     }
 
     public function getHtml(): string {
-        if (null === $this->hx_method) {
-            $attr = $this->extern ? 'class="link-extern" target="_blank" rel="noopener noreferrer"' : '';
-            return sprintf('<a %s href="%s">%s</a>', $attr, $this->url, $this->caption);
+        if (null !== $this->hx_method) {
+            $method = strtolower($this->hx_method);
+            $target = (null !== $this->hx_target) ? 'hx-target="' . $this->hx_target . '"' : '';
+            return <<<HTML
+                <button hx-$method="$this->url" $target>$this->caption</button>
+            HTML;
         }
 
-        $target = (null !== $this->hx_target) ? 'hx-target="' . $this->hx_target . '"' : '';
-        return sprintf('<button hx-%s="%s" %s>%s</button>', strtolower($this->hx_method), $this->url, $target, $this->caption);
+        $attr = $this->extern ? 'class="link-extern" target="_blank" rel="noopener noreferrer"' : '';
+        return <<<HTML
+            <a $attr href="$this->url">$this->caption</a>
+        HTML;
     }
 }

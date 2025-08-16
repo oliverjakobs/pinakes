@@ -50,7 +50,7 @@ class BookfundController extends PinakesController {
 
     #[Route('/transaction', name: 'transaction', methods: ['GET'])]
     public function list(Request $request, TransactionRepository $repository): Response {
-        return $this->renderList($request);
+        return $this->renderList($request, 'Transactions');
     }
 
     #[Route('/transaction/filter', name: 'transaction_filter', methods: ['GET'])]

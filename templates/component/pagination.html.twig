@@ -1,0 +1,77 @@
+
+<div class="table-footer">
+{% if max_count == 1 %}
+  <div>Found {{ max_count }} entry.</div>
+{% else %}
+  <div>Found {{ max_count }} entries.</div>
+{% endif %}
+
+{% set max_pages = (max_count / filter.pp)|round(0, 'ceil') %}
+{% if max_pages > 1 %}
+  <ul class="table-pagination" hx-boost="true">
+    {% set start = max(min(filter.page - 4, max_pages - 8), 1) %}
+    {% set end = min(start + 8, max_pages) %}
+
+    {% if start > 1 %} {% set start = start + 1 %} {% endif %}
+    {% if end < max_pages %} {% set end = end - 1 %} {% endif %}
+
+    {% if filter.page > 1 %}
+      <li class="icon">
+        <a href="{{ path(route, params|merge({'page': filter.page - 1})) }}"
+            hx-swap="outerHTML"
+            class="prev-next"
+            hx-target="[hx-table-content]">
+          &#10094;
+        </a>
+      </li>
+    {% endif %}
+
+    {% if start > 1 %}
+      <li>
+        <a href="{{ path(route, params|merge({'page': 1})) }}"
+            hx-swap="outerHTML"
+            hx-target="[hx-table-content]">
+          {{1}}
+        </a>
+      </li>
+      <li>&#8230;</li>
+    {% endif %}
+
+    {% for p in range(start, end) %}
+      <li>
+        {% if p == filter.page %}
+          <a class="active">{{p}}</a>
+        {% else %}
+          <a href="{{ path(route, params|merge({'page': p})) }}"
+              hx-swap="outerHTML"
+              hx-target="[hx-table-content]">
+            {{p}}
+          </a>
+        {% endif %}
+      </li>
+    {% endfor %}
+
+    {% if end < max_pages %}
+      <li>&#8230;</li>
+      <li>
+        <a href="{{ path(route, params|merge({'page': max_pages})) }}"
+            hx-swap="outerHTML"
+            hx-target="[hx-table-content]">
+          {{ max_pages }}
+        </a>
+      </li>
+    {% endif %}
+
+    {% if filter.page < max_pages %}
+      <li class="icon">
+        <a href="{{ path(route, params|merge({'page': filter.page + 1})) }}"
+            hx-swap="outerHTML"
+            class="prev-next"
+            hx-target="[hx-table-content]">
+          &#10095;
+        </a>
+      </li>
+    {% endif %}
+  </ul>
+{% endif %}
+</div>

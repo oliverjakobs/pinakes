@@ -1,11 +1,15 @@
 {% extends "_base.html.twig" %}
 
 {% block title %}
-  Pinakes - {{ name|capitalize }}
+  Pinakes - {{ title|capitalize }}
 {% endblock %}
 
 {% block content %}
+
+{% set filter_uri = path(app.current_route ~ '_filter', app.current_route_parameters|merge(filter)) %}
 <div class="container">
+  <h1>{{ title }}</h1>
+
   <div class="table-control">
     <input
       class="search"
@@ -14,9 +18,9 @@
       name="search"
       value="{{ filter.search|default }}"
       hx-trigger="keyup[key=='Enter']"
-      hx-get="{{ path(name ~ '_filter') }}"
+      hx-get="{{ filter_uri }}"
       hx-target="[hx-table-content]">
-    {% if is_granted('ROLE_LIBRARIAN') %}
+    {% if is_granted('ROLE_LIBRARIAN') and (actions is defined) %}
       <div>
         {% for link in actions %}
           {{ link|raw }}
@@ -24,6 +28,6 @@
       </div>
     {% endif %}
   </div>
-  {{ render(path(name ~ '_filter', filter)) }}
+  {{ render(filter_uri) }}
 </div>
 {% endblock %}

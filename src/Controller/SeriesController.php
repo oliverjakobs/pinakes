@@ -18,7 +18,7 @@ class SeriesController extends PinakesController {
 
     #[Route('/series', name: 'series', methods: ['GET'])]
     public function list(Request $request, SeriesRepository $repository): Response {
-        return $this->renderList($request);
+        return $this->renderList($request, 'Series');
     }
 
     #[Route('/series/filter', name: 'series_filter', methods: ['GET'])]
@@ -37,10 +37,11 @@ class SeriesController extends PinakesController {
             'actions' => [
                 $this->getActionEdit($series),
                 $this->getActionDelete($series),
+                // TODO ActionAddVolume
             ],
             'content' => [
                 'title' => 'Volumes',
-                'filter' => ['pp' => 10] + $this->getFilter($request),
+                'filter' => $this->getFilter($request, ['pp' => 10, 'series' => $series->getId()]),
                 'route' => 'series_show_filter'
             ]
         ]);

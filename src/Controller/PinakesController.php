@@ -26,6 +26,11 @@ abstract class PinakesController extends AbstractController {
         return new Link($caption, $this->generateUrl($route, $parameters));
     }
 
+    public function getActionShow(PinakesEntity $entity): Link {
+        $route = static::getModelName() . '_show';
+        return $this->createLink('Show', $route, [ 'id' => $entity->getId() ]);
+    }
+
     public function getActionEdit(PinakesEntity $entity): Link {
         $route = static::getModelName() . '_form';
         return $this->createLink('Edit', $route, [ 'id' => $entity->getId() ])->setHx('GET', '.show-main');
@@ -48,36 +53,34 @@ abstract class PinakesController extends AbstractController {
         return $entity;
     }
 
-    protected function getFilter(Request $request): array {
-        $filter = [
-            'order_by' => $request->query->get('order_by'),
-            'order_dir' => $request->query->get('order_dir', 'desc'),
-            'page' => $request->query->get('page', 1),
-            'pp' => $request->query->get('pp', 30),
+    protected function getFilter(Request $request, array $params = []): array {
+        $defaults = [
+            'order_by' => null,
+            'order_dir' => 'desc',
+            'page' => 1,
+            'pp' => 30,
         ];
 
-        return array_merge($request->query->all(), $filter);
+        return array_merge($defaults, $request->query->all(), $params);
     }
 
-    public function renderList(Request $request, array $actions = []): Response {
-        return $this->render('list.html.twig', [
-            'name' => static::getModelName(),
-            'filter' => $this->getFilter($request),
-            'actions' => $actions
-        ]);
+    public function renderList(Request $request, string $title, array $params = []): Response {
+        $defaults = [
+            'title' => $title,
+            'filter' => $this->getFilter($request, $params),
+        ];
+
+        return $this->render('list.html.twig', array_merge($defaults, $params));
     }
 
     public function renderForm(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show'): Response {
         return $this->render('component/form.html.twig', [
-            'name' => static::getModelName(),
             'entity' => $entity,
             'fields' => $repository->getDataFields($fields),
         ]);
     }
 
-    public function renderTable(PinakesRepository|string $repository, array $filter, string $fields='list'): string {
-        if (is_string($repository)) $repository = $this->em->getRepository($repository);
-
+    public function renderTable(PinakesRepository $repository, array $filter, string $fields='list'): string {
         return $this->renderView('component/table.html.twig', [
             'data' => $repository->applyFilter($filter),
             'fields' => $repository->getDataFields($fields),
@@ -85,32 +88,29 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    public function renderFilter(Request $request, PinakesRepository $repository, string $fields='list'): Response {
-        $response = new Response();
-
-        $filter = $this->getFilter($request);
-
-        $id = $request->attributes->get('id');
-        if (null !== $id) {
-            $filter[static::getModelName()] = $id;
-        }
-
-        $response->setContent($this->renderTable($repository, $filter, $fields));
-        $response->setStatusCode(Response::HTTP_OK);
-
+    protected function pushFilterUrl(Response $response, Request $request, array $filter): Response {
         $page = $filter['page'];
         $query = array_filter([
             'search' => $filter['search'] ?? null,
             'page' => $page > 1 ? $page : null,
         ]);
 
-        if (!empty($query)) {
-            $referer = $request->headers->get('referer');
-            $url = parse_url($referer, PHP_URL_PATH) . '?' . http_build_query($query);
+        // TODO dont push if only order changed
+        $referer = $request->headers->get('referer');
+        if (null !== $referer) {
+            $url = parse_url($referer, PHP_URL_PATH);
+            if (!empty($query)) $url .= '?' . http_build_query($query);
             $response->headers->set('HX-Push-Url', $url);
         }
 
         return $response;
+    }
+
+    public function renderFilter(Request $request, PinakesRepository $repository, string $fields='list'): Response {
+        $filter = $this->getFilter($request);
+
+        $response = new Response($this->renderTable($repository, $filter, $fields));
+        return $this->pushFilterUrl($response, $request, $filter);
     }
 
     public function redirectHx(string $route, array $parameters = []): Response {

@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\PinakesEntity;
+use function App\Pinakes\RenderCollection;
 use function App\Pinakes\RenderCollectionInline;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
@@ -30,6 +31,11 @@ class BookRepository extends PinakesRepository {
         if (!empty($filter['publisher'])) {
             $qb->andWhere($qb->expr()->eq(':publisher', 'e.publisher'));
             $qb->setParameter('publisher', $filter['publisher']);
+        }
+
+        if (!empty($filter['genre'])) {
+            $qb->andWhere($qb->expr()->isMemberOf(':genre', 'e.genre'));
+            $qb->setParameter('genre', $filter['genre']);
         }
 
         return $qb;
@@ -88,6 +94,14 @@ class BookRepository extends PinakesRepository {
                 'data' => fn(Book $b) => $b->getSeriesVolume(),
                 'edit' => false
             ),
+            'genre' => array(
+                'caption' => 'Genre',
+                'data' => fn(Book $b) => $b->getGenreTags(),
+                'edit' => 'genre',
+                //'data' => 'genre',
+                // 'link' => self::LINK_DATA,
+                'render' => fn($data) => RenderCollection($data, 'tags'),
+            ),
         ];
     }
 
@@ -108,7 +122,7 @@ class BookRepository extends PinakesRepository {
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields(array(
-            'title', 'authors', 'publisher', 'published', 'first_published', 'isbn', 'openlibrary', 'series', 'volume'
+            'title', 'authors', 'publisher', 'published', 'first_published', 'isbn', 'openlibrary', 'genre', 'series', 'volume'
         ));
     }
 }

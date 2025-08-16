@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Repository\BookRepository;
+use App\Repository\GenreRepository;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\Publisher;
+use App\Entity\Genre;
 use App\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,10 +21,12 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository): Response {
-        return $this->renderList($request, [
-            // TODO add from openlibrary isbn
-            $this->createLink('Import Books', 'book_import'),
-            $this->createLink('New Book', 'book_create')->setHx('POST'),
+        return $this->renderList($request, 'Books', [
+            'actions' => [
+                // TODO add from openlibrary isbn
+                $this->createLink('Import Books', 'book_import'),
+                $this->createLink('New Book', 'book_create')->setHx('POST'),
+            ]
         ]);
     }
 
@@ -30,6 +34,22 @@ class BookController extends PinakesController {
     public function filter(Request $request, BookRepository $repository): Response {
         return $this->renderFilter($request, $repository);
     }
+
+    #[Route('/book/genre/{id}', name: 'book_genre', methods: ['GET'])]
+    public function listGenre(Request $request, GenreRepository $repository): Response {
+        $genre = $this->getEntity($request, $repository);
+        return $this->renderList($request, 'Genre: ' . (string) $genre, [
+            'filter' => $this->getFilter($request, [ 'genre' => $genre->getId() ])
+        ]);
+    }
+
+    #[Route('/book/genre/{id}/filter', name: 'book_genre_filter', methods: ['GET'])]
+    public function filterGenre(Request $request, BookRepository $repository): Response {
+        return $this->renderFilter($request, $repository);
+    }
+
+
+
 
     #[Route('/book/create', name: 'book_create', methods: ['POST'])]
     public function create(Request $request, BookRepository $repository): Response {
@@ -78,7 +98,15 @@ class BookController extends PinakesController {
             $authors = $request->request->all('authors');
             foreach ($authors as $author) {
                 if (empty($author)) continue;
-                $book->addAuthor($author_rep->getOrCreate($author), false);
+                $book->addAuthor($author_rep->getOrCreate($author, false));
+            }
+
+            $genre_rep = $this->em->getRepository(Genre::class);
+            $book->clearGenre();
+            $genre = $request->request->all('genre');
+            foreach ($genre as $name) {
+                if (empty($name)) continue;
+                $book->addGenre($genre_rep->getOrCreate($name, false));
             }
 
             $publisher_rep = $this->em->getRepository(Publisher::class);

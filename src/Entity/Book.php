@@ -39,9 +39,16 @@ class Book extends PinakesEntity {
     #[ORM\OneToOne(mappedBy: 'book')]
     public ?SeriesVolume $volume = null;
 
+    /**
+     * @var Collection<int, Genre>
+     */
+    #[ORM\ManyToMany(targetEntity: Genre::class, inversedBy: 'books')]
+    public Collection $genre;
+
     public function __construct() {
         $this->authors = new ArrayCollection();
         $this->series_volumes = new ArrayCollection();
+        $this->genre = new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -65,6 +72,10 @@ class Book extends PinakesEntity {
         return $this->volume?->volume;
     }
 
+    public function getGenreTags(): array {
+        return $this->genre->map(fn ($genre) => $genre->getTag())->toArray();
+    }
+
     public function clearAuthors(): void {
         foreach ($this->authors as $author) {
             $this->removeAuthor($author);
@@ -83,6 +94,29 @@ class Book extends PinakesEntity {
     public function removeAuthor(Author $author): static {
         if ($this->authors->removeElement($author)) {
             $author->removeBook($this);
+        }
+
+        return $this;
+    }
+
+    public function clearGenre(): void {
+        foreach ($this->genre as $genre) {
+            $this->removeGenre($genre);
+        }
+    }
+
+    public function addGenre(Genre $genre): static {
+        if (!$this->genre->contains($genre)) {
+            $this->genre->add($genre);
+            $genre->addBook($this);
+        }
+
+        return $this;
+    }
+
+    public function removeGenre(Genre $genre): static {
+        if ($this->genre->removeElement($genre)) {
+            $genre->removeBook($this);
         }
 
         return $this;

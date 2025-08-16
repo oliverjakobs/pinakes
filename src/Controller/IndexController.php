@@ -13,49 +13,34 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class IndexController extends AbstractController {
 
+    private function renderNavigationItems(?string $parent = null): Response {
+        $content = file_get_contents('../data/navigation.json');
+        $items = json_decode($content, true);
+
+        $filtered = array_filter($items, fn ($item) => $parent === ($item['parent'] ?? null));
+
+        if (null !== $parent) {
+            assert(array_key_exists($parent, $items), 'Unkown navigation item: ' . $parent);
+            $parent_item = array_find($items, fn ($item) => $parent === $item['route']);
+            $parent_item['route'] = $parent_item['parent'] ?? 'pinakes';
+            $parent_item['icon'] = 'backspace';
+            $parent_item['caption'] = 'Back';
+
+            $filtered = [$parent_item, ...$filtered];
+        }
+
+        return $this->render('index.html.twig', [
+            'navigation' => $filtered,
+        ]);
+    }
+
     #[Route('/', name: 'pinakes')]
     public function index(): Response {
-        $navigation = [
-            [
-                'icon' => 'book',
-                'route' => 'book',
-                'caption' => 'Books',
-                'role' => ''
-            ],
-            [
-                'icon' => 'vector-pen',
-                'route' => 'author',
-                'caption' => 'Authors',
-                'role' => ''
-            ],
-            [
-                'icon' => 'send',
-                'route' => 'publisher',
-                'caption' => 'Publishers',
-                'role' => ''
-            ],
-            [
-                'icon' => 'bookmark',
-                'route' => 'series',
-                'caption' => 'Series',
-                'role' => ''
-            ],
-            [
-                'icon' => 'bank',
-                'route' => 'bookfund',
-                'caption' => 'Bookfund',
-                'role' => User::ROLE_LIBRARIAN
-            ],
-            [
-                'icon' => 'database',
-                'route' => 'admin',
-                'caption' => 'Admin',
-                'role' => User::ROLE_ADMIN
-            ],
-        ];
-        
-        return $this->render('index.html.twig', [
-            'navigation' => $navigation
-        ]);
+        return $this->renderNavigationItems();
+    }
+
+    #[Route('/admin', name: 'admin')]
+    public function admin(): Response {
+        return $this->renderNavigationItems('admin');
     }
 }
