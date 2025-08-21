@@ -5,6 +5,7 @@ namespace App\Twig;
 use App\Pinakes\Link;
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
+use App\Pinakes\EntityCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\PersistentCollection;
@@ -63,22 +64,9 @@ class AppExtension extends AbstractExtension {
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
-    private static function getData(mixed $data, PinakesEntity $entity): mixed {
-        if (is_callable($data)) {
-            return $data($entity);
-        }
-
-        if (array_key_exists($data, get_object_vars($entity))) {
-            return $entity->$data;
-        }
-
-        $name = 'get' . str_replace('_', '', ucwords($data, '_'));
-        return $entity->{$name}();
-    }
-
     public function renderValue(array $field, PinakesEntity $entity): string {
         assert(isset($field['data']), 'No data specified');
-        $data = self::getData($field['data'], $entity);
+        $data = $entity->getValue($field['data']);
 
         if (empty($data)) return '-';
         $link = $field['link'] ?? null;
@@ -114,13 +102,23 @@ class AppExtension extends AbstractExtension {
         if (!$edit) return '';
 
         if (is_string($edit)) {
-            $data = self::getData($edit, $entity);
+            $data = $entity->getValue($edit);
         } else {
-            $data = self::getData($field['data'] ?? null, $entity);
+            $data = $entity->getValue($field['data'] ?? null);
         }
 
         if ($data instanceof PersistentCollection) {
             $entity_name = $data->getTypeClass()->rootEntityName;
+            $repository = $this->em->getRepository($entity_name);
+            return $this->twig->render('/component/form/autocomplete.html.twig', [
+                'name' => $name,
+                'options' => $repository->getOptions(),
+                'values' => $data,
+            ]);
+        }
+
+        if ($data instanceof EntityCollection) {
+            $entity_name = $data->getTypeClass();
             $repository = $this->em->getRepository($entity_name);
             return $this->twig->render('/component/form/autocomplete.html.twig', [
                 'name' => $name,

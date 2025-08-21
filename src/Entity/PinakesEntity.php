@@ -20,4 +20,29 @@ abstract class PinakesEntity {
         $url = '/' . self::getClassName() . '/show/' . $this->getId();
         return new Link($value ?? (string)$this, $url);
     }
+
+    public function setValue(callable|string $data, mixed $value) {
+        if (is_callable($data)) {
+            $data($this, $value);
+        } else if (method_exists($this, $data)) {
+            $this->{$data}($value);
+        } else if (property_exists($this, $data)) {
+            $this->$data = $value;
+        } else {
+            assert(false, 'Cant set ' . $data);
+        }
+    }
+
+    public function getValue(callable|string $data): mixed {
+        if (is_callable($data)) {
+            return $data($this);
+        }
+
+        if (property_exists($this, $data)) {
+            return $this->$data;
+        }
+
+        $getter = 'get' . str_replace('_', '', ucwords($data, '_'));
+        return $this->{$getter}();
+    }
 }

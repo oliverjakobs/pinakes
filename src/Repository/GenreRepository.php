@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Genre;
+use App\Entity\User;
 use function App\Pinakes\RenderColored;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -30,33 +31,34 @@ class GenreRepository extends PinakesRepository {
 
     protected function defineDataFields(): array {
         return [
-            'name' => array(
+            'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
                 'link' => self::LINK_SELF
-            ),
-            'color' => array(
+            ],
+            'color' => [
                 'caption' => 'Color',
                 'data' => 'color',
                 'render' => fn($data) => RenderColored('div', $data, $data, 'tag'),
                 'input_type' => 'color',
-            ),
+            ],
             'show' => [
                 'data' => fn(Genre $g) => $g->getLinkShow(),
                 'edit' => false,
-                'style_class' => 'fit-content'
+                'style_class' => 'fit-content',
+                'visibility' => User::ROLE_LIBRARIAN
             ]
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields(array(
+        return $this->composeDataFields([
             'name', 'color', 'show'
-        ));
+        ]);
     }
     public function getDataFieldsShow(): array {
-        return $this->composeDataFields(array(
+        return $this->composeDataFields([
             'name', 'color'
-        ));
+        ]);
     }
 }

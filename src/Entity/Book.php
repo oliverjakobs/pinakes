@@ -82,6 +82,10 @@ class Book extends PinakesEntity {
         }
     }
     
+    public function setAuthors(array $authors): static {
+        return $this;
+    }
+
     public function addAuthor(Author $author): static {
         if (!$this->authors->contains($author)) {
             $this->authors->add($author);

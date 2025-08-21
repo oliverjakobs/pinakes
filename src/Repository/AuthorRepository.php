@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Author;
 use App\Entity\Series;
 use App\Entity\PinakesEntity;
+use App\Pinakes\EntityCollection;
 use Doctrine\Persistence\ManagerRegistry;
 
 class AuthorRepository extends PinakesRepository {
@@ -28,7 +29,7 @@ class AuthorRepository extends PinakesRepository {
         return $author;
     }
 
-    public function findBySeries(Series $series): array {
+    public function findBySeries(Series $series): EntityCollection {
         $books = $series->volumes->map(fn($v) => $v->book);
 
         $qb = $this->createQueryBuilder('a');
@@ -36,7 +37,7 @@ class AuthorRepository extends PinakesRepository {
             $qb->orWhere('?' . $idx . ' MEMBER OF a.books');
             $qb->setParameter($idx, $book);
         }
-        return $qb->getQuery()->getResult();
+        return new EntityCollection(Author::class, $qb->getQuery()->getResult());
     }
 
     protected function defineDataFields(): array {

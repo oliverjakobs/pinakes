@@ -115,22 +115,24 @@ button:hover, .button:hover {
   background-color: attr(data-color type(<color>));
 }
 
+.collection {
+  margin: 0;
+  padding-left: 1em;
+}
 
 ul.tags {
   display: flex;
+  flex-wrap: wrap;
   list-style: none;
   padding-left: 0px;
   gap: .4em;
 }
 
 .tag {
+  text-decoration: none;
   padding: .04em .4em;
   border-radius: 2px;
   width: fit-content;
-}
-
-a.tag {
-  text-decoration: none;
 }
 
 /* --------------------------| overview |--------------------------- */
@@ -191,8 +193,12 @@ a.tag {
 }
 
 .table-control .search {
-  padding: 0.3rem 0;
+  padding: 0.4em 0.8em 0.4em 2em;
   width: 20%;
+  background-image: url('../icons/bootstrap/search.svg');
+  background-position: 0.42em;
+  background-repeat: no-repeat;
+  border: thin solid var(--table-border);
 }
 
 .table {
@@ -211,22 +217,22 @@ a.tag {
   background-color: var(--table-header);
 }
 
-.table-field {
+.table th .caption {
   margin-right: 1.2em;
 }
 
-.table-field::after {
+.table th .caption::after {
   padding-left: 0.2em;
   font-size: 1.6em;
   line-height: 1em;
   position: absolute;
 }
 
-.table-field.asc::after {
+.table th .caption.asc::after {
   content: '\1F839';
 }
 
-.table-field.desc::after {
+.table th .caption.desc::after {
   content: '\1F83B';
 }
 
@@ -329,11 +335,6 @@ a.tag {
   padding: 0.2em 1em;
   display: flex;
   flex-direction: column;
-}
-
-ul, ol {
-  margin: 0;
-  padding-left: 1em;
 }
 
 .show-table input {

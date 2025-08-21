@@ -18,12 +18,25 @@ class SeriesController extends PinakesController {
 
     #[Route('/series', name: 'series', methods: ['GET'])]
     public function list(Request $request, SeriesRepository $repository): Response {
-        return $this->renderList($request, 'Series');
+        return $this->renderList($request, 'Series', [
+            'actions' => [
+                $this->createLink('New Series', 'series_create')->setHx('POST'),
+            ]
+        ]);
     }
 
     #[Route('/series/filter', name: 'series_filter', methods: ['GET'])]
     public function filter(Request $request, SeriesRepository $repository): Response {
         return $this->renderFilter($request, $repository);
+    }
+
+    #[Route('/series/create', name: 'series_create', methods: ['POST'])]
+    public function create(Request $request, SeriesRepository $repository): Response {
+        $series = new Series();
+        $series->name = 'New Series';
+
+        $repository->save($series);
+        return $this->redirectHx('series_show', [ 'id' => $series->getId() ]);
     }
 
     #[Route('/series/show/{id}', name: 'series_show', methods: ['GET'])]
@@ -53,7 +66,7 @@ class SeriesController extends PinakesController {
     }
 
     #[Route('/series/delete/{id}', name: 'series_delete', methods: ['DELETE'])]
-    public function delete(Request $request, BookRepository $repository): Response {
+    public function delete(Request $request, SeriesRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $series = $this->getEntity($request, $repository);
@@ -63,7 +76,7 @@ class SeriesController extends PinakesController {
     }
 
     #[Route('/series/form/{id}', name: 'series_form', methods: ['GET', 'POST'])]
-    public function form(Request $request, seriesRepository $repository): Response {
+    public function form(Request $request, SeriesRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
         $series = $this->getEntity($request, $repository);
 

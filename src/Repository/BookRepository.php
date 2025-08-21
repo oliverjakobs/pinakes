@@ -57,6 +57,7 @@ class BookRepository extends PinakesRepository {
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
+                'edit_callback' => 'setAuthors()',
                 'link' => self::LINK_DATA,
             ),
             'publisher' => array(
@@ -87,19 +88,15 @@ class BookRepository extends PinakesRepository {
                 'caption' => 'Series',
                 'data' => 'series',
                 'link' => self::LINK_DATA,
-                'edit' => false
             ),
             'volume' => array(
                 'caption' => 'Volume',
                 'data' => fn(Book $b) => $b->getSeriesVolume(),
-                'edit' => false
             ),
             'genre' => array(
                 'caption' => 'Genre',
                 'data' => fn(Book $b) => $b->getGenreTags(),
                 'edit' => 'genre',
-                //'data' => 'genre',
-                // 'link' => self::LINK_DATA,
                 'render' => fn($data) => RenderCollection($data, 'tags'),
             ),
         ];
@@ -107,7 +104,7 @@ class BookRepository extends PinakesRepository {
 
     public function getDataFieldsList(): array {
         return $this->composeDataFields(array(
-            'title', 'authors_inline', 'publisher', 'published', 'first_published', 'isbn'
+            'title', 'authors_inline', 'publisher', 'genre', 'published', 'first_published', 'isbn'
         ));
     }
     public function getDataFieldsListAuthor(): array {

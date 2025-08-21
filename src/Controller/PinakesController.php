@@ -81,9 +81,12 @@ abstract class PinakesController extends AbstractController {
     }
 
     public function renderTable(PinakesRepository $repository, array $filter, string $fields='list'): string {
+        $data_fields = $repository->getDataFields($fields);
+        $data_fields = array_filter($data_fields, fn ($field) => isset($field['visibility']) ? $this->isGranted($field['visibility']) : true);
+
         return $this->renderView('component/table.html.twig', [
             'data' => $repository->applyFilter($filter),
-            'fields' => $repository->getDataFields($fields),
+            'fields' => $data_fields,
             'filter' => $filter
         ]);
     }

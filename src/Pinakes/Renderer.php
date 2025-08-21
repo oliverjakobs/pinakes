@@ -26,7 +26,7 @@ function RenderCollection(Collection|array $data, string $class = ''): string {
 
     $data = implode(PHP_EOL, array_map(fn ($e) => '<li>' . $e . '</li>', $data));
     return <<<HTML
-        <ul class="$class">
+        <ul class="collection $class">
             $data
         </ul>
     HTML;

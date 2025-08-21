@@ -15,7 +15,7 @@
           hx-swap="outerHTML"
           hx-target="[hx-table-content]">
         {% if field.caption is defined %}
-          <div class="table-field {{ direction }}">{{ field.caption }}</div>
+          <div class="caption {{ direction }}">{{ field.caption }}</div>
         {% endif %}
       </th>
     {% endfor %}
