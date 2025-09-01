@@ -18,9 +18,9 @@ class BookfundController extends PinakesController {
     #[Route('/bookfund', name: 'bookfund', methods: ['GET'])]
     public function bookfund(TransactionRepository $repository): Response {
         return $this->render('bookfund.html.twig', [
-            'name' => static::getModelName(),
             'transactions' => $repository->findAll(['timestamp' => 'desc'], 6),
-            'balance' => $repository->getBalance()
+            'balance' => $repository->getBalance(),
+            'navigation' => $this->getNavigationItems()
         ]);
     }
 

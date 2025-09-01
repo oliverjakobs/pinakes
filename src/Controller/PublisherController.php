@@ -30,17 +30,14 @@ class PublisherController extends PinakesController {
     public function show(Request $request, PublisherRepository $repository): Response {
         $publisher = $this->getEntity($request, $repository);
 
-        return $this->render('show.html.twig', [
-            'name' => self::getModelName(),
-            'entity' => $publisher,
-            'fields' => $repository->getDataFields('show'),
+        return $this->renderShow($repository, $publisher, 'show', [
             'actions' => [
                 $this->getActionEdit($publisher),
                 $this->getActionDelete($publisher),
             ],
             'content' => [
                 'title' => 'Books',
-                'filter' => $this->getFilter($request, ['pp' => 10, 'publisher' => $publisher->getId()]),
+                'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'publisher' => $publisher->getId()]),
                 'route' => 'publisher_show_filter'
             ]
         ]);

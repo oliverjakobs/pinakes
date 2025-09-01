@@ -5,6 +5,8 @@
   --color-hover: rgba(0, 0, 0, 0.1);
   --table-border: #a9a9a9;
   --table-header: #c7c2af;
+
+  --sidebar-width: 300px;
 }
 
 body {
@@ -13,85 +15,124 @@ body {
   line-height: 1.5;
   color: var(--color-main);
   background-color: var(--color-bg);
-  display:flex;
-  flex-direction:column;
   min-height: 100vh;
+  margin: 0;
 }
 
-header {
+main {
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--sidebar-width);
+  padding: 1rem 3rem;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100%;
+  background-color: var(--table-header);
+  display: flex;
+  flex-direction: column;
+  font-weight: 400;
+  font-size: 1.2em;
+}
+
+.sidebar header {
+  display: block;
   font-size: 3rem;
   font-weight: 500;
   text-align: center;
-  padding: 0.6rem;
+  margin: 0.6rem;
+  padding-bottom: 0.4rem;
   border-bottom: 2px solid var(--color-main);
-  margin-bottom: 1rem;
-  display: grid;
-  grid-template-columns: 32px auto 32px;
 }
 
-header a .bi {
-  width: 32px;
-  height: 32px;
-}
-
-header a .bi:hover {
-  fill: var(--color-secondary);
-}
-
-header a {
+a.logo {
   text-decoration: none;
   color: var(--color-main);
 }
 
-.logo a::before, .logo a::after {
+a.logo::before, a.logo::after {
   display: inline-block;
   transition: transform .5s ease;
   content: '~';
 }
 
-.logo a:hover {
+a.logo:hover {
   transition: transform .5s ease;
 }
 
-.logo a:hover::before {
+a.logo:hover::before {
   transform: translateX(-.2em);
 }
 
-.logo a:hover::after {
+a.logo:hover::after {
   transform: translateX(.2em);
+}
+
+.sidebar nav {
+  margin: 1rem 0;
+  flex: 1;
+}
+
+.sidebar nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar nav ul li {
+  display: inline-block;
+  width: 100%;
+  position: relative;
+}
+
+.sidebar a:not(.logo), .sidebar label {
+  padding: .6em 1em .6rem 1.6rem;
+  text-decoration: none;
+  color: var(--color-main);
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  line-height: 1em;
+}
+
+.sidebar a:not(.logo):hover, .sidebar a.active, .sidebar input[type=checkbox]:hover ~ label {
+  background-color: var(--color-hover);
+}
+
+.sidebar nav input[type=checkbox]{
+  position: absolute;
+  cursor: pointer;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+}
+
+.sidebar nav input[type=checkbox]:not(:checked) ~ ul {
+  margin-top: 0;
+  max-height: 0;
+  opacity: 0;
+  transform: translateX(-50%);
+}
+
+.sidebar ul.subnav a {
+  padding-left: 2.6em;
+  z-index: 2;
+  position: relative;
+}
+
+.sidebar footer {
+  margin: 2rem 0;
 }
 
 .bi {
   width: 1em;
   height: 1em;
-}
-
-.content {
-  flex: 1;
-}
-
-footer {
-  text-align: center;
-  padding: 1.2rem;
-  border-top: 1px solid var(--color-main);
-  margin-top: 3rem;
-  margin-bottom: 1.8rem;
-}
-
-a.link-extern::after {
-  content: '\2BA9';
-}
-
-.copyright::before {
-  font-family: Arial, sans-serif;
-  margin-right: 0.2em;
-  content: "\00a9";
-}
-
-.container {
-  width: 80%;
-  margin-right: auto;
-  margin-left: auto;
 }
 
 button, .button {
@@ -313,8 +354,6 @@ ul.tags {
 .show {
   width: 40%;
   display: block;
-  margin-right: auto;
-  margin-left: auto;
 }
 
 .show-main {

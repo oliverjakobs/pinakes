@@ -31,7 +31,7 @@ class AdminController extends PinakesController {
 
     #[Route('/icons/filter', name: 'icons_filter', methods: ['GET'])]
     public function filterIcons(Request $request): Response {
-        $filter = $this->getFilter($request);
+        $filter = $this->getFilter($request->query->all());
 
         $icons = glob('./icons/bootstrap/*' . ($filter['search'] ?? '') . '*.svg');
         $icons = array_map(fn ($path) => basename($path, '.svg'), $icons);

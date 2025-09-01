@@ -39,7 +39,7 @@ class BookController extends PinakesController {
     public function listGenre(Request $request, GenreRepository $repository): Response {
         $genre = $this->getEntity($request, $repository);
         return $this->renderList($request, 'Genre: ' . (string) $genre, [
-            'filter' => $this->getFilter($request, [ 'genre' => $genre->getId() ])
+            'filter' => $this->getFilter($request->query->all(), [ 'genre' => $genre->getId() ])
         ]);
     }
 
@@ -47,8 +47,6 @@ class BookController extends PinakesController {
     public function filterGenre(Request $request, BookRepository $repository): Response {
         return $this->renderFilter($request, $repository);
     }
-
-
 
 
     #[Route('/book/create', name: 'book_create', methods: ['POST'])]
@@ -64,10 +62,7 @@ class BookController extends PinakesController {
     public function show(Request $request, BookRepository $repository): Response {
         $book = $this->getEntity($request, $repository);
 
-        return $this->render('show.html.twig', [
-            'name' => self::getModelName(),
-            'entity' => $book,
-            'fields' => $repository->getDataFields('show'),
+        return $this->renderShow($repository, $book, 'show', [
             'actions' => [
                 $this->getActionEdit($book),
                 $this->getActionDelete($book),

@@ -34,18 +34,18 @@
         "route": "admin",
         "icon": "database",
         "caption": "Admin",
-        "role": "ROLE_ADMIN"
-    },
-    {
-        "route": "user",
-        "icon": "people",
-        "caption": "User",
-        "parent": "admin"
-    },
-    {
-        "route": "icons",
-        "icon": "bootstrap",
-        "caption": "Icons",
-        "parent": "admin"
+        "role": "ROLE_ADMIN",
+        "items": [
+            {
+                "route": "user",
+                "icon": "people",
+                "caption": "User"
+            },
+            {
+                "route": "icons",
+                "icon": "bootstrap",
+                "caption": "Icons"
+            }
+        ]
     }
 ]

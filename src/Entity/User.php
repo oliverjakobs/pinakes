@@ -9,8 +9,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
-class User extends PinakesEntity implements UserInterface, PasswordAuthenticatedUserInterface
-{
+class User extends PinakesEntity implements UserInterface, PasswordAuthenticatedUserInterface {
     const ROLE_ADMIN = 'ROLE_ADMIN';
     const ROLE_LIBRARIAN = 'ROLE_LIBRARIAN';
     const ROLE_USER = 'ROLE_USER';
@@ -21,7 +20,7 @@ class User extends PinakesEntity implements UserInterface, PasswordAuthenticated
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
-    private ?string $username = null;
+    public ?string $username = null;
 
     /**
      * @var list<string> The user roles
@@ -35,43 +34,28 @@ class User extends PinakesEntity implements UserInterface, PasswordAuthenticated
     #[ORM\Column]
     private ?string $password = null;
 
-    public function getId(): ?int
-    {
+    public function getId(): ?int {
         return $this->id;
     }
 
-    public function __toString(): string
-    {
+    public function __toString(): string {
         return $this->username;
     }
 
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
-
-    public function setUsername(string $username): static
-    {
-        $this->username = $username;
-
-        return $this;
-    }
 
     /**
      * A visual identifier that represents this user.
      *
      * @see UserInterface
      */
-    public function getUserIdentifier(): string
-    {
+    public function getUserIdentifier(): string {
         return (string) $this->username;
     }
 
     /**
      * @see UserInterface
      */
-    public function getRoles(): array
-    {
+    public function getRoles(): array {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
         $roles[] = self::ROLE_USER;
@@ -82,18 +66,15 @@ class User extends PinakesEntity implements UserInterface, PasswordAuthenticated
     /**
      * @param list<string> $roles
      */
-    public function setRoles(array $roles): static
-    {
+    public function setRoles(array $roles): static {
         $this->roles = $roles;
-
         return $this;
     }
 
     /**
      * @see PasswordAuthenticatedUserInterface
      */
-    public function getPassword(): ?string
-    {
+    public function getPassword(): ?string {
         return $this->password;
     }
 

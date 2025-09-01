@@ -10,8 +10,8 @@
 
 {% block content %}
 <div class="bookfund-container">
-    <div class="control centered">
-        <h1>Balance:</h1>
+    <div class="control">
+        <h2>Balance:</h2>
         <div class="balance">
             {{ balance | fmt_currency }}
         </div>
@@ -29,8 +29,6 @@
             </li>
         {% endfor %}
     </ul>
-    <div class="centered">
-        <a class="fancy-link" href="{{ path('transaction') }}">View All</a>
-    </div>
+    <a class="fancy-link" href="{{ path('transaction') }}">View All</a>
 </div>
 {% endblock %}

@@ -30,17 +30,14 @@ class AuthorController extends PinakesController {
     public function show(Request $request, AuthorRepository $repository): Response {
         $author = $this->getEntity($request, $repository);
 
-        return $this->render('show.html.twig', [
-            'name' => self::getModelName(),
-            'entity' => $author,
-            'fields' => $repository->getDataFields('show'),
+        return $this->renderShow($repository, $author, 'show', [
             'actions' => [
                 $this->getActionEdit($author),
                 $this->getActionDelete($author),
             ],
             'content' => [
                 'title' => 'Books',
-                'filter' => $this->getFilter($request, ['pp' => 10, 'author' => $author->getId()]),
+                'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'author' => $author->getId()]),
             ]
         ]);
     }

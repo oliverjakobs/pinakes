@@ -43,10 +43,7 @@ class SeriesController extends PinakesController {
     public function show(Request $request, SeriesRepository $repository): Response {
         $series = $this->getEntity($request, $repository);
 
-        return $this->render('show.html.twig', [
-            'name' => self::getModelName(),
-            'entity' => $series,
-            'fields' => $repository->getDataFields('show'),
+        return $this->renderShow($repository, $series, 'show', [
             'actions' => [
                 $this->getActionEdit($series),
                 $this->getActionDelete($series),
@@ -54,8 +51,7 @@ class SeriesController extends PinakesController {
             ],
             'content' => [
                 'title' => 'Volumes',
-                'filter' => $this->getFilter($request, ['pp' => 10, 'series' => $series->getId()]),
-                'route' => 'series_show_filter'
+                'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'series' => $series->getId()]),
             ]
         ]);
     }

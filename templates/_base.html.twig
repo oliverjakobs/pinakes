@@ -18,22 +18,55 @@
     <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
   </head>
   <body>
-    <header class="container">
-      <div></div>
-      <div class="logo"><a href="/">Pinakes</a></div>
-      {% if app.user is null %}
-        <a href="{{ path('app_login') }}" title="Login">{{ icon('box-arrow-in-right') }}</a>
-      {% else %}
-        <a href="{{ path('app_logout') }}" title="Logout">{{ icon('box-arrow-right') }}</a>
-      {% endif %}
-    </header>
 
-    <main class="content">
+    <aside class="sidebar">
+      <header>
+        <a class="logo" href="/">Pinakes</a>
+      </header>
+      <nav>
+        <ul>
+          {% for item in navigation %}
+            <li>
+              {% if item.items is defined %}
+                {% set active_child = false %}
+
+                {% for i in item.items %}
+                  {% if i.route == app.current_route %}
+                    {% set active_child = true %}
+                  {% endif %}
+                {% endfor %}
+                <input type="checkbox" {% if active_child %}disabled checked{% endif %}>
+                <label>{{ icon(item.icon)}} {{ item.caption }}</label>
+                <ul class="subnav">
+                {% for i in item.items %}
+                  <li>
+                    <a href="{{ path(i.route) }}" {% if i.route == app.current_route %}class="active"{% endif %}>
+                      {{ icon(i.icon)}} {{ i.caption }}
+                    </a>
+                  </li>
+                {% endfor %}
+                <ul>
+              {% else %}
+                <a href="{{ path(item.route) }}" {% if item.route == app.current_route %}class="active"{% endif %}>
+                  {{ icon(item.icon)}} {{ item.caption }}
+                </a>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
+      <footer>
+        {% if app.user is null %}
+          <a href="{{ path('app_login') }}" title="Login">{{ icon('box-arrow-in-right') }} Login</a>
+        {% else %}
+          <a href="{{ path('app_logout') }}" title="Logout">{{ icon('box-arrow-right') }} Logout</a>
+        {% endif %}
+      </footer>
+    </aside>
+
+    <main>
       {% block content %}{% endblock %}
     </main>
 
-    <footer class="container">
-      <div class="copyright">2023-{{ 'now'|date('Y') }} oliver jakobs. All Rights Reserved.</div>
-    </footer>
   </body>
 </html>
