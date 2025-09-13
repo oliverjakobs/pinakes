@@ -50,25 +50,18 @@ class BookfundController extends PinakesController {
 
     #[Route('/transaction', name: 'transaction', methods: ['GET'])]
     public function list(Request $request, TransactionRepository $repository): Response {
-        return $this->renderList($request, 'Transactions');
-    }
-
-    #[Route('/transaction/filter', name: 'transaction_filter', methods: ['GET'])]
-    public function filter(Request $request, TransactionRepository $repository): Response {
-        return $this->renderFilter($request, $repository);
+        return $this->renderListFilter($request, $repository, 'Transactions');
     }
 
     #[Route('/transaction/show/{id}', name: 'transaction_show', methods: ['GET'])]
     public function show(Request $request, TransactionRepository $repository): Response {
         $transaction = $this->getEntity($request, $repository);
 
-        return $this->render('show.html.twig', [
-            'name' => self::getModelName(),
-            'entity' => $transaction,
-            'fields' => $repository->getDataFields('show'),
+        return $this->renderShow($repository, $transaction, 'show', [
             'actions' => [
                 $this->getActionEdit($transaction),
                 $this->getActionDelete($transaction),
+                // TODO ActionAddVolume
             ],
         ]);
     }

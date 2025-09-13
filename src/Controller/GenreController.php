@@ -17,12 +17,7 @@ class GenreController extends PinakesController {
 
     #[Route('/genre', name: 'genre', methods: ['GET'])]
     public function list(Request $request, GenreRepository $repository): Response {
-        return $this->renderList($request, 'Genre');
-    }
-
-    #[Route('/genre/filter', name: 'genre_filter', methods: ['GET'])]
-    public function filter(Request $request, GenreRepository $repository): Response {
-        return $this->renderFilter($request, $repository);
+        return $this->renderListFilter($request, $repository, 'Genre');
     }
 
     #[Route('/genre/show/{id}', name: 'genre_show', methods: ['GET'])]

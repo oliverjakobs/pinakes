@@ -18,12 +18,7 @@ class PublisherController extends PinakesController {
 
     #[Route('/publisher', name: 'publisher', methods: ['GET'])]
     public function list(Request $request, PublisherRepository $repository): Response {
-        return $this->renderList($request, 'Publishers');
-    }
-
-    #[Route('/publisher/filter', name: 'publisher_filter', methods: ['GET'])]
-    public function filter(Request $request, PublisherRepository $repository): Response {
-        return $this->renderFilter($request, $repository);
+        return $this->renderListFilter($request, $repository, 'Publishers');
     }
 
     #[Route('/publisher/show/{id}', name: 'publisher_show', methods: ['GET'])]
@@ -35,11 +30,11 @@ class PublisherController extends PinakesController {
                 $this->getActionEdit($publisher),
                 $this->getActionDelete($publisher),
             ],
-            'content' => [
-                'title' => 'Books',
-                'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'publisher' => $publisher->getId()]),
-                'route' => 'publisher_show_filter'
-            ]
+            // 'content' => [
+            //     'title' => 'Books',
+            //     'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'publisher' => $publisher->getId()]),
+            //     'route' => 'publisher_show_filter'
+            // ]
         ]);
     }
 

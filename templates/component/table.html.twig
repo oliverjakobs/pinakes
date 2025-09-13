@@ -1,5 +1,5 @@
 {% set route = app.current_route %}
-{% set params = app.current_route_parameters|merge(filter) %}
+{% set params = app.current_route_parameters %}
 
 <div hx-table-content>
 
@@ -8,12 +8,18 @@
     <tr>
     {% for key, field in fields %}
       {% set direction = (field.data == filter.order_by) ? filter.order_dir : '' %}
-      {% set next_dir = (direction == 'asc') ? 'desc' : 'asc' %}
       <th
-          hx-get="{{ path(route, params|merge({'order_by': field.data, 'order_dir': next_dir, 'page': 1})) }}"
+        {% if allow_ordering ?? true %}
+          hx-get="{{ filter_url(route, params, filter, {
+            'order_by': field.data,
+            'order_dir': (direction == 'asc') ? 'desc' : 'asc',
+            'page': 1
+          }) }}"
           hx-trigger="click"
           hx-swap="outerHTML"
-          hx-target="[hx-table-content]">
+          hx-target="[hx-table-content]"
+        {% endif %}
+      >
         {% if field.caption is defined %}
           <div class="caption {{ direction }}">{{ field.caption }}</div>
         {% endif %}
@@ -39,11 +45,11 @@
   </tbody>
 </table>
 
-{% include 'component/pagination.html.twig' with {
-  'route': route,
-  'params': params,
-  'filter': filter,
-  'max_count': data|length,
-} only %}
+{% if allow_pagination ?? true %}
+  {% include 'component/pagination.html.twig' with {
+    'filter': filter,
+    'max_count': data|length,
+  } only %}
+{% endif %}
 
 </div>

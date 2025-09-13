@@ -1,3 +1,5 @@
+{% set route = app.current_route %}
+{% set params = app.current_route_parameters %}
 
 <div class="table-footer">
 {% if max_count == 1 %}
@@ -17,7 +19,7 @@
 
     {% if filter.page > 1 %}
       <li class="icon">
-        <a href="{{ path(route, params|merge({'page': filter.page - 1})) }}"
+        <a href="{{ filter_url(route, params, filter, {'page': filter.page - 1}) }}"
             hx-swap="outerHTML"
             class="prev-next"
             hx-target="[hx-table-content]">
@@ -28,7 +30,7 @@
 
     {% if start > 1 %}
       <li>
-        <a href="{{ path(route, params|merge({'page': 1})) }}"
+        <a href="{{ filter_url(route, params, filter, {'page': 1}) }}"
             hx-swap="outerHTML"
             hx-target="[hx-table-content]">
           {{1}}
@@ -42,7 +44,7 @@
         {% if p == filter.page %}
           <a class="active">{{p}}</a>
         {% else %}
-          <a href="{{ path(route, params|merge({'page': p})) }}"
+          <a href="{{ filter_url(route, params, filter, {'page': p}) }}"
               hx-swap="outerHTML"
               hx-target="[hx-table-content]">
             {{p}}
@@ -54,7 +56,7 @@
     {% if end < max_pages %}
       <li>&#8230;</li>
       <li>
-        <a href="{{ path(route, params|merge({'page': max_pages})) }}"
+        <a href="{{ filter_url(route, params, filter, {'page': max_pages}) }}"
             hx-swap="outerHTML"
             hx-target="[hx-table-content]">
           {{ max_pages }}
@@ -64,7 +66,7 @@
 
     {% if filter.page < max_pages %}
       <li class="icon">
-        <a href="{{ path(route, params|merge({'page': filter.page + 1})) }}"
+        <a href="{{ filter_url(route, params, filter, {'page': filter.page + 1}) }}"
             hx-swap="outerHTML"
             class="prev-next"
             hx-target="[hx-table-content]">

@@ -18,16 +18,11 @@ class SeriesController extends PinakesController {
 
     #[Route('/series', name: 'series', methods: ['GET'])]
     public function list(Request $request, SeriesRepository $repository): Response {
-        return $this->renderList($request, 'Series', [
+        return $this->renderListFilter($request, $repository, 'Series', params: [
             'actions' => [
                 $this->createLink('New Series', 'series_create')->setHx('POST'),
             ]
         ]);
-    }
-
-    #[Route('/series/filter', name: 'series_filter', methods: ['GET'])]
-    public function filter(Request $request, SeriesRepository $repository): Response {
-        return $this->renderFilter($request, $repository);
     }
 
     #[Route('/series/create', name: 'series_create', methods: ['POST'])]
@@ -49,10 +44,10 @@ class SeriesController extends PinakesController {
                 $this->getActionDelete($series),
                 // TODO ActionAddVolume
             ],
-            'content' => [
-                'title' => 'Volumes',
-                'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'series' => $series->getId()]),
-            ]
+            // 'content' => [
+            //     'title' => 'Volumes',
+            //     'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'series' => $series->getId()]),
+            // ]
         ]);
     }
 

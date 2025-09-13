@@ -3,16 +3,15 @@
 {% block content %}
 
 <div class="container">
-  <div class="card-container">
-    {% for item in navigation %}
-      {% if (item.role is not defined) or is_granted(item.role) %}
-        <a class="card" href="{{ path(item.route) }}">
-          <div class="icon">{{ icon(item.icon)}}</div>
-          <div class="title">{{ item.caption }}</div>
-        </a>
-      {% endif %}
-    {% endfor %}
-  </div>
+
+  <h1>Newest Books</h1>
+  {% include 'component/table.html.twig' with {
+    'allow_ordering': false,
+    'allow_pagination': false,
+    'data': newest,
+    'fields': newest_fields
+  } %}
+
 </div>
 
 {% endblock %}

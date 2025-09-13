@@ -21,7 +21,7 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository): Response {
-        return $this->renderList($request, 'Books', [
+        return $this->renderListFilter($request, $repository, 'Books', params: [
             'actions' => [
                 // TODO add from openlibrary isbn
                 $this->createLink('Import Books', 'book_import'),
@@ -30,24 +30,13 @@ class BookController extends PinakesController {
         ]);
     }
 
-    #[Route('/book/filter', name: 'book_filter', methods: ['GET'])]
-    public function filter(Request $request, BookRepository $repository): Response {
-        return $this->renderFilter($request, $repository);
-    }
-
     #[Route('/book/genre/{id}', name: 'book_genre', methods: ['GET'])]
-    public function listGenre(Request $request, GenreRepository $repository): Response {
-        $genre = $this->getEntity($request, $repository);
-        return $this->renderList($request, 'Genre: ' . (string) $genre, [
-            'filter' => $this->getFilter($request->query->all(), [ 'genre' => $genre->getId() ])
+    public function listGenre(Request $request, BookRepository $repository, GenreRepository $genre_rep): Response {
+        $genre = $this->getEntity($request, $genre_rep);
+        return $this->renderListFilter($request, $repository, 'Genre: ' . (string) $genre, filter: [
+            'genre' => $genre->getId()
         ]);
     }
-
-    #[Route('/book/genre/{id}/filter', name: 'book_genre_filter', methods: ['GET'])]
-    public function filterGenre(Request $request, BookRepository $repository): Response {
-        return $this->renderFilter($request, $repository);
-    }
-
 
     #[Route('/book/create', name: 'book_create', methods: ['POST'])]
     public function create(Request $request, BookRepository $repository): Response {

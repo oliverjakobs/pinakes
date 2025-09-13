@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\PinakesEntity;
+use App\Pinakes\EntityCollection;
 use function App\Pinakes\RenderCollection;
 use function App\Pinakes\RenderCollectionInline;
 use Doctrine\Persistence\ManagerRegistry;
@@ -39,6 +40,11 @@ class BookRepository extends PinakesRepository {
         }
 
         return $qb;
+    }
+
+    public function getNewest(): EntityCollection {
+        $qb = $this->createQueryBuilder('b')->setMaxResults(5);
+        return new EntityCollection(Author::class, $qb->getQuery()->getResult());
     }
 
     protected function defineDataFields(): array {
@@ -105,6 +111,11 @@ class BookRepository extends PinakesRepository {
     public function getDataFieldsList(): array {
         return $this->composeDataFields(array(
             'title', 'authors_inline', 'publisher', 'genre', 'published', 'first_published', 'isbn'
+        ));
+    }
+    public function getDataFieldsNewest(): array {
+        return $this->composeDataFields(array(
+            'title', 'authors_inline'
         ));
     }
     public function getDataFieldsListAuthor(): array {

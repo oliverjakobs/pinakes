@@ -6,7 +6,6 @@
 
 {% block content %}
 
-{% set filter_uri = path(app.current_route ~ '_filter', app.current_route_parameters|merge(filter)) %}
 <div class="container">
   <h1>{{ title }}</h1>
 
@@ -18,7 +17,7 @@
       name="search"
       value="{{ filter.search|default }}"
       hx-trigger="keyup[key=='Enter']"
-      hx-get="{{ filter_uri }}"
+      hx-get="{{ filter_url(app.current_route, app.current_route_parameters, filter) }}"
       hx-target="[hx-table-content]">
     {% if is_granted('ROLE_LIBRARIAN') and (actions is defined) %}
       <div>
@@ -28,6 +27,6 @@
       </div>
     {% endif %}
   </div>
-  {{ render(filter_uri) }}
+  {% include component_path | default('component/table.html.twig') %}
 </div>
 {% endblock %}

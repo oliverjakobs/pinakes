@@ -35,6 +35,7 @@ class AppExtension extends AbstractExtension {
             new TwigFunction('render_value', [$this, 'renderValue']),
             new TwigFunction('render_form', [$this, 'renderForm']),
             new TwigFunction('route_exists', [$this, 'routeExists']),
+            new TwigFunction('filter_url', [$this, 'getFilterUrl']),
             new TwigFunction('icon', [$this, 'getIcon'])
         ];
     }
@@ -56,6 +57,11 @@ class AppExtension extends AbstractExtension {
             return false;
         }
         return true;
+    }
+
+    public function getFilterUrl(string $route, array $params, array ...$filters): string {
+        $params['filter'] = http_build_query(array_merge(...$filters));
+        return $this->router->generate($route, $params);
     }
 
     public function getIcon(string $name): ?Markup {

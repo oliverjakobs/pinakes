@@ -16,13 +16,11 @@ class IndexController extends PinakesController {
 
     #[Route('/', name: 'pinakes')]
     public function index(Request $request, BookRepository $repository): Response {
-        return $this->renderList($request, 'Books', [
-            'filter' => $this->getFilter($request->query->all(), [ 'pp' => 20 ])
+        return $this->render('index.html.twig', [
+            'navigation' => $this->getNavigationItems(),
+            'filter' => self::DEFAULT_FILTER,
+            'newest' => $repository->getNewest(),
+            'newest_fields' => $this->getDataFields($repository, 'newest'),
         ]);
-    }
-
-    #[Route('/filter', name: 'pinakes_filter', methods: ['GET'])]
-    public function filter(Request $request, BookRepository $repository): Response {
-        return $this->renderFilter($request, $repository);
     }
 }

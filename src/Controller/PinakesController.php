@@ -14,6 +14,13 @@ use Doctrine\ORM\Exception\MissingIdentifierField;
 
 abstract class PinakesController extends AbstractController {
 
+    const DEFAULT_FILTER = [
+        'order_by' => null,
+        'order_dir' => 'desc',
+        'page' => 1,
+        'pp' => 30,
+    ];
+
     protected EntityManagerInterface $em;
 
     public function __construct(EntityManagerInterface $em) {
@@ -53,33 +60,14 @@ abstract class PinakesController extends AbstractController {
         return $entity;
     }
 
+    public function getDataFields(PinakesRepository $repository, string $fields): array {
+        $result = $repository->getDataFields($fields);
+        return array_filter($result, fn ($field) => isset($field['visibility']) ? $this->isGranted($field['visibility']) : true);
+    }
+
     protected function getNavigationItems(): array {
         $items = json_decode(file_get_contents('../data/navigation.json'), true);
-
-        $items = array_filter($items, fn ($item) => isset($item['role']) ? $this->isGranted($item['role']) : true);
-
-        return $items;
-    }
-
-    protected function getFilter(array ...$params): array {
-        $defaults = [
-            'order_by' => null,
-            'order_dir' => 'desc',
-            'page' => 1,
-            'pp' => 30,
-        ];
-
-        return array_merge($defaults, ...$params);
-    }
-
-    public function renderList(Request $request, string $title, array $params = []): Response {
-        $defaults = [
-            'title' => $title,
-            'filter' => $this->getFilter($request->query->all()),
-            'navigation' => $this->getNavigationItems()
-        ];
-
-        return $this->render('list.html.twig', array_merge($defaults, $params));
+        return array_filter($items, fn ($item) => isset($item['role']) ? $this->isGranted($item['role']) : true);
     }
 
     protected function pushFilterUrl(Response $response, Request $request, array $filter): Response {
@@ -100,18 +88,47 @@ abstract class PinakesController extends AbstractController {
         return $response;
     }
 
-    public function renderFilter(Request $request, PinakesRepository $repository, string $fields='list'): Response {
-        $filter = $this->getFilter($request->query->all());
-
-        $data_fields = $repository->getDataFields($fields);
-        $data_fields = array_filter($data_fields, fn ($field) => isset($field['visibility']) ? $this->isGranted($field['visibility']) : true);
-
+    public function renderFilter(Request $request, PinakesRepository $repository, array $filter, string $fields='list'): Response {
         $response = $this->render('component/table.html.twig', [
             'data' => $repository->applyFilter($filter),
-            'fields' => $data_fields,
+            'fields' => $this->getDataFields($repository, $fields),
             'filter' => $filter
         ]);
         return $this->pushFilterUrl($response, $request, $filter);
+    }
+
+    /**
+     * @return array<array, bool>
+     */
+    protected function getQueryFilter(array $query): array {
+        $filter = $query['filter'] ?? null;
+        if (null === $filter) return [ $query, false ];
+
+        unset($query['filter']);
+        parse_str($filter, $result);
+        return [ array_merge($query, $result), true ];
+    }
+
+    public function renderListFilter(Request $request, PinakesRepository $repository, string $title, string $fields = 'list', array $params = [], array $filter = []): Response {
+        [ $query, $filter_only ] = $this->getQueryFilter($request->query->all());
+        $filter = array_merge(self::DEFAULT_FILTER, $filter, $query);
+
+        $params = array_merge([
+            'title' => $title,
+            'filter' => $filter,
+            'navigation' => $this->getNavigationItems(),
+            'data' => $repository->applyFilter($filter),
+            'fields' => $this->getDataFields($repository, $fields),
+            'allow_pagination' => false,
+            'allow_ordering' => true
+        ], $params);
+
+        if ($filter_only) {
+            $response = $this->render('component/table.html.twig', $params);
+            return $this->pushFilterUrl($response, $request, $filter);
+        }
+
+        return $this->render('list.html.twig', $params);
     }
 
     public function renderShow(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show', array $params = []) {
@@ -127,7 +144,7 @@ abstract class PinakesController extends AbstractController {
     public function renderForm(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show'): Response {
         return $this->render('component/form.html.twig', [
             'entity' => $entity,
-            'fields' => $repository->getDataFields($fields),
+            'fields' => $this->getDataFields($repository, $fields),
         ]);
     }
 

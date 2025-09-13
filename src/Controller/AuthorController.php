@@ -18,12 +18,7 @@ class AuthorController extends PinakesController {
 
     #[Route('/author', name: 'author', methods: ['GET'])]
     public function list(Request $request, AuthorRepository $repository): Response {
-        return $this->renderList($request, 'Authors');
-    }
-
-    #[Route('/author/filter', name: 'author_filter', methods: ['GET'])]
-    public function filter(Request $request, AuthorRepository $repository): Response {
-        return $this->renderFilter($request, $repository);
+        return $this->renderListFilter($request, $repository, 'Authors');
     }
 
     #[Route('/author/show/{id}', name: 'author_show', methods: ['GET'])]
@@ -35,10 +30,10 @@ class AuthorController extends PinakesController {
                 $this->getActionEdit($author),
                 $this->getActionDelete($author),
             ],
-            'content' => [
-                'title' => 'Books',
-                'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'author' => $author->getId()]),
-            ]
+            // 'content' => [
+            //     'title' => 'Books',
+            //     'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'author' => $author->getId()]),
+            // ]
         ]);
     }
 
