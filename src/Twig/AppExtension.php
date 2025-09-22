@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
+use Symfony\Bundle\SecurityBundle\Security;
 use Exception;
 use Twig\Extension\AbstractExtension;
 use Twig\Environment;
@@ -20,12 +21,14 @@ use Twig\Markup;
 
 use function App\Pinakes\RenderCollection;
 use function App\Pinakes\RenderValue;
+use function App\Pinakes\RenderCurrency;
 
 class AppExtension extends AbstractExtension {
 
     public function __construct(
         private EntityManagerInterface $em,
         private RouterInterface $router,
+        private Security $security,
         private Environment $twig
     ) {
     }
@@ -34,34 +37,26 @@ class AppExtension extends AbstractExtension {
         return [
             new TwigFunction('render_value', [$this, 'renderValue']),
             new TwigFunction('render_form', [$this, 'renderForm']),
-            new TwigFunction('route_exists', [$this, 'routeExists']),
             new TwigFunction('filter_url', [$this, 'getFilterUrl']),
+            new TwigFunction('navigation_items', [$this, 'getNavigationItems']),
             new TwigFunction('icon', [$this, 'getIcon'])
         ];
     }
 
     public function getFilters(): array {
         return [
-            new TwigFilter('fmt_currency', [$this, 'formatCurrency']),
+            new TwigFilter('fmt_currency', fn(float $value) => RenderCurrency($value)),
         ];
-    }
-
-    public function formatCurrency(float $amount): string {
-        return sprintf('%.2f €', $amount);
-    }
-
-    public function routeExists(string $name): bool {
-        try {
-            $this->router->generate($name);
-        } catch (RouteNotFoundException $e) {
-            return false;
-        }
-        return true;
     }
 
     public function getFilterUrl(string $route, array $params, array ...$filters): string {
         $params['filter'] = http_build_query(array_merge(...$filters));
         return $this->router->generate($route, $params);
+    }
+
+    public function getNavigationItems(): array {
+        $items = json_decode(file_get_contents('../data/navigation.json'), true);
+        return array_filter($items, fn ($item) => isset($item['role']) ? $this->security->isGranted($item['role']) : true);
     }
 
     public function getIcon(string $name): ?Markup {

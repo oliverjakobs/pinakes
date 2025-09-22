@@ -11,10 +11,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class GenreController extends PinakesController {
 
-    public static function getModelName(): string {
-        return 'genre';
-    }
-
     #[Route('/genre', name: 'genre', methods: ['GET'])]
     public function list(Request $request, GenreRepository $repository): Response {
         return $this->renderListFilter($request, $repository, 'Genre');
@@ -24,10 +20,7 @@ class GenreController extends PinakesController {
     public function show(Request $request, GenreRepository $repository): Response {
         $genre = $this->getEntity($request, $repository);
 
-        return $this->render('show.html.twig', [
-            'name' => self::getModelName(),
-            'entity' => $genre,
-            'fields' => $repository->getDataFields('show'),
+        return $this->renderShow($repository, $genre, 'show', [
             'actions' => [
                 $this->getActionEdit($genre),
                 $this->getActionDelete($genre),

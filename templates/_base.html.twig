@@ -7,15 +7,14 @@
     <title>{% block title %}Pinakes{% endblock %}</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text></svg>">
 
-    <link rel="stylesheet" href={{ asset('styles/pinakes.css') }}>
+    <link rel="stylesheet" href="{{ asset('styles/pinakes.css') }}">
     {% block stylesheets %}
     {% endblock %}
 
     {% block scripts %}
     {% endblock %}
 
-    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
-    <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
+    <script src="{{ asset('js/htmx.min.js') }}"></script>
   </head>
   <body>
 
@@ -25,23 +24,22 @@
       </header>
       <nav>
         <ul>
-          {% for item in navigation %}
+          {% for item in navigation_items() %}
             <li>
               {% if item.items is defined %}
                 {% set active_child = false %}
 
                 {% for i in item.items %}
-                  {% if i.route == app.current_route %}
-                    {% set active_child = true %}
-                  {% endif %}
+                  {% if i.route == app.current_route %} {% set active_child = true %} {% endif %}
                 {% endfor %}
+
                 <input type="checkbox" {% if active_child %}disabled checked{% endif %}>
                 <label>{{ icon(item.icon)}} {{ item.caption }}</label>
                 <ul class="subnav">
-                {% for i in item.items %}
+                {% for child in item.items %}
                   <li>
-                    <a href="{{ path(i.route) }}" {% if i.route == app.current_route %}class="active"{% endif %}>
-                      {{ icon(i.icon)}} {{ i.caption }}
+                    <a href="{{ path(child.route) }}" {% if child.route == app.current_route %}class="active"{% endif %}>
+                      {{ icon(child.icon)}} {{ child.caption }}
                     </a>
                   </li>
                 {% endfor %}
@@ -65,6 +63,13 @@
     </aside>
 
     <main>
+      {% if is_granted('ROLE_LIBRARIAN') and (actions is defined) %}
+        <div>
+          {% for link in actions %}
+            {{ link|raw }}
+          {% endfor %}
+        </div>
+      {% endif %}
       {% block content %}{% endblock %}
     </main>
 

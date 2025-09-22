@@ -11,16 +11,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class BookfundController extends PinakesController {
 
-    public static function getModelName(): string {
-        return 'transaction';
-    }
-
     #[Route('/bookfund', name: 'bookfund', methods: ['GET'])]
     public function bookfund(TransactionRepository $repository): Response {
         return $this->render('bookfund.html.twig', [
             'transactions' => $repository->findAll(['timestamp' => 'desc'], 6),
-            'balance' => $repository->getBalance(),
-            'navigation' => $this->getNavigationItems()
+            'balance' => $repository->getBalance()
         ]);
     }
 

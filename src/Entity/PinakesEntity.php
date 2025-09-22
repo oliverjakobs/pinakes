@@ -11,13 +11,13 @@ abstract class PinakesEntity {
     abstract public function getId(): ?int;
     abstract public function __toString(): string;
 
-    public static function getClassName(): string {
-        $reflection = new ReflectionClass(get_called_class());
+    public function getModelName(): string {
+        $reflection = new ReflectionClass($this);
         return strtolower($reflection->getShortName());
     }
 
     public function getLinkSelf(?string $value = null): Link {
-        $url = '/' . self::getClassName() . '/show/' . $this->getId();
+        $url = '/' . $this->getModelName() . '/show/' . $this->getId();
         return new Link($value ?? (string)$this, $url);
     }
 

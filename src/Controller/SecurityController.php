@@ -22,7 +22,6 @@ class SecurityController extends PinakesController {
         return $this->render('security/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
-            'navigation' => $this->getNavigationItems()
         ]);
     }
 

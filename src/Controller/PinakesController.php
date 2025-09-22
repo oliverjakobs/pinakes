@@ -27,24 +27,22 @@ abstract class PinakesController extends AbstractController {
         $this->em = $em;
     }
 
-    public static function getModelName(): string { return ''; }
-
     public function createLink(string $caption, string $route, array $parameters = []): ?Link {
         return new Link($caption, $this->generateUrl($route, $parameters));
     }
 
     public function getActionShow(PinakesEntity $entity): Link {
-        $route = static::getModelName() . '_show';
+        $route = $entity->getModelName() . '_show';
         return $this->createLink('Show', $route, [ 'id' => $entity->getId() ]);
     }
 
     public function getActionEdit(PinakesEntity $entity): Link {
-        $route = static::getModelName() . '_form';
+        $route = $entity->getModelName() . '_form';
         return $this->createLink('Edit', $route, [ 'id' => $entity->getId() ])->setHx('GET', '.show-main');
     }
 
     public function getActionDelete(PinakesEntity $entity): Link {
-        $route = static::getModelName() . '_delete';
+        $route = $entity->getModelName() . '_delete';
         return $this->createLink('Delete', $route, [ 'id' => $entity->getId() ])->setHx('DELETE');
     }
 
@@ -63,11 +61,6 @@ abstract class PinakesController extends AbstractController {
     public function getDataFields(PinakesRepository $repository, string $fields): array {
         $result = $repository->getDataFields($fields);
         return array_filter($result, fn ($field) => isset($field['visibility']) ? $this->isGranted($field['visibility']) : true);
-    }
-
-    protected function getNavigationItems(): array {
-        $items = json_decode(file_get_contents('../data/navigation.json'), true);
-        return array_filter($items, fn ($item) => isset($item['role']) ? $this->isGranted($item['role']) : true);
     }
 
     protected function pushFilterUrl(Response $response, Request $request, array $filter): Response {
@@ -116,10 +109,9 @@ abstract class PinakesController extends AbstractController {
         $params = array_merge([
             'title' => $title,
             'filter' => $filter,
-            'navigation' => $this->getNavigationItems(),
             'data' => $repository->applyFilter($filter),
             'fields' => $this->getDataFields($repository, $fields),
-            'allow_pagination' => false,
+            'allow_pagination' => true,
             'allow_ordering' => true
         ], $params);
 
@@ -134,8 +126,7 @@ abstract class PinakesController extends AbstractController {
     public function renderShow(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show', array $params = []) {
         $defaults = [
             'entity' => $entity,
-            'fields' => $repository->getDataFields($fields),
-            'navigation' => $this->getNavigationItems()
+            'fields' => $repository->getDataFields($fields)
         ];
 
         return $this->render('show.html.twig', array_merge($defaults, $params));

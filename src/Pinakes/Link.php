@@ -3,10 +3,11 @@
 namespace App\Pinakes;
 
 class Link {
-
     public string $caption;
     public string $url;
     public bool $extern;
+
+    private array $style_classes = [];
 
     private ?string $hx_method = null;
     private ?string $hx_target = null;
@@ -28,22 +29,38 @@ class Link {
         return $this;
     }
 
+    public function addStyleClasses(...$classes): self {
+        $this->style_classes = array_merge($this->style_classes, $classes);
+        return $this;
+    }
+
     public function __toString(): string {
         return $this->getHtml();
     }
 
     public function getHtml(): string {
+        $styles = $this->style_classes;
+
+        if ($this->extern) {
+            $styles[] = 'link-extern';
+        }
+
+        $class = '';
+        if (!empty($styles)) {
+            $class = 'class="'. implode(' ', $styles) . '"';
+        }
+
         if (null !== $this->hx_method) {
             $method = strtolower($this->hx_method);
             $target = (null !== $this->hx_target) ? 'hx-target="' . $this->hx_target . '"' : '';
             return <<<HTML
-                <button hx-$method="$this->url" $target>$this->caption</button>
+                <button hx-$method="$this->url" $class $target>$this->caption</button>
             HTML;
         }
 
-        $attr = $this->extern ? 'class="link-extern" target="_blank" rel="noopener noreferrer"' : '';
+        $attr = $this->extern ? 'target="_blank" rel="noopener noreferrer"' : '';
         return <<<HTML
-            <a $attr href="$this->url">$this->caption</a>
+            <a $attr $class href="$this->url">$this->caption</a>
         HTML;
     }
 }

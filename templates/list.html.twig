@@ -19,13 +19,6 @@
       hx-trigger="keyup[key=='Enter']"
       hx-get="{{ filter_url(app.current_route, app.current_route_parameters, filter) }}"
       hx-target="[hx-table-content]">
-    {% if is_granted('ROLE_LIBRARIAN') and (actions is defined) %}
-      <div>
-        {% for link in actions %}
-          {{ link|raw }}
-        {% endfor %}
-      </div>
-    {% endif %}
   </div>
   {% include component_path | default('component/table.html.twig') %}
 </div>

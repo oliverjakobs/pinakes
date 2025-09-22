@@ -12,10 +12,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class SeriesController extends PinakesController {
 
-    public static function getModelName(): string {
-        return 'series';
-    }
-
     #[Route('/series', name: 'series', methods: ['GET'])]
     public function list(Request $request, SeriesRepository $repository): Response {
         return $this->renderListFilter($request, $repository, 'Series', params: [

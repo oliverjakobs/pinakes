@@ -9,10 +9,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AdminController extends PinakesController {
 
-    public static function getModelName(): string {
-        return 'user';
-    }
-
     #[Route('/user', name: 'user', methods: ['GET'])]
     public function list(Request $request, UserRepository $repository): Response {
         return $this->renderListFilter($request, $repository, 'Users');
@@ -37,7 +33,6 @@ class AdminController extends PinakesController {
         return $this->render('list.html.twig', [
             'title' => 'Icons',
             'filter' => $filter,
-            'navigation' => $this->getNavigationItems(),
             'data' => $icons,
             'component_path' => 'component/icons.html.twig'
         ]);

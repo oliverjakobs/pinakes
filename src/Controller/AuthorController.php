@@ -12,10 +12,6 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class AuthorController extends PinakesController {
 
-    public static function getModelName(): string {
-        return 'author';
-    }
-
     #[Route('/author', name: 'author', methods: ['GET'])]
     public function list(Request $request, AuthorRepository $repository): Response {
         return $this->renderListFilter($request, $repository, 'Authors');

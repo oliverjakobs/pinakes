@@ -47,13 +47,18 @@ class GenreRepository extends PinakesRepository {
                 'edit' => false,
                 'style_class' => 'fit-content',
                 'visibility' => User::ROLE_LIBRARIAN
-            ]
+            ],
+            'book_count' => [
+                'caption' => 'Books',
+                'data' => fn(Genre $g) => $g->books->count(),
+                'style_class' => 'align-right fit-content'
+            ],
         ];
     }
 
     public function getDataFieldsList(): array {
         return $this->composeDataFields([
-            'name', 'color', 'show'
+            'name', 'color', 'book_count', 'show'
         ]);
     }
     public function getDataFieldsShow(): array {
