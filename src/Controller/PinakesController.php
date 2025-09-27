@@ -9,8 +9,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Doctrine\ORM\Exception\MissingIdentifierField;
 
 abstract class PinakesController extends AbstractController {
 
@@ -81,15 +79,6 @@ abstract class PinakesController extends AbstractController {
         return $response;
     }
 
-    public function renderFilter(Request $request, PinakesRepository $repository, array $filter, string $fields='list'): Response {
-        $response = $this->render('component/table.html.twig', [
-            'data' => $repository->applyFilter($filter),
-            'fields' => $this->getDataFields($repository, $fields),
-            'filter' => $filter
-        ]);
-        return $this->pushFilterUrl($response, $request, $filter);
-    }
-
     /**
      * @return array<array, bool>
      */
@@ -137,6 +126,13 @@ abstract class PinakesController extends AbstractController {
             'entity' => $entity,
             'fields' => $this->getDataFields($repository, $fields),
         ]);
+    }
+
+    protected function updateFromRequest(Request $request, PinakesRepository $repository, PinakesEntity $entity) {
+        foreach ($request->request->all() as $key => $value) {
+            $repository->update($entity, $key, $value ?? null);
+        }
+        $repository->save($entity);
     }
 
     public function redirectHx(string $route, array $parameters = []): Response {

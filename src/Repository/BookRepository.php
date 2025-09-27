@@ -4,7 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Book;
 use App\Entity\Author;
+use App\Entity\Genre;
 use App\Entity\PinakesEntity;
+use App\Pinakes\Context;
 use App\Pinakes\EntityCollection;
 use function App\Pinakes\RenderCollection;
 use function App\Pinakes\RenderCollectionInline;
@@ -63,7 +65,14 @@ class BookRepository extends PinakesRepository {
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'edit_callback' => 'setAuthors()',
+                'edit_callback' => function (Book $book, $authors) {
+                    $rep = Context::getRepository(Author::class);
+                    $book->clearAuthors();
+                    foreach ($authors as $author) {
+                        if (empty($author)) continue;
+                        $book->addAuthor($rep->getOrCreate($author, false));
+                    }
+                },
                 'link' => self::LINK_DATA,
             ),
             'publisher' => array(
@@ -94,15 +103,25 @@ class BookRepository extends PinakesRepository {
                 'caption' => 'Series',
                 'data' => 'series',
                 'link' => self::LINK_DATA,
+                'edit' => false
             ),
             'volume' => array(
                 'caption' => 'Volume',
                 'data' => fn(Book $b) => $b->getSeriesVolume(),
+                'edit' => false
             ),
             'genre' => array(
                 'caption' => 'Genre',
                 'data' => fn(Book $b) => $b->getGenreTags(),
                 'edit' => 'genre',
+                'edit_callback' => function (Book $book, $genre) {
+                    $rep = Context::getRepository(Genre::class);
+                    $book->clearGenre();
+                    foreach ($genre as $name) {
+                        if (empty($name)) continue;
+                        $book->addGenre($rep->getOrCreate($name, false));
+                    }
+                },
                 'render' => fn($data) => RenderCollection($data, 'tags'),
             ),
         ];

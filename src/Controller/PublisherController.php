@@ -34,11 +34,6 @@ class PublisherController extends PinakesController {
         ]);
     }
 
-    #[Route('/publisher/show/{id}/filter', name: 'publisher_show_filter', methods: ['GET'])]
-    public function showFilter(Request $request, BookRepository $repository): Response {
-        return $this->renderFilter($request, $repository, 'list_publisher');
-    }
-
     #[Route('/publisher/delete/{id}', name: 'publisher_delete', methods: ['DELETE'])]
     public function delete(Request $request, AuthorRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);

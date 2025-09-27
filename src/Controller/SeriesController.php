@@ -47,11 +47,6 @@ class SeriesController extends PinakesController {
         ]);
     }
 
-    #[Route('/series/show/{id}/filter', name: 'series_show_filter', methods: ['GET'])]
-    public function showFilter(Request $request, SeriesVolumeRepository $repository): Response {
-        return $this->renderFilter($request, $repository, 'list');
-    }
-
     #[Route('/series/delete/{id}', name: 'series_delete', methods: ['DELETE'])]
     public function delete(Request $request, SeriesRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);

@@ -67,7 +67,12 @@ class AppExtension extends AbstractExtension {
 
     public function renderValue(array $field, PinakesEntity $entity): string {
         assert(isset($field['data']), 'No data specified');
-        $data = $entity->getValue($field['data']);
+
+        if (is_callable($field['data'])) {
+            $data = $field['data']($entity);
+        } else {
+            $data = $entity->getValue($field['data']);
+        }
 
         if (empty($data)) return '-';
         $link = $field['link'] ?? null;
@@ -99,13 +104,17 @@ class AppExtension extends AbstractExtension {
     }
 
     public function renderForm(string $name, array $field, PinakesEntity $entity): string {
+        assert(isset($field['data']), 'No data specified');
+
         $edit = $field['edit'] ?? true;
         if (!$edit) return '';
 
         if (is_string($edit)) {
             $data = $entity->getValue($edit);
+        } else if (is_callable($field['data'])) {
+            $data = $field['data']($entity);
         } else {
-            $data = $entity->getValue($field['data'] ?? null);
+            $data = $entity->getValue($field['data']);
         }
 
         if ($data instanceof PersistentCollection) {

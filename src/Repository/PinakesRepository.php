@@ -92,10 +92,22 @@ abstract class PinakesRepository extends ServiceEntityRepository {
 
     abstract public function getSearchKey(): string;
 
-    public function update(PinakesEntity $entity, array $values) {
-        foreach ($values as $name => $value) {
-            $field = $this->data_fields[$name];
-            $entity->setValue($field['edit_callback'] ?? $field['data'], $value);
+    public function update(PinakesEntity $entity, string $key, mixed $value) {
+        $field = $this->data_fields[$key];
+
+        $edit = $field['edit'] ?? true;
+        if (!$edit) return;
+
+        if (isset($field['edit_callback'])) {
+            $field['edit_callback']($entity, $value);
+        } else {
+            if (is_string($edit)) {
+                $key = $edit;
+            } else {
+                $key = $field['data'];
+            }
+
+            $entity->setValue($key, $value);
         }
         $this->save($entity);
     }

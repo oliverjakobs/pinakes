@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\Collection;
 use ReflectionClass;
+use App\Pinakes\Context;
 use App\Pinakes\Link;
 
 abstract class PinakesEntity {
@@ -21,28 +22,38 @@ abstract class PinakesEntity {
         return new Link($value ?? (string)$this, $url);
     }
 
-    public function setValue(callable|string $data, mixed $value) {
-        if (is_callable($data)) {
-            $data($this, $value);
-        } else if (method_exists($this, $data)) {
-            $this->{$data}($value);
-        } else if (property_exists($this, $data)) {
-            $this->$data = $value;
-        } else {
-            assert(false, 'Cant set ' . $data);
+    public function setValue(string $key, mixed $value) {
+        if (property_exists($this, $key)) {
+            if ($this->$key instanceof PinakesEntity) {
+                $repository = Context::getRepository($this->$key::class);
+                $value = $repository->getOrCreate($value);
+            } else if (is_int($this->$key)) {
+                $value = intval($value);
+            }
+
+            $this->$key = $value;
+            return;
         }
+
+        $setter = 'set' . str_replace('_', '', ucwords($key, '_'));
+        if (method_exists($this, $setter)) {
+            $this->{$setter}($value);
+            return;
+        }
+
+        assert(false, 'Cant set ' . $data);
     }
 
-    public function getValue(callable|string $data): mixed {
-        if (is_callable($data)) {
-            return $data($this);
+    public function getValue(string $key): mixed {
+        if (property_exists($this, $key)) {
+            return $this->$key;
         }
 
-        if (property_exists($this, $data)) {
-            return $this->$data;
+        $getter = 'get' . str_replace('_', '', ucwords($key, '_'));
+        if (method_exists($this, $getter)) {
+            return $this->{$getter}();
         }
 
-        $getter = 'get' . str_replace('_', '', ucwords($data, '_'));
-        return $this->{$getter}();
+        assert(false, 'Cant get ' . $key);
     }
 }

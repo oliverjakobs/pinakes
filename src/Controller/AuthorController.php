@@ -33,11 +33,6 @@ class AuthorController extends PinakesController {
         ]);
     }
 
-    #[Route('/author/show/{id}/filter', name: 'author_show_filter', methods: ['GET'])]
-    public function showFilter(Request $request, BookRepository $repository): Response {
-        return $this->renderFilter($request, $repository, 'list_author');
-    }
-
     #[Route('/author/delete/{id}', name: 'author_delete', methods: ['DELETE'])]
     public function delete(Request $request, AuthorRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);

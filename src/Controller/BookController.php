@@ -71,34 +71,7 @@ class BookController extends PinakesController {
         $book = $this->getEntity($request, $repository);
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $book->title = $request->request->get('title');
-
-            $author_rep = $this->em->getRepository(Author::class);
-            $book->clearAuthors();
-            $authors = $request->request->all('authors');
-            foreach ($authors as $author) {
-                if (empty($author)) continue;
-                $book->addAuthor($author_rep->getOrCreate($author, false));
-            }
-
-            $genre_rep = $this->em->getRepository(Genre::class);
-            $book->clearGenre();
-            $genre = $request->request->all('genre');
-            foreach ($genre as $name) {
-                if (empty($name)) continue;
-                $book->addGenre($genre_rep->getOrCreate($name, false));
-            }
-
-            $publisher_rep = $this->em->getRepository(Publisher::class);
-            $book->publisher = $publisher_rep->getOrCreate($request->request->get('publisher'));
-
-            $published = $request->request->get('published');
-            $book->published = !empty($published) ? intval($published) : null;
-            $first_published = $request->request->get('first_published');
-            $book->first_published = !empty($first_published) ? intval($first_published) : null;
-            $book->isbn = $request->request->get('isbn');
-
-            $repository->save($book);
+            $this->updateFromRequest($request, $repository, $book, );
             return $this->redirectToRoute('book_show', [ 'id' => $book->getId() ]);
         }
 
