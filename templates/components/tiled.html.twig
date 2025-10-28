@@ -1,0 +1,25 @@
+{% set route = app.current_route %}
+{% set params = app.current_route_parameters %}
+
+<div hx-table-content class="table-container">
+
+<div class="tiled">
+  {% set offset = (filter.page - 1) * filter.pp %}
+  {% for entity in data|slice(offset, filter.pp) %}
+    <div class="card">
+      <div class="icon">{{ icon(entity.icon)}}</div>
+      <div class="caption">{{ entity.caption }}</div>
+    </div>
+  {% else %}
+    <p>Nothing found!</p>
+  {% endfor %}
+</div>
+
+{% if allow_pagination ?? true %}
+  {% include 'elements/pagination.html.twig' with {
+    'filter': filter,
+    'max_count': data|length,
+  } only %}
+{% endif %}
+
+</div>

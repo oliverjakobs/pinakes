@@ -38,7 +38,6 @@ class TransactionRepository extends PinakesRepository {
             'timestamp' => array(
                 'caption' => 'Timestamp',
                 'data' => 'timestamp',
-                'render' => fn($data) => RenderDateTime($data),
                 'style_class' => 'align-right fit-content'
             ),
         ];

@@ -6,12 +6,8 @@ use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
 
-function RenderCurrency(float $data): string {
-    return sprintf('%.2f €', $data);
-}
-
-function RenderDateTime(\DateTime $data, string $format = 'd.m.Y'): string {
-    return $data->format($format);
+function RenderCurrency(float $data, string $currency = '€'): string {
+    return sprintf('%.2f %s', $data, $currency);
 }
 
 function RenderColored(string $element, string $content, string $color, string $class = '', string $attr = ''): string {
@@ -21,24 +17,27 @@ function RenderColored(string $element, string $content, string $color, string $
     HTML;
 }
 
-function RenderCollection(Collection|array $data, string $class = ''): string {
+function RenderCollection(Collection|array $data, int $limit = PHP_INT_MAX): string {
     if ($data instanceof Collection) $data = $data->toArray();
+
+    if (count($data) > $limit) {
+        $data = array_slice($data, 0, $limit);
+        $data[] = '&#8230;';
+    }
 
     $data = implode(PHP_EOL, array_map(fn ($e) => '<li>' . $e . '</li>', $data));
     return <<<HTML
-        <ul class="collection $class">
+        <ul class="collection">
             $data
         </ul>
     HTML;
 }
 
-function RenderCollectionInline(Collection|array $data, ?int $limit = null): string {
+function RenderCollectionInline(Collection|array $data, string $separator = ' ', int $limit = PHP_INT_MAX): string {
     if ($data instanceof Collection) $data = $data->toArray();
 
-    $separator = '; ';
-    if (null !== $limit && count($data) > $limit) {
+    if (count($data) > $limit) {
         return implode($separator, array_slice($data, 0, $limit)) . '&#8230;';
     }
-
     return implode($separator, $data);
 }

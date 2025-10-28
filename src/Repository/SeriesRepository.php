@@ -5,9 +5,10 @@ namespace App\Repository;
 use App\Entity\Author;
 use App\Entity\Series;
 use App\Entity\SeriesVolume;
-use function App\Pinakes\RenderCollectionInline;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+
+use function App\Pinakes\RenderCollectionInline;
 
 class SeriesRepository extends PinakesRepository {
 
@@ -46,7 +47,7 @@ class SeriesRepository extends PinakesRepository {
             'authors_inline' => array(
                 'caption' => 'Author(s)',
                 'data' => fn (Series $s) => $this->getEntityManager()->getRepository(Author::class)->findBySeries($s),
-                'render' => fn($data) => RenderCollectionInline($data, 5),
+                'render' => fn ($data) => RenderCollectionInline($data, '; ', 5),
                 'link' => self::LINK_DATA,
             ),
             'volume_count' => array(

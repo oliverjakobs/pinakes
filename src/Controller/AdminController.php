@@ -20,10 +20,16 @@ class AdminController extends PinakesController {
         $filter = array_merge(self::DEFAULT_FILTER, $query);
 
         $icons = glob('./icons/bootstrap/*' . ($filter['search'] ?? '') . '*.svg');
-        $icons = array_map(fn ($path) => basename($path, '.svg'), $icons);
+        $icons = array_map(function ($path) {
+            $name = basename($path, '.svg');
+            return [
+                'icon' => $name,
+                'caption' => $name
+            ];
+        }, $icons);
 
         if ($filter_only) {
-            $response = $this->render('icons.html.twig', [
+            $response = $this->render('components/tiled.html.twig', [
                 'data' => $icons,
                 'filter' => $filter
             ]);
@@ -34,7 +40,7 @@ class AdminController extends PinakesController {
             'title' => 'Icons',
             'filter' => $filter,
             'data' => $icons,
-            'component_path' => 'component/icons.html.twig'
+            'component_path' => 'components/tiled.html.twig'
         ]);
     }
 

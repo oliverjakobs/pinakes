@@ -105,7 +105,7 @@ abstract class PinakesController extends AbstractController {
         ], $params);
 
         if ($filter_only) {
-            $response = $this->render('component/table.html.twig', $params);
+            $response = $this->render('components/table.html.twig', $params);
             return $this->pushFilterUrl($response, $request, $filter);
         }
 
@@ -122,7 +122,7 @@ abstract class PinakesController extends AbstractController {
     }
 
     public function renderForm(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show'): Response {
-        return $this->render('component/form.html.twig', [
+        return $this->render('components/form.html.twig', [
             'entity' => $entity,
             'fields' => $this->getDataFields($repository, $fields),
         ]);

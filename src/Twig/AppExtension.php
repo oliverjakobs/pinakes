@@ -20,8 +20,8 @@ use Twig\TwigFilter;
 use Twig\Markup;
 
 use function App\Pinakes\RenderCollection;
-use function App\Pinakes\RenderValue;
 use function App\Pinakes\RenderCurrency;
+use function App\Pinakes\RenderDateTime;
 
 class AppExtension extends AbstractExtension {
 
@@ -66,6 +66,7 @@ class AppExtension extends AbstractExtension {
     }
 
     public function renderValue(array $field, PinakesEntity $entity): string {
+        // Step 1: Get data
         assert(isset($field['data']), 'No data specified');
 
         if (is_callable($field['data'])) {
@@ -75,32 +76,33 @@ class AppExtension extends AbstractExtension {
         }
 
         if (empty($data)) return '-';
+
+        // Step 2: Apply link
         $link = $field['link'] ?? null;
 
-        if (is_iterable($data)) {
-            if (null !== $link) {
-                assert(PinakesRepository::LINK_DATA === $link, 'Iterables can only link to data');
+        if (PinakesRepository::LINK_SELF === $link) {
+            assert(!is_iterable($data), 'Iterables can only link to data');
+            $data = $entity->getLinkSelf((string) $data);
+        } else if (PinakesRepository::LINK_DATA === $link) {
+            if (is_iterable($data)) {
                 if ($data instanceof Collection) $data = $data->toArray();
                 $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
+            } else {
+                assert($data instanceof PinakesEntity, 'Can only link to entities');
+                $data = $data->getLinkSelf((string) $data);
             }
-            if (isset($field['render'])) return $field['render']($data);
-
-            return RenderCollection($data);
+        } else {
+            assert(null === $link, 'Unkown link type');
         }
 
-        $value = isset($field['render']) ? $field['render']($data) : (string) $data;
+        // Step 3: Render data
+        $render = $field['render'] ?? null;
+        if (is_callable($render)) return $render($data);
 
-        if (PinakesRepository::LINK_SELF === $link) {
-            return $entity->getLinkSelf($value)->getHtml();
-        }
-
-        if (PinakesRepository::LINK_DATA === $link) {
-            assert($data instanceof PinakesEntity, 'Can only link to entities');
-            return $data->getLinkSelf($value)->getHtml();
-        }
-
-        assert(null === $link, 'Unkown link type');
-        return $value;
+        if (is_iterable($data)) return RenderCollection($data);
+        if ($data instanceof \DateTime) return $data->format('d.m.Y');
+        if ($data instanceof Link) return $data->getHtml();
+        return (string) $data;
     }
 
     public function renderForm(string $name, array $field, PinakesEntity $entity): string {
@@ -120,7 +122,7 @@ class AppExtension extends AbstractExtension {
         if ($data instanceof PersistentCollection) {
             $entity_name = $data->getTypeClass()->rootEntityName;
             $repository = $this->em->getRepository($entity_name);
-            return $this->twig->render('/component/form/autocomplete.html.twig', [
+            return $this->twig->render('/elements/form/autocomplete.html.twig', [
                 'name' => $name,
                 'options' => $repository->getOptions(),
                 'values' => $data,
@@ -130,7 +132,7 @@ class AppExtension extends AbstractExtension {
         if ($data instanceof EntityCollection) {
             $entity_name = $data->getTypeClass();
             $repository = $this->em->getRepository($entity_name);
-            return $this->twig->render('/component/form/autocomplete.html.twig', [
+            return $this->twig->render('/elements/form/autocomplete.html.twig', [
                 'name' => $name,
                 'options' => $repository->getOptions(),
                 'values' => $data,
@@ -139,7 +141,7 @@ class AppExtension extends AbstractExtension {
 
         if ($data instanceof PinakesEntity) {
             $repository = $this->em->getRepository($data::class);
-            return $this->twig->render('/component/form/autocomplete.html.twig', [
+            return $this->twig->render('/elements/form/autocomplete.html.twig', [
                 'name' => $name,
                 'options' => $repository->getOptions(),
                 'values' => $data,
@@ -152,7 +154,7 @@ class AppExtension extends AbstractExtension {
             $data = $data->format('Y-m-d');
         }
 
-        return $this->twig->render('/component/form/input.html.twig', [
+        return $this->twig->render('/elements/form/input.html.twig', [
             'name' => $name,
             'type' => $type,
             'value' => $data,

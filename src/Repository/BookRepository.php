@@ -8,10 +8,10 @@ use App\Entity\Genre;
 use App\Entity\PinakesEntity;
 use App\Pinakes\Context;
 use App\Pinakes\EntityCollection;
-use function App\Pinakes\RenderCollection;
-use function App\Pinakes\RenderCollectionInline;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
+
+use function App\Pinakes\RenderCollectionInline;
 
 class BookRepository extends PinakesRepository {
 
@@ -59,7 +59,7 @@ class BookRepository extends PinakesRepository {
             'authors_inline' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'render' => fn($data) => RenderCollectionInline($data),
+                'render' => fn ($data) => RenderCollectionInline($data, '; '),
                 'link' => self::LINK_DATA,
             ),
             'authors' => array(
@@ -112,7 +112,8 @@ class BookRepository extends PinakesRepository {
             ),
             'genre' => array(
                 'caption' => 'Genre',
-                'data' => fn(Book $b) => $b->getGenreTags(),
+                'data' => fn (Book $b) => $b->getGenreTags(),
+                'render' => fn ($data) => RenderCollectionInline($data),
                 'edit' => 'genre',
                 'edit_callback' => function (Book $book, $genre) {
                     $rep = Context::getRepository(Genre::class);
@@ -122,7 +123,6 @@ class BookRepository extends PinakesRepository {
                         $book->addGenre($rep->getOrCreate($name, false));
                     }
                 },
-                'render' => fn($data) => RenderCollection($data, 'tags'),
             ),
         ];
     }

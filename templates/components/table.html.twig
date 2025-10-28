@@ -46,7 +46,7 @@
 </table>
 
 {% if allow_pagination ?? true %}
-  {% include 'component/pagination.html.twig' with {
+  {% include 'elements/pagination.html.twig' with {
     'filter': filter,
     'max_count': data|length,
   } only %}

@@ -25,21 +25,9 @@ button:hover, .button:hover {
   background-color: var(--color-hover);
 }
 
-.colored {
-  background-color: attr(data-color type(<color>));
-}
-
 .collection {
   margin: 0;
   padding-left: 1em;
-}
-
-ul.tags {
-  display: flex;
-  flex-wrap: wrap;
-  list-style: none;
-  padding-left: 0px;
-  gap: .4em;
 }
 
 .tag {
@@ -47,56 +35,8 @@ ul.tags {
   padding: .04em .4em;
   border-radius: 2px;
   width: fit-content;
+  white-space: nowrap;
 }
-
-/* --------------------------| overview |--------------------------- */
-.card-container {
-  width: 80%;
-  margin-right: auto;
-  margin-left: auto;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1.6em;
-}
-
-.card {
-  width: 240px;
-  height: 120px;
-  border-radius: 8px;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transition: 0.4s ease-out;
-  text-decoration: none;
-  color: var(--color-main);
-  border: 1px solid var(--color-main);
-}
-
-.card:hover {
-  border-color: var(--color-secondary);
-}
-
-.card .icon svg {
-  margin-top: 0.8rem;
-  margin-bottom: 0.4rem;
-  height: 5rem;
-  width: 5rem;
-}
-
-.card:hover .icon svg {
-  fill: var(--color-secondary);
-}
-
-.card .title {
-  font-size: 1.4rem;
-  margin: 0px;
-}
-
-/* --------------------------| table |------------------------------ */
-
 
 
 /* --------------------------| show |----------------------------- */
