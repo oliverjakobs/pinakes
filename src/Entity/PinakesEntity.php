@@ -3,9 +3,12 @@
 namespace App\Entity;
 
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\PersistentCollection;
 use ReflectionClass;
 use App\Pinakes\Context;
-use App\Pinakes\Link;
+use App\Pinakes\EntityCollection;
+use App\Pinakes\ViewElement;
 
 abstract class PinakesEntity {
 
@@ -17,9 +20,9 @@ abstract class PinakesEntity {
         return strtolower($reflection->getShortName());
     }
 
-    public function getLinkSelf(?string $value = null): Link {
+    public function getLinkSelf(?string $value = null): ViewElement {
         $url = '/' . $this->getModelName() . '/show/' . $this->getId();
-        return new Link($value ?? (string)$this, $url);
+        return ViewElement::anchor($value ?? (string)$this, $url);
     }
 
     public function setValue(string $key, mixed $value) {
@@ -27,6 +30,10 @@ abstract class PinakesEntity {
             if ($this->$key instanceof PinakesEntity) {
                 $repository = Context::getRepository($this->$key::class);
                 $value = $repository->getOrCreate($value);
+            } else if ($this->$key instanceof PersistentCollection) {
+                $repository = Context::getRepository($this->$key->getTypeClass()->rootEntityName);
+                $entities = array_map(fn ($e) => $repository->getOrCreate($e, false), $value);
+                $value = new ArrayCollection($entities);
             } else if (is_int($this->$key)) {
                 $value = intval($value);
             }

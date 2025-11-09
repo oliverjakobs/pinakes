@@ -6,7 +6,7 @@ use App\Repository\BookRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Pinakes\Link;
+use App\Pinakes\ViewElement;
 
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 class Book extends PinakesEntity {
@@ -59,9 +59,9 @@ class Book extends PinakesEntity {
         return $this->id;
     }
 
-    public function getLinkOpenLibrary(): ?Link {
+    public function getLinkOpenLibrary(): ?ViewElement {
         if (empty($this->isbn)) return null;
-        return new Link('', 'https://openlibrary.org/isbn/' . $this->isbn, true);
+        return ViewElement::anchor('', 'https://openlibrary.org/isbn/' . $this->isbn, true);
     }
 
     public function getSeries(): ?Series {

@@ -3,8 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\GenreRepository;
-use App\Pinakes\Link;
-use function App\Pinakes\RenderColored;
+use App\Pinakes\ViewElement;
+use App\Pinakes\Renderer;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -41,18 +41,20 @@ class Genre extends PinakesEntity {
         return $this->id;
     }
 
-    public function getLinkSelf(?string $value = null): Link {
-        $url = '/book/genre/' . $this->getId();
-        return new Link($value ?? (string)$this, $url);
+    private function getUrl(): string {
+        return '/book/genre/' . $this->getId();
     }
 
-    public function getLinkShow(): Link {
+    public function getLinkSelf(?string $value = null): ViewElement {
+        return ViewElement::anchor($value ?? (string)$this, $this->getUrl());
+    }
+
+    public function getLinkShow(): ViewElement {
         return parent::getLinkSelf('Show');
     }
 
-    public function getTag(): string {
-        $link = $this->getLinkSelf();
-        return RenderColored('a', (string) $this, $this->color, 'tag', 'href="'. $link->url . '"');
+    public function getTag(): ViewElement {
+        return ViewElement::tag((string) $this, $this->color, $this->getUrl());
     }
 
     public function addBook(Book $book): static {

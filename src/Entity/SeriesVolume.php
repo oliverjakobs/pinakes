@@ -4,7 +4,7 @@ namespace App\Entity;
 
 use App\Repository\SeriesVolumeRepository;
 use Doctrine\ORM\Mapping as ORM;
-use App\Pinakes\Link;
+use App\Pinakes\ViewElement;
 
 #[ORM\Entity(repositoryClass: SeriesVolumeRepository::class)]
 class SeriesVolume extends PinakesEntity {
@@ -38,7 +38,7 @@ class SeriesVolume extends PinakesEntity {
         return $this->id;
     }
 
-    public function getLinkSelf(?string $value = null): Link {
+    public function getLinkSelf(?string $value = null): ViewElement {
         if (null === $this->book) return parent::getLinkSelf();
         return $this->book->getLinkSelf($value);
     }

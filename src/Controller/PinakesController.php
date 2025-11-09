@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Pinakes\Link;
+use App\Pinakes\ViewElement;
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,23 +26,29 @@ abstract class PinakesController extends AbstractController {
         $this->em = $em;
     }
 
-    public function createLink(string $caption, string $route, array $parameters = []): ?Link {
-        return new Link($caption, $this->generateUrl($route, $parameters));
+    public function createLink(string $caption, string $route, array $parameters = []): ViewElement {
+        $url = $this->generateUrl($route, $parameters);
+        return ViewElement::anchor($caption, $url);
     }
 
-    public function getActionShow(PinakesEntity $entity): Link {
+    public function createLinkHx(string $caption, string $method, string $target, string $route, array $parameters = []): ViewElement {
+        $url = $this->generateUrl($route, $parameters);
+        return ViewElement::hxButton($caption, $url, $method, $target);
+    }
+
+    public function getActionShow(PinakesEntity $entity): ViewElement {
         $route = $entity->getModelName() . '_show';
         return $this->createLink('Show', $route, [ 'id' => $entity->getId() ]);
     }
 
-    public function getActionEdit(PinakesEntity $entity): Link {
+    public function getActionEdit(PinakesEntity $entity): ViewElement {
         $route = $entity->getModelName() . '_form';
-        return $this->createLink('Edit', $route, [ 'id' => $entity->getId() ])->setHx('GET', '.show-main');
+        return $this->createLinkHx('Edit', 'GET', '.show-main', $route, [ 'id' => $entity->getId() ]);
     }
 
-    public function getActionDelete(PinakesEntity $entity): Link {
+    public function getActionDelete(PinakesEntity $entity): ViewElement {
         $route = $entity->getModelName() . '_delete';
-        return $this->createLink('Delete', $route, [ 'id' => $entity->getId() ])->setHx('DELETE');
+        return $this->createLinkHx('Delete', 'DELETE', '', $route, [ 'id' => $entity->getId() ]);
     }
 
     protected function getEntity(Request $request, PinakesRepository $repository): ?PinakesEntity {

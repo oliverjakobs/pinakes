@@ -38,7 +38,7 @@ class BookfundController extends PinakesController {
             return $this->redirectHx('bookfund');
         }
 
-        return $this->render('component/modal.html.twig', [
+        return $this->render('components/modal.html.twig', [
             'type' => $type
         ]);
     }
@@ -56,7 +56,6 @@ class BookfundController extends PinakesController {
             'actions' => [
                 $this->getActionEdit($transaction),
                 $this->getActionDelete($transaction),
-                // TODO ActionAddVolume
             ],
         ]);
     }

@@ -7,11 +7,12 @@ use App\Entity\Author;
 use App\Entity\Genre;
 use App\Entity\PinakesEntity;
 use App\Pinakes\Context;
+use App\Pinakes\Renderer;
 use App\Pinakes\EntityCollection;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\QueryBuilder;
 
-use function App\Pinakes\RenderCollectionInline;
 
 class BookRepository extends PinakesRepository {
 
@@ -56,23 +57,15 @@ class BookRepository extends PinakesRepository {
                 'data' => 'title',
                 'link' => self::LINK_SELF
             ),
-            'authors_inline' => array(
-                'caption' => 'Author(s)',
-                'data' => 'authors',
-                'render' => fn ($data) => RenderCollectionInline($data, '; '),
-                'link' => self::LINK_DATA,
-            ),
             'authors' => array(
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'edit_callback' => function (Book $book, $authors) {
-                    $rep = Context::getRepository(Author::class);
-                    $book->clearAuthors();
-                    foreach ($authors as $author) {
-                        if (empty($author)) continue;
-                        $book->addAuthor($rep->getOrCreate($author, false));
-                    }
-                },
+                'link' => self::LINK_DATA,
+            ),
+            'authors_inline' => array(
+                'caption' => 'Author(s)',
+                'data' => 'authors',
+                'render' => fn ($data) => Renderer::RenderCollectionInline($data, '; '),
                 'link' => self::LINK_DATA,
             ),
             'publisher' => array(
@@ -113,16 +106,8 @@ class BookRepository extends PinakesRepository {
             'genre' => array(
                 'caption' => 'Genre',
                 'data' => fn (Book $b) => $b->getGenreTags(),
-                'render' => fn ($data) => RenderCollectionInline($data),
-                'edit' => 'genre',
-                'edit_callback' => function (Book $book, $genre) {
-                    $rep = Context::getRepository(Genre::class);
-                    $book->clearGenre();
-                    foreach ($genre as $name) {
-                        if (empty($name)) continue;
-                        $book->addGenre($rep->getOrCreate($name, false));
-                    }
-                },
+                'render' => fn ($data) => Renderer::RenderCollectionInline($data),
+                'edit' => 'genre'
             ),
         ];
     }

@@ -19,9 +19,9 @@ class BookController extends PinakesController {
     public function list(Request $request, BookRepository $repository): Response {
         return $this->renderListFilter($request, $repository, 'Books', params: [
             'actions' => [
-                $this->createLink('New Book', 'book_create')->setHx('POST'),
+                $this->createLinkHx('New Book', 'POST', '', 'book_create'),
                 // TODO add from openlibrary isbn
-                $this->createLink('Import Books', 'book_import')->addStyleClasses('button'),
+                $this->createLink('Import Books', 'book_import')->addClasses(['button']),
             ]
         ]);
     }

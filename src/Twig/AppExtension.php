@@ -2,10 +2,11 @@
 
 namespace App\Twig;
 
-use App\Pinakes\Link;
+use App\Pinakes\ViewElement;
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 use App\Pinakes\EntityCollection;
+use App\Pinakes\Renderer;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\PersistentCollection;
@@ -18,10 +19,6 @@ use Twig\Environment;
 use Twig\TwigFunction;
 use Twig\TwigFilter;
 use Twig\Markup;
-
-use function App\Pinakes\RenderCollection;
-use function App\Pinakes\RenderCurrency;
-use function App\Pinakes\RenderDateTime;
 
 class AppExtension extends AbstractExtension {
 
@@ -45,7 +42,7 @@ class AppExtension extends AbstractExtension {
 
     public function getFilters(): array {
         return [
-            new TwigFilter('fmt_currency', fn(float $value) => RenderCurrency($value)),
+            new TwigFilter('fmt_currency', fn(float $value) => Renderer::RenderCurrency($value)),
         ];
     }
 
@@ -55,12 +52,18 @@ class AppExtension extends AbstractExtension {
     }
 
     public function getNavigationItems(): array {
-        $items = json_decode(file_get_contents('../data/navigation.json'), true);
+        // TODO improve (no __DIR__)
+        $filename = __DIR__ . '/../../data/navigation.json';
+        assert(file_exists($filename));
+        $content = file_get_contents($filename);
+        if (!$content) return [];
+        $items = json_decode($content, true);
         return array_filter($items, fn ($item) => isset($item['role']) ? $this->security->isGranted($item['role']) : true);
     }
 
     public function getIcon(string $name): ?Markup {
-        $filename = 'icons/bootstrap/' . $name . '.svg';
+        // TODO improve (no __DIR__)
+        $filename = __DIR__ . '/../../public/icons/bootstrap/' . $name . '.svg';
         if (!file_exists($filename)) return null;
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
@@ -99,9 +102,9 @@ class AppExtension extends AbstractExtension {
         $render = $field['render'] ?? null;
         if (is_callable($render)) return $render($data);
 
-        if (is_iterable($data)) return RenderCollection($data);
+        if (is_iterable($data)) return Renderer::RenderCollection($data);
         if ($data instanceof \DateTime) return $data->format('d.m.Y');
-        if ($data instanceof Link) return $data->getHtml();
+        if ($data instanceof ViewElement) return $data->getHtml();
         return (string) $data;
     }
 

@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Genre;
 use App\Entity\User;
-use function App\Pinakes\RenderColored;
+use App\Pinakes\ViewElement;
 use Doctrine\Persistence\ManagerRegistry;
 
 class GenreRepository extends PinakesRepository {
@@ -39,7 +39,7 @@ class GenreRepository extends PinakesRepository {
             'color' => [
                 'caption' => 'Color',
                 'data' => 'color',
-                'render' => fn($data) => RenderColored('div', $data, $data, 'tag'),
+                'render' => fn($data) => ViewElement::tag($data, $data)->addClasses(['monospace'])->getHtml(),
                 'input_type' => 'color',
             ],
             'show' => [

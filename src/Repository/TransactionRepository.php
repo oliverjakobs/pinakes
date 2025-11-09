@@ -3,8 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Transaction;
-use function App\Pinakes\RenderCurrency;
-use function App\Pinakes\RenderDateTime;
+use App\Pinakes\Renderer;
 use Doctrine\Persistence\ManagerRegistry;
 
 class TransactionRepository extends PinakesRepository {
@@ -32,7 +31,7 @@ class TransactionRepository extends PinakesRepository {
             'amount' => array(
                 'caption' => 'Amount',
                 'data' => 'amount',
-                'render' => fn($data) => RenderCurrency($data),
+                'render' => fn($data) => Renderer::RenderCurrency($data),
                 'style_class' => 'align-right fit-content'
             ),
             'timestamp' => array(

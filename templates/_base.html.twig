@@ -34,19 +34,19 @@
                 {% endfor %}
 
                 <input type="checkbox" {% if active_child %}disabled checked{% endif %}>
-                <label>{{ icon(item.icon)}} {{ item.caption }}</label>
+                <label>{{ icon(item.icon) }} {{ item.caption }}</label>
                 <ul class="subnav">
                 {% for child in item.items %}
                   <li>
                     <a href="{{ path(child.route) }}" {% if child.route == app.current_route %}class="active"{% endif %}>
-                      {{ icon(child.icon)}} {{ child.caption }}
+                      {{ icon(child.icon) }} {{ child.caption }}
                     </a>
                   </li>
                 {% endfor %}
                 <ul>
               {% else %}
                 <a href="{{ path(item.route) }}" {% if item.route == app.current_route %}class="active"{% endif %}>
-                  {{ icon(item.icon)}} {{ item.caption }}
+                  {{ icon(item.icon) }} {{ item.caption }}
                 </a>
               {% endif %}
             </li>
