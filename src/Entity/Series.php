@@ -6,6 +6,7 @@ use App\Repository\SeriesRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Pinakes\ViewElement;
 
 #[ORM\Entity(repositoryClass: SeriesRepository::class)]
 class Series extends PinakesEntity {
@@ -18,9 +19,9 @@ class Series extends PinakesEntity {
     public ?string $name = null;
 
     /**
-     * @var Collection<int, SeriesVolume>
+     * @var Collection<int, Book>
      */
-    #[ORM\OneToMany(targetEntity: SeriesVolume::class, mappedBy: 'series', cascade:['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: Book::class, mappedBy: 'series')]
     public Collection $volumes;
 
     public function __construct() {
@@ -35,24 +36,11 @@ class Series extends PinakesEntity {
         return $this->id;
     }
 
-    public function addVolume(SeriesVolume $volume): static {
-        // TODO prevent duplicates
-        $this->volumes->add($volume);
-        $volume->series = $this;
-        return $this;
+    public function getLinkSelf(?string $value = null): ViewElement {
+        return ViewElement::anchor($value ?? (string)$this, '/book/series/' . $this->getId());
     }
 
-    /**
-     * @var array<Author>
-     */
-    public function getAuthors(): array {
-        $books = $this->volumes->map(fn($v) => $v->book);
-        return $books->toArray();
-
-        $result = [];
-        foreach ($books as $book) {
-            $result = array_merge($result, $book->authors->toArray());
-        }
-        return array_unique($result);
+    public function getLinkShow(): ViewElement {
+        return parent::getLinkSelf('Show');
     }
 }

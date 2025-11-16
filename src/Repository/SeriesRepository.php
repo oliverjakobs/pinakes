@@ -20,6 +20,10 @@ class SeriesRepository extends PinakesRepository {
         return 'name';
     }
 
+    public function getDefaultOrder(): array {
+        return [ 'name' => 'ASC' ];
+    }
+
     public function getOrCreate(string $name, bool $flush = true): Series {
         $series = $this->findOneBy(['name' => $name]);
         if (null === $series) {
@@ -53,6 +57,7 @@ class SeriesRepository extends PinakesRepository {
             'volume_count' => array(
                 'caption' => 'Volumes',
                 'data' => fn(Series $s) => $s->volumes->count(),
+                'style_class' => 'align-right'
             ),
         ];
     }

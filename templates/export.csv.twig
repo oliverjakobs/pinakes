@@ -1,0 +1,9 @@
+{% for key, field in fields %}
+{{- field.caption -}}{% if not loop.last %},{% endif %}
+{% endfor %}
+{% for entity in data %}
+
+{% for field in fields %}
+"{{- render_value(field, entity, true) -}}"{% if not loop.last %},{% endif %}
+{% endfor %}
+{% endfor %}

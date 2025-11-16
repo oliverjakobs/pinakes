@@ -2,31 +2,35 @@
 
 namespace App\Repository;
 
-use App\Entity\Genre;
+use App\Entity\Tag;
 use App\Entity\User;
 use App\Pinakes\ViewElement;
 use Doctrine\Persistence\ManagerRegistry;
 
-class GenreRepository extends PinakesRepository {
+class TagRepository extends PinakesRepository {
 
     public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Genre::class);
+        parent::__construct($registry, Tag::class);
     }
 
     public function getSearchKey(): string{
         return 'name';
     }
 
-    public function getOrCreate(string $name, bool $flush = true): Genre {
-        $genre = $this->findOneBy(['name' => $name]);
-        if (null === $genre) {
-            $genre = new Genre();
-            $genre->name = $name;
-            $genre->color = '#ffffff';
-            $this->save($genre, $flush);
+    public function getDefaultOrder(): array {
+        return [ 'name' => 'ASC' ];
+    }
+
+    public function getOrCreate(string $name, bool $flush = true): Tag {
+        $tag = $this->findOneBy(['name' => $name]);
+        if (null === $tag) {
+            $tag = new Tag();
+            $tag->name = $name;
+            $tag->color = '#ffffff';
+            $this->save($tag, $flush);
         }
 
-        return $genre;
+        return $tag;
     }
 
     protected function defineDataFields(): array {
@@ -42,15 +46,9 @@ class GenreRepository extends PinakesRepository {
                 'render' => fn($data) => ViewElement::tag($data, $data)->addClasses(['monospace'])->getHtml(),
                 'input_type' => 'color',
             ],
-            'show' => [
-                'data' => fn(Genre $g) => $g->getLinkShow(),
-                'edit' => false,
-                'style_class' => 'fit-content',
-                'visibility' => User::ROLE_LIBRARIAN
-            ],
             'book_count' => [
                 'caption' => 'Books',
-                'data' => fn(Genre $g) => $g->books->count(),
+                'data' => fn(Tag $t) => $t->books->count(),
                 'style_class' => 'align-right fit-content'
             ],
         ];
@@ -58,7 +56,7 @@ class GenreRepository extends PinakesRepository {
 
     public function getDataFieldsList(): array {
         return $this->composeDataFields([
-            'name', 'color', 'book_count', 'show'
+            'name', 'color', 'book_count'
         ]);
     }
     public function getDataFieldsShow(): array {

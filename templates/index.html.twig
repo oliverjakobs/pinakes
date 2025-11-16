@@ -1,8 +1,17 @@
 {% extends "_base.html.twig" %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href={{ asset('styles/bookfund.css') }}>
+{% endblock %}
+
 {% block content %}
 
 <div class="container">
+
+  <h1>Bookfund</h1>
+  {% include 'elements/balance.html.twig' with {
+    'allow_edit': false,
+  } %}
 
   <h1>Newest Books</h1>
   {% include 'components/table.html.twig' with {

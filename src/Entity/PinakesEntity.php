@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\PersistentCollection;
 use ReflectionClass;
+use ReflectionProperty;
 use App\Pinakes\Context;
 use App\Pinakes\EntityCollection;
 use App\Pinakes\ViewElement;
@@ -27,14 +28,20 @@ abstract class PinakesEntity {
 
     public function setValue(string $key, mixed $value) {
         if (property_exists($this, $key)) {
-            if ($this->$key instanceof PinakesEntity) {
-                $repository = Context::getRepository($this->$key::class);
-                $value = $repository->getOrCreate($value);
-            } else if ($this->$key instanceof PersistentCollection) {
-                $repository = Context::getRepository($this->$key->getTypeClass()->rootEntityName);
-                $entities = array_map(fn ($e) => $repository->getOrCreate($e, false), $value);
-                $value = new ArrayCollection($entities);
-            } else if (is_int($this->$key)) {
+            $property_type = (new ReflectionProperty($this, $key))->getType();
+
+            if (!$property_type->isBuiltin()) {
+                $class_name = $property_type->getName();
+                $reflection = new ReflectionClass($class_name);
+
+                if ($reflection->isSubclassOf(PinakesEntity::class)) {
+                    $value = empty($value) ? null : Context::getRepository($class_name)->getOrCreate($value);
+                } else if ($this->$key instanceof PersistentCollection) {
+                    $repository = Context::getRepository($this->$key->getTypeClass()->rootEntityName);
+                    $entities = array_map(fn ($e) => $repository->getOrCreate($e, false), $value);
+                    $value = new ArrayCollection($entities);
+                }
+            } else if ('int' === $property_type->getName()) {
                 $value = intval($value);
             }
 

@@ -31,7 +31,7 @@
     transform: translateX(0.2em);
 }
 
-.control {
+.balance-card {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -39,18 +39,19 @@
     border-radius: 4px;
     padding: 1.2rem 1.4rem;
     margin-bottom: 2rem;
+    width: fit-content;
 }
 
-.control>h1 {
+.balance-card > h1 {
     margin: 0;
     font-weight: normal;
 }
 
-.control .button {
+.balance-card .button {
     margin: 0 0.2rem;
 }
 
-.balance {
+.balance-card .balance {
     padding: 0.8rem 0;
     font-size: 2rem;
 }

@@ -16,6 +16,10 @@ class TransactionRepository extends PinakesRepository {
         return 'reason';
     }
 
+    public function getDefaultOrder(): array {
+        return [ 'timestamp' => 'DESC' ];
+    }
+
     public function getBalance(): float {
         $qb = $this->createQueryBuilder('t')->select('SUM(t.amount) as balance');
         return $qb->getQuery()->getSingleResult()['balance'];
@@ -23,34 +27,30 @@ class TransactionRepository extends PinakesRepository {
 
     protected function defineDataFields(): array {
         return [
-            'reason' => array(
+            'reason' => [
                 'caption' => 'Reason',
                 'data' => 'reason',
                 'link' => self::LINK_SELF
-            ),
-            'amount' => array(
+            ],
+            'amount' => [
                 'caption' => 'Amount',
                 'data' => 'amount',
                 'render' => fn($data) => Renderer::RenderCurrency($data),
                 'style_class' => 'align-right fit-content'
-            ),
-            'timestamp' => array(
+            ],
+            'timestamp' => [
                 'caption' => 'Timestamp',
                 'data' => 'timestamp',
                 'style_class' => 'align-right fit-content'
-            ),
+            ],
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields(array(
-            'timestamp', 'reason', 'amount'
-        ));
+        return $this->composeDataFields([ 'timestamp', 'reason', 'amount' ]);
     }
 
     public function getDataFieldsShow(): array {
-        return $this->composeDataFields(array(
-            'reason', 'amount', 'timestamp'
-        ));
+        return $this->composeDataFields([ 'reason', 'amount', 'timestamp' ]);
     }
 }

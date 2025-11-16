@@ -6,6 +6,7 @@ use App\Repository\PublisherRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Pinakes\ViewElement;
 
 #[ORM\Entity(repositoryClass: PublisherRepository::class)]
 class Publisher extends PinakesEntity {
@@ -35,6 +36,13 @@ class Publisher extends PinakesEntity {
         return $this->id;
     }
 
+    public function getLinkSelf(?string $value = null): ViewElement {
+        return ViewElement::anchor($value ?? (string)$this, '/book/publisher/' . $this->getId());
+    }
+
+    public function getLinkShow(): ViewElement {
+        return parent::getLinkSelf('Show');
+    }
 
     public function addBook(Book $book): static {
         if (!$this->books->contains($book)) {

@@ -56,6 +56,6 @@ class PublisherController extends PinakesController {
             return $this->redirectToRoute('publisher_show', [ 'id' => $publisher->getId() ]);
         }
 
-        return $this->renderForm($repository, $author);
+        return $this->renderForm($repository, $publisher);
     }
 }

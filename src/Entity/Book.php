@@ -36,19 +36,25 @@ class Book extends PinakesEntity {
     #[ORM\Column(length: 13, nullable: true)]
     public ?string $isbn = null;
 
-    #[ORM\OneToOne(mappedBy: 'book')]
-    public ?SeriesVolume $volume = null;
+    #[ORM\ManyToOne(targetEntity: Series::class, inversedBy: 'volumes')]
+    public ?Series $series = null;
+
+    #[ORM\Column(nullable: true)]
+    public ?int $series_volume = null;
+
+    #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
+    public ?\DateTime $created_at = null;
 
     /**
-     * @var Collection<int, Genre>
+     * @var Collection<int, Tag>
      */
-    #[ORM\ManyToMany(targetEntity: Genre::class, inversedBy: 'books')]
-    public Collection $genre;
+    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'books')]
+    public Collection $tags;
 
     public function __construct() {
         $this->authors = new ArrayCollection();
         $this->series_volumes = new ArrayCollection();
-        $this->genre = new ArrayCollection();
+        $this->tags = new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -72,8 +78,8 @@ class Book extends PinakesEntity {
         return $this->volume?->volume;
     }
 
-    public function getGenreTags(): array {
-        return $this->genre->map(fn ($genre) => $genre->getTag())->toArray();
+    public function getTags(): array {
+        return $this->tags->map(fn ($tag) => $tag->getTag())->toArray();
     }
 
     public function clearAuthors(): void {
@@ -98,29 +104,6 @@ class Book extends PinakesEntity {
     public function removeAuthor(Author $author): static {
         if ($this->authors->removeElement($author)) {
             $author->removeBook($this);
-        }
-
-        return $this;
-    }
-
-    public function clearGenre(): void {
-        foreach ($this->genre as $genre) {
-            $this->removeGenre($genre);
-        }
-    }
-
-    public function addGenre(Genre $genre): static {
-        if (!$this->genre->contains($genre)) {
-            $this->genre->add($genre);
-            $genre->addBook($this);
-        }
-
-        return $this;
-    }
-
-    public function removeGenre(Genre $genre): static {
-        if ($this->genre->removeElement($genre)) {
-            $genre->removeBook($this);
         }
 
         return $this;

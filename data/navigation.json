@@ -5,9 +5,9 @@
         "caption": "Books"
     },
     {
-        "route": "genre",
+        "route": "tag",
         "icon": "hash",
-        "caption": "Genre"
+        "caption": "Tags"
     },
     {
         "route": "author",

@@ -58,20 +58,29 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if ($flush) $em->flush();
     }
 
-    public function findAll(?array $orderBy = null, ?int $limit = null, ?int $offset = null): array {
-        return $this->findBy([], $orderBy, $limit, $offset);
+    public function getDefaultOrder(): array {
+        return [];
+    }
+
+    public function findAll(?array $order_by = null, ?int $limit = null, ?int $offset = null): array {
+        return $this->findBy([], $order_by ?? $this->getDefaultOrder(), $limit, $offset);
     }
 
     protected function getQueryBuilder(array $filter): QueryBuilder {
         $qb = $this->createQueryBuilder('e');
 
-        if (!empty($filter['search'])) {
+        $search = $filter['search'] ?? [];
+        if (!empty($search)) {
             $qb->where($qb->expr()->like('e.' . $this->getSearchKey(), ':search'));
-            $qb->setParameter('search', '%' . $filter['search'] . '%');
+            $qb->setParameter('search', '%' . $search . '%');
         }
 
         if (isset($filter['order_by'])) {
             $qb->orderBy('e.' . $filter['order_by'], $filter['order_dir'] ?? 'asc');
+        } else {
+            foreach ($this->getDefaultOrder() as $by => $dir) {
+                $qb->addOrderBy('e.' . $by, $dir);
+            }
         }
 
         return $qb;
@@ -98,8 +107,9 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         $edit = $field['edit'] ?? true;
         if (!$edit) return;
 
-        if (isset($field['edit_callback'])) {
-            $field['edit_callback']($entity, $value);
+        $callback = $field['edit_callback'] ?? null;
+        if (is_callable($callback)) {
+            $callback($entity, $value);
         } else {
             if (is_string($edit)) {
                 $key = $edit;

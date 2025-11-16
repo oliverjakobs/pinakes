@@ -44,6 +44,14 @@ class Author extends PinakesEntity {
         return $this->id;
     }
 
+    public function getLinkSelf(?string $value = null): ViewElement {
+        return ViewElement::anchor($value ?? (string)$this, '/book/author/' . $this->getId());
+    }
+
+    public function getLinkShow(): ViewElement {
+        return parent::getLinkSelf('Show');
+    }
+
     public function getLinkOpenLibrary(): ?ViewElement {
         if (null === $this->openlibrary) return null;
         return ViewElement::anchor($this->openlibrary, 'https://openlibrary.org/authors/' . $this->openlibrary, true);

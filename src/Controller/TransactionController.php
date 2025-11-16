@@ -9,39 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class BookfundController extends PinakesController {
-
-    #[Route('/bookfund', name: 'bookfund', methods: ['GET'])]
-    public function bookfund(TransactionRepository $repository): Response {
-        return $this->render('bookfund.html.twig', [
-            'transactions' => $repository->findAll(['timestamp' => 'desc'], 6),
-            'balance' => $repository->getBalance()
-        ]);
-    }
-
-    #[Route('/bookfund/modal/{type}', name: 'bookfund_modal', methods: ['GET', 'POST'])]
-    public function modal(Request $request, string $type, TransactionRepository $repository): Response {
-
-        if (Request::METHOD_POST === $request->getMethod()) {
-            $amount = floatval($request->request->get('amount'));
-            if ($type === 'withdrawal') $amount *= -1.0;
-
-            $reason = $request->request->get('reason');
-
-            $transaction = new Transaction();
-            $transaction->amount = $amount;
-            $transaction->reason = $reason;
-            $transaction->timestamp = new \DateTime();
-
-            $repository->save($transaction);
-
-            return $this->redirectHx('bookfund');
-        }
-
-        return $this->render('components/modal.html.twig', [
-            'type' => $type
-        ]);
-    }
+class TransactionController extends PinakesController {
 
     #[Route('/transaction', name: 'transaction', methods: ['GET'])]
     public function list(Request $request, TransactionRepository $repository): Response {

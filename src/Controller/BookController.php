@@ -3,15 +3,20 @@
 namespace App\Controller;
 
 use App\Repository\BookRepository;
-use App\Repository\GenreRepository;
+use App\Repository\TagRepository;
+use App\Repository\AuthorRepository;
+use App\Repository\SeriesRepository;
+use App\Repository\PublisherRepository;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\Publisher;
-use App\Entity\Genre;
+use App\Entity\Tag;
+use App\Entity\Series;
 use App\Entity\User;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 
 class BookController extends PinakesController {
 
@@ -22,22 +27,67 @@ class BookController extends PinakesController {
                 $this->createLinkHx('New Book', 'POST', '', 'book_create'),
                 // TODO add from openlibrary isbn
                 $this->createLink('Import Books', 'book_import')->addClasses(['button']),
+                $this->createLink('Export Books', 'book_export')->addClasses(['button']),
             ]
         ]);
     }
 
-    #[Route('/book/genre/{id}', name: 'book_genre', methods: ['GET'])]
-    public function listGenre(Request $request, BookRepository $repository, GenreRepository $genre_rep): Response {
-        $genre = $this->getEntity($request, $genre_rep);
-        return $this->renderListFilter($request, $repository, 'Genre: ' . (string) $genre, filter: [
-            'genre' => $genre->getId()
-        ]);
+    #[Route('/book/tag/{id}', name: 'book_tag', methods: ['GET'])]
+    public function listTag(Request $request, BookRepository $repository, TagRepository $tag_rep): Response {
+        $tag = $this->getEntity($request, $tag_rep);
+        return $this->renderListFilter($request, $repository, 'Tag: ' . (string) $tag,
+            params: [ 'actions' => [
+                $tag->getLinkShow()->addClasses(['button'])
+            ]],
+            filter: [ 'tag' => $tag->getId() ]
+        );
+    }
+
+    #[Route('/book/author/{id}', name: 'book_author', methods: ['GET'])]
+    public function listAuthor(Request $request, BookRepository $repository, AuthorRepository $author_rep): Response {
+        $author = $this->getEntity($request, $author_rep);
+        return $this->renderListFilter($request, $repository, 'Author: ' . (string) $author,
+            fields: 'list_author',
+            params: [ 'actions' => [
+                $author->getLinkShow()->addClasses(['button'])
+            ]],
+            filter: [ 'author' => $author->getId() ]
+        );
+    }
+
+    #[Route('/book/series/{id}', name: 'book_series', methods: ['GET'])]
+    public function listSeries(Request $request, BookRepository $repository, SeriesRepository $series_rep): Response {
+        $series = $this->getEntity($request, $series_rep);
+        return $this->renderListFilter($request, $repository, 'Series: ' . (string) $series,
+            fields: 'list_series',
+            params: [ 'actions' => [
+                $series->getLinkShow()->addClasses(['button']),
+                $this->createLinkHx('New Book', 'POST', '', 'book_create', [ 'series' => $series->getId() ]),
+            ]],
+            filter: [ 'series' => $series->getId() ]
+        );
+    }
+
+    #[Route('/book/publisher/{id}', name: 'book_publisher', methods: ['GET'])]
+    public function listPublisher(Request $request, BookRepository $repository, PublisherRepository $publisher_rep): Response {
+        $publisher = $this->getEntity($request, $publisher_rep);
+        return $this->renderListFilter($request, $repository, 'Publisher: ' . (string) $publisher,
+            params: [ 'actions' => [
+                $publisher->getLinkShow()->addClasses(['button'])
+            ]],
+            filter: [ 'publisher' => $publisher->getId() ]
+        );
     }
 
     #[Route('/book/create', name: 'book_create', methods: ['POST'])]
-    public function create(Request $request, BookRepository $repository): Response {
+    public function create(Request $request, BookRepository $repository, #[MapQueryParameter] ?int $series = null): Response {
         $book = new Book();
         $book->title = 'New Book';
+        $book->created_at = new \DateTime();
+
+        if (null !== $series) {
+            $book->series = $this->em->getRepository(Series::class)->find($series);
+        }
 
         $repository->save($book);
         return $this->redirectHx('book_show', [ 'id' => $book->getId() ]);
@@ -71,7 +121,7 @@ class BookController extends PinakesController {
         $book = $this->getEntity($request, $repository);
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $this->updateFromRequest($request, $repository, $book, );
+            $this->updateFromRequest($request, $repository, $book);
             return $this->redirectToRoute('book_show', [ 'id' => $book->getId() ]);
         }
 
@@ -81,5 +131,16 @@ class BookController extends PinakesController {
     #[Route('/book/import', name: 'book_import', methods: ['GET'])]
     public function import(Request $request, BookRepository $repository): Response {
         return new Response();
+    }
+
+    #[Route('/book/export', name: 'book_export', methods: ['GET'])]
+    public function export(Request $request, BookRepository $repository): Response {
+        $response = $this->render('export.csv.twig', [
+            'data' => $repository->findAll(),
+            'fields' => $this->getDataFields($repository, 'export'),
+        ]);
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="export.csv"');
+        return $response;
     }
 }

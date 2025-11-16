@@ -137,7 +137,10 @@ abstract class PinakesController extends AbstractController {
 
     protected function updateFromRequest(Request $request, PinakesRepository $repository, PinakesEntity $entity) {
         foreach ($request->request->all() as $key => $value) {
-            $repository->update($entity, $key, $value ?? null);
+            if (is_array($value)) $value = array_filter($value, fn($v) => !empty($v));
+            //if (empty($value)) $value = null;
+
+            $repository->update($entity, $key, $value);
         }
         $repository->save($entity);
     }

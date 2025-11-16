@@ -14,16 +14,8 @@
 
 {% block content %}
 <div class="bookfund-container">
-    <div class="control">
-        <h2>Balance:</h2>
-        <div class="balance">
-            {{ balance | fmt_currency }}
-        </div>
-        <div>
-            <button class="button deposit" hx-get="{{ path('bookfund_modal', { type: 'deposit' }) }}" hx-target="body" hx-swap="beforeend">+</button>
-            <button class="button withdrawal" hx-get="{{ path('bookfund_modal', { type: 'withdrawal' }) }}" hx-target="body" hx-swap="beforeend">-</button>
-        </div>
-    </div>
+    {% include 'elements/balance.html.twig' with { 'allow_edit': true } %}
+
     <ul class="transactions">
         {% for transaction in transactions %}
             <li class="{% if transaction.amount < 0.0 %}withdrawal{% else %}deposit{% endif %}">

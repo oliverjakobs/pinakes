@@ -1,0 +1,13 @@
+
+<div class="balance-card">
+    <h2>Balance</h2>
+    <div class="balance">
+        {{ balance | fmt_currency }}
+    </div>
+    {% if allow_edit %}
+    <div>
+        <button class="button deposit" hx-get="{{ path('bookfund_modal', { type: 'deposit' }) }}" hx-target="body" hx-swap="beforeend">+</button>
+        <button class="button withdrawal" hx-get="{{ path('bookfund_modal', { type: 'withdrawal' }) }}" hx-target="body" hx-swap="beforeend">-</button>
+    </div>
+    {% endif %}
+</div>

@@ -11,6 +11,14 @@ class PublisherRepository extends PinakesRepository {
         parent::__construct($registry, Publisher::class);
     }
 
+    public function getSearchKey(): string{
+        return 'name';
+    }
+
+    public function getDefaultOrder(): array {
+        return [ 'name' => 'ASC' ];
+    }
+
     public function getOrCreate(string $name, bool $flush = true): Publisher {
         $publisher = $this->findOneBy(['name' => $name]);
         if (null === $publisher) {
@@ -20,10 +28,6 @@ class PublisherRepository extends PinakesRepository {
         }
 
         return $publisher;
-    }
-
-    public function getSearchKey(): string{
-        return 'name';
     }
 
     protected function defineDataFields(): array {

@@ -16,7 +16,7 @@ class SeriesController extends PinakesController {
     public function list(Request $request, SeriesRepository $repository): Response {
         return $this->renderListFilter($request, $repository, 'Series', params: [
             'actions' => [
-                $this->createLink('New Series', 'POST', '', 'series_create'),
+                $this->createLinkHx('New Series', 'POST', '', 'series_create'),
             ]
         ]);
     }

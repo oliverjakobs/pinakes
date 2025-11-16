@@ -18,6 +18,10 @@ class AuthorRepository extends PinakesRepository {
         return 'name';
     }
 
+    public function getDefaultOrder(): array {
+        return [ 'name' => 'ASC' ];
+    }
+
     public function getOrCreate(string $name, bool $flush = true): Author {
         $author = $this->findOneBy(['name' => $name]);
         if (null === $author) {
@@ -30,11 +34,11 @@ class AuthorRepository extends PinakesRepository {
     }
 
     public function findBySeries(Series $series): EntityCollection {
-        $books = $series->volumes->map(fn($v) => $v->book);
+        if (0 === $series->volumes->count()) return new EntityCollection(Author::class, []);
 
-        $qb = $this->createQueryBuilder('a');
-        foreach ($books as $idx => $book) {
-            $qb->orWhere('?' . $idx . ' MEMBER OF a.books');
+        $qb = $this->getQueryBuilder([]);
+        foreach ($series->volumes as $idx => $book) {
+            $qb->orWhere('?' . $idx . ' MEMBER OF e.books');
             $qb->setParameter($idx, $book);
         }
         return new EntityCollection(Author::class, $qb->getQuery()->getResult());

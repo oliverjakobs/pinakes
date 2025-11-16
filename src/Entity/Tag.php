@@ -2,15 +2,15 @@
 
 namespace App\Entity;
 
-use App\Repository\GenreRepository;
+use App\Repository\TagRepository;
 use App\Pinakes\ViewElement;
 use App\Pinakes\Renderer;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: GenreRepository::class)]
-class Genre extends PinakesEntity {
+#[ORM\Entity(repositoryClass: TagRepository::class)]
+class Tag extends PinakesEntity {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -26,7 +26,7 @@ class Genre extends PinakesEntity {
     /**
      * @var Collection<int, Book>
      */
-    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'genre')]
+    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'tags')]
     public Collection $books;
 
     public function __construct() {
@@ -34,7 +34,7 @@ class Genre extends PinakesEntity {
     }
 
     public function __toString(): string {
-        return $this->name ?? 'Unknown genre';
+        return $this->name ?? 'Unknown tag';
     }
 
     public function getId(): ?int {
@@ -42,7 +42,7 @@ class Genre extends PinakesEntity {
     }
 
     private function getUrl(): string {
-        return '/book/genre/' . $this->getId();
+        return '/book/tag/' . $this->getId();
     }
 
     public function getLinkSelf(?string $value = null): ViewElement {
@@ -55,20 +55,5 @@ class Genre extends PinakesEntity {
 
     public function getTag(): ViewElement {
         return ViewElement::tag((string) $this, $this->color, $this->getUrl());
-    }
-
-    public function addBook(Book $book): static {
-        if (!$this->books->contains($book)) {
-            $this->books->add($book);
-        }
-
-        return $this;
-    }
-
-    public function removeBook(Book $book): static {
-        if ($this->books->removeElement($book)) {
-            $book->removeGenre($this);
-        }
-        return $this;
     }
 }
