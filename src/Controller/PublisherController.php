@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Book;
 use App\Entity\User;
 use App\Repository\PublisherRepository;
-use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -35,7 +34,7 @@ class PublisherController extends PinakesController {
     }
 
     #[Route('/publisher/delete/{id}', name: 'publisher_delete', methods: ['DELETE'])]
-    public function delete(Request $request, AuthorRepository $repository): Response {
+    public function delete(Request $request, PublisherRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $publisher = $this->getEntity($request, $repository);
@@ -50,9 +49,7 @@ class PublisherController extends PinakesController {
         $publisher = $this->getEntity($request, $repository);
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $publisher->name = $request->request->get('name');
-
-            $repository->save($publisher);
+            $this->updateFromRequest($request, $repository, $publisher);
             return $this->redirectToRoute('publisher_show', [ 'id' => $publisher->getId() ]);
         }
 

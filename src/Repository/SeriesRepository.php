@@ -2,37 +2,17 @@
 
 namespace App\Repository;
 
-use App\Entity\Author;
 use App\Entity\Series;
-use App\Entity\SeriesVolume;
+use App\Entity\Author;
+use App\Traits\NamedEntityTrait;
 use App\Pinakes\Renderer;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-
 class SeriesRepository extends PinakesRepository {
+    use NamedEntityTrait;
 
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, Series::class);
-    }
-
-    public function getSearchKey(): string{
-        return 'name';
-    }
-
-    public function getDefaultOrder(): array {
-        return [ 'name' => 'ASC' ];
-    }
-
-    public function getOrCreate(string $name, bool $flush = true): Series {
-        $series = $this->findOneBy(['name' => $name]);
-        if (null === $series) {
-            $series = new Series();
-            $series->name = $name;
-            $this->save($series, $flush);
-        }
-
-        return $series;
     }
 
     protected function defineDataFields(): array {

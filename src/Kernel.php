@@ -15,6 +15,9 @@ class Kernel extends BaseKernel
 
         if (!$this->booted) return;
 
-        Context::setEntityManager($this->container->get('doctrine.orm.entity_manager'));
+        Context::init(
+            $this->container->get('doctrine.orm.entity_manager'),
+            $this->getProjectDir()
+        );
     }
 }

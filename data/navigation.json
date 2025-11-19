@@ -25,6 +25,12 @@
         "caption": "Series"
     },
     {
+        "route": "booksearch",
+        "icon": "search",
+        "caption": "Booksearch",
+        "role": "ROLE_LIBRARIAN"
+    },
+    {
         "route": "bookfund",
         "icon": "bank",
         "caption": "Bookfund",

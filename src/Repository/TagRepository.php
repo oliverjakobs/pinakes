@@ -3,34 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\Tag;
-use App\Entity\User;
+use App\Traits\NamedEntityTrait;
 use App\Pinakes\ViewElement;
 use Doctrine\Persistence\ManagerRegistry;
 
 class TagRepository extends PinakesRepository {
+    use NamedEntityTrait;
 
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, Tag::class);
-    }
-
-    public function getSearchKey(): string{
-        return 'name';
-    }
-
-    public function getDefaultOrder(): array {
-        return [ 'name' => 'ASC' ];
-    }
-
-    public function getOrCreate(string $name, bool $flush = true): Tag {
-        $tag = $this->findOneBy(['name' => $name]);
-        if (null === $tag) {
-            $tag = new Tag();
-            $tag->name = $name;
-            $tag->color = '#ffffff';
-            $this->save($tag, $flush);
-        }
-
-        return $tag;
     }
 
     protected function defineDataFields(): array {

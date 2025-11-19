@@ -31,6 +31,7 @@ class Tag extends PinakesEntity {
 
     public function __construct() {
         $this->books = new ArrayCollection();
+        $this->color = '#ffffff';
     }
 
     public function __toString(): string {

@@ -2,32 +2,15 @@
 
 namespace App\Repository;
 
-use App\Entity\PinakesEntity;
 use App\Entity\Publisher;
+use App\Traits\NamedEntityTrait;
 use Doctrine\Persistence\ManagerRegistry;
 
 class PublisherRepository extends PinakesRepository {
+    use NamedEntityTrait;
+
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, Publisher::class);
-    }
-
-    public function getSearchKey(): string{
-        return 'name';
-    }
-
-    public function getDefaultOrder(): array {
-        return [ 'name' => 'ASC' ];
-    }
-
-    public function getOrCreate(string $name, bool $flush = true): Publisher {
-        $publisher = $this->findOneBy(['name' => $name]);
-        if (null === $publisher) {
-            $publisher = new Publisher();
-            $publisher->name = $name;
-            $this->save($publisher, $flush);
-        }
-
-        return $publisher;
     }
 
     protected function defineDataFields(): array {

@@ -81,31 +81,4 @@ class Book extends PinakesEntity {
     public function getTags(): array {
         return $this->tags->map(fn ($tag) => $tag->getTag())->toArray();
     }
-
-    public function clearAuthors(): void {
-        foreach ($this->authors as $author) {
-            $this->removeAuthor($author);
-        }
-    }
-    
-    public function setAuthors(array $authors): static {
-        return $this;
-    }
-
-    public function addAuthor(Author $author): static {
-        if (!$this->authors->contains($author)) {
-            $this->authors->add($author);
-            $author->addBook($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAuthor(Author $author): static {
-        if ($this->authors->removeElement($author)) {
-            $author->removeBook($this);
-        }
-
-        return $this;
-    }
 }

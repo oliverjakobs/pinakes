@@ -2,6 +2,7 @@
 
 namespace App\Twig;
 
+use App\Pinakes\Context;
 use App\Pinakes\ViewElement;
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
@@ -55,18 +56,18 @@ class AppExtension extends AbstractExtension {
     }
 
     public function getNavigationItems(): array {
-        // TODO improve (no __DIR__)
-        $filename = __DIR__ . '/../../data/navigation.json';
+        $filename = Context::getAbsolutePath('/data/navigation.json');
         assert(file_exists($filename));
+
         $content = file_get_contents($filename);
         if (!$content) return [];
+
         $items = json_decode($content, true);
         return array_filter($items, fn ($item) => isset($item['role']) ? $this->security->isGranted($item['role']) : true);
     }
 
     public function getIcon(string $name): ?Markup {
-        // TODO improve (no __DIR__)
-        $filename = __DIR__ . '/../../public/icons/bootstrap/' . $name . '.svg';
+        $filename = Context::getAbsolutePath('/public/icons/bootstrap/' . $name . '.svg');
         if (!file_exists($filename)) return null;
         return new Markup(file_get_contents($filename), 'UTF-8');
     }

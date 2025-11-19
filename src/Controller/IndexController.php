@@ -51,4 +51,11 @@ class IndexController extends PinakesController {
             'type' => $type
         ]);
     }
+
+    #[Route('/booksearch', name: 'booksearch', methods: ['GET'])]
+    public function booksearch(TransactionRepository $repository): Response {
+        return $this->render('booksearch.html.twig', [
+
+        ]);
+    }
 }

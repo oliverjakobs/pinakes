@@ -2,10 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Book;
-use App\Entity\User;
 use App\Repository\AuthorRepository;
-use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -25,11 +22,7 @@ class AuthorController extends PinakesController {
             'actions' => [
                 $this->getActionEdit($author),
                 $this->getActionDelete($author),
-            ],
-            // 'content' => [
-            //     'title' => 'Books',
-            //     'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'author' => $author->getId()]),
-            // ]
+            ]
         ]);
     }
 
@@ -50,10 +43,7 @@ class AuthorController extends PinakesController {
         $author = $this->getEntity($request, $repository);
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $author->name = $request->request->get('name');
-            $author->openlibrary = $request->request->get('openlibrary');
-
-            $repository->save($author);
+            $this->updateFromRequest($request, $repository, $author);
             return $this->redirectToRoute('author_show', [ 'id' => $author->getId() ]);
         }
 

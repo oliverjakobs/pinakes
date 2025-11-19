@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Series;
 use App\Entity\User;
 use App\Repository\SeriesRepository;
-use App\Repository\SeriesVolumeRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -37,13 +36,8 @@ class SeriesController extends PinakesController {
         return $this->renderShow($repository, $series, 'show', [
             'actions' => [
                 $this->getActionEdit($series),
-                $this->getActionDelete($series),
-                // TODO ActionAddVolume
-            ],
-            // 'content' => [
-            //     'title' => 'Volumes',
-            //     'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'series' => $series->getId()]),
-            // ]
+                $this->getActionDelete($series)
+            ]
         ]);
     }
 
@@ -63,9 +57,7 @@ class SeriesController extends PinakesController {
         $series = $this->getEntity($request, $repository);
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $series->name = $request->request->get('name');
-
-            $repository->save($series);
+            $this->updateFromRequest($request, $repository, $series);
             return $this->redirectToRoute('series_show', [ 'id' => $series->getId() ]);
         }
 

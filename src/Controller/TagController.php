@@ -13,7 +13,20 @@ class TagController extends PinakesController {
 
     #[Route('/tag', name: 'tag', methods: ['GET'])]
     public function list(Request $request, TagRepository $repository): Response {
-        return $this->renderListFilter($request, $repository, 'Tags');
+        return $this->renderListFilter($request, $repository, 'Tags', params: [
+            'actions' => [
+                $this->createLinkHx('New Tag', 'POST', '', 'tag_create'),
+            ]
+        ]);
+    }
+
+    #[Route('/tag/create', name: 'tag_create', methods: ['POST'])]
+    public function create(Request $request, TagRepository $repository): Response {
+        $tag = new Tag();
+        $tag->name = 'New Tag';
+
+        $repository->save($tag);
+        return $this->redirectHx('tag_show', [ 'id' => $tag->getId() ]);
     }
 
     #[Route('/tag/show/{id}', name: 'tag_show', methods: ['GET'])]

@@ -43,24 +43,4 @@ class Publisher extends PinakesEntity {
     public function getLinkShow(): ViewElement {
         return parent::getLinkSelf('Show');
     }
-
-    public function addBook(Book $book): static {
-        if (!$this->books->contains($book)) {
-            $this->books->add($book);
-            $book->setPublisher($this);
-        }
-
-        return $this;
-    }
-
-    public function removeBook(Book $book): static {
-        if ($this->books->removeElement($book)) {
-            // set the owning side to null (unless already changed)
-            if ($book->getPublisher() === $this) {
-                $book->setPublisher(null);
-            }
-        }
-
-        return $this;
-    }
 }

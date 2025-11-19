@@ -13,7 +13,6 @@ use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\QueryBuilder;
 
-
 class BookRepository extends PinakesRepository {
 
     public function __construct(ManagerRegistry $registry) {
