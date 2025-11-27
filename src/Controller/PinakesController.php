@@ -36,19 +36,9 @@ abstract class PinakesController extends AbstractController {
         return ViewElement::hxButton($caption, $url, $method, $target);
     }
 
-    public function getActionShow(PinakesEntity $entity): ViewElement {
-        $route = $entity->getModelName() . '_show';
-        return $this->createLink('Show', $route, [ 'id' => $entity->getId() ]);
-    }
-
-    public function getActionEdit(PinakesEntity $entity): ViewElement {
-        $route = $entity->getModelName() . '_form';
-        return $this->createLinkHx('Edit', 'GET', '.show-main', $route, [ 'id' => $entity->getId() ]);
-    }
-
-    public function getActionDelete(PinakesEntity $entity): ViewElement {
-        $route = $entity->getModelName() . '_delete';
-        return $this->createLinkHx('Delete', 'DELETE', '', $route, [ 'id' => $entity->getId() ]);
+    public function createButtonModal(string $caption, string $route, array $parameters = []): ViewElement {
+        $url = $this->generateUrl($route, $parameters);
+        return ViewElement::buttonModal($caption, $url);
     }
 
     protected function getEntity(Request $request, PinakesRepository $repository): ?PinakesEntity {
@@ -135,12 +125,21 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
+    public function renderModal(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show'): Response {
+        $caption = $entity->getId() ? 'Edit ' : 'Create ';
+        return $this->render('modals/entity.html.twig', [
+            'caption' => $caption . $entity->getModelName(),
+            'entity' => $entity,
+            'fields' => $this->getDataFields($repository, $fields),
+        ]);
+    }
+
     protected function updateFromRequest(Request $request, PinakesRepository $repository, PinakesEntity $entity) {
-        foreach ($request->request->all() as $key => $value) {
+        foreach ($request->request->all() as $name => $value) {
             if (is_array($value)) $value = array_filter($value, fn($v) => !empty($v));
             //if (empty($value)) $value = null;
 
-            $repository->update($entity, $key, $value);
+            $repository->update($entity, $name, $value);
         }
         $repository->save($entity);
     }

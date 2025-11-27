@@ -47,7 +47,7 @@ class IndexController extends PinakesController {
             return $this->redirectHx('bookfund');
         }
 
-        return $this->render('components/modal.html.twig', [
+        return $this->render('modals/transaction.html.twig', [
             'type' => $type
         ]);
     }

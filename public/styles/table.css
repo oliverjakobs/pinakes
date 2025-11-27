@@ -64,6 +64,11 @@
     text-align: center;
 }
 
+.table td input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 /* --------------------------| tiled |------------------------------ */
 .tiled {
     display: flex;

@@ -28,32 +28,32 @@ class AuthorRepository extends PinakesRepository {
 
     protected function defineDataFields(): array {
         return [
-            'name' => array(
+            'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
                 'link' => self::LINK_SELF
-            ),
-            'book_count' => array(
+            ],
+            'book_count' => [
                 'caption' => 'Books',
                 'data' => fn(Author $a) => $a->books->count(),
-            ),
-            'openlibrary' => array(
+            ],
+            'translation_count' => [
+                'caption' => 'Translations',
+                'data' => fn(Author $a) => $a->translations->count(),
+            ],
+            'openlibrary' => [
                 'caption' => 'OpenLibrary',
                 'data' => fn(Author $a) => $a->getLinkOpenLibrary(),
                 'edit' => 'openlibrary'
-            ),
+            ],
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields(array(
-            'name', 'book_count'
-        ));
+        return $this->composeDataFields([ 'name', 'book_count', 'translation_count' ]);
     }
     
     public function getDataFieldsShow(): array {
-        return $this->composeDataFields(array(
-            'name', 'openlibrary'
-        ));
+        return $this->composeDataFields([ 'name', 'openlibrary' ]);
     }
 }

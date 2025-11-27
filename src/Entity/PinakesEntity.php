@@ -2,13 +2,7 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\PersistentCollection;
 use ReflectionClass;
-use ReflectionProperty;
-use App\Pinakes\Context;
-use App\Pinakes\EntityCollection;
 use App\Pinakes\ViewElement;
 
 abstract class PinakesEntity {
@@ -21,30 +15,23 @@ abstract class PinakesEntity {
         return strtolower($reflection->getShortName());
     }
 
-    public function getLinkSelf(?string $value = null): ViewElement {
+    public function getLinkSelf(?string $caption = null): ViewElement {
         $url = '/' . $this->getModelName() . '/show/' . $this->getId();
-        return ViewElement::anchor($value ?? (string)$this, $url);
+        return ViewElement::anchor($caption ?? (string)$this, $url);
+    }
+
+    public function getLinkEdit(?string $caption = null): ViewElement {
+        $url = '/' . $this->getModelName() . '/modal/' . $this->getId();
+        return ViewElement::buttonModal($caption ?? 'Edit', $url);
+    }
+
+    public function getLinkDelete(?string $caption = null): ViewElement {
+        $url = '/' . $this->getModelName() . '/delete/' . $this->getId();
+        return ViewElement::hxButton($caption ?? 'Delete', $url, 'DELETE');
     }
 
     public function setValue(string $key, mixed $value) {
         if (property_exists($this, $key)) {
-            $property_type = (new ReflectionProperty($this, $key))->getType();
-
-            if (!$property_type->isBuiltin()) {
-                $class_name = $property_type->getName();
-                $reflection = new ReflectionClass($class_name);
-
-                if ($reflection->isSubclassOf(PinakesEntity::class)) {
-                    $value = empty($value) ? null : Context::getRepository($class_name)->getOrCreate($value);
-                } else if ($this->$key instanceof PersistentCollection) {
-                    $repository = Context::getRepository($this->$key->getTypeClass()->rootEntityName);
-                    $entities = array_map(fn ($e) => $repository->getOrCreate($e, false), $value);
-                    $value = new ArrayCollection($entities);
-                }
-            } else if ('int' === $property_type->getName()) {
-                $value = intval($value);
-            }
-
             $this->$key = $value;
             return;
         }

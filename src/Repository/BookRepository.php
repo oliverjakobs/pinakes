@@ -61,16 +61,21 @@ class BookRepository extends PinakesRepository {
                 'data' => 'title',
                 'link' => self::LINK_SELF
             ],
-            'authors' => [
-                'caption' => 'Author(s)',
-                'data' => 'authors',
-                'link' => self::LINK_DATA,
-                'edit' => false
-            ],
             'authors_inline' => [
                 'caption' => 'Author(s)',
                 'data' => 'authors',
                 'render' => fn ($data) => Renderer::RenderCollectionInline($data, '; '),
+                'link' => self::LINK_DATA,
+                'edit' => false
+            ],
+            'authors' => [
+                'caption' => 'Author(s)',
+                'data' => 'authors',
+                'link' => self::LINK_DATA,
+            ],
+            'translators' => [
+                'caption' => 'Translator(s)',
+                'data' => 'translators',
                 'link' => self::LINK_DATA,
             ],
             'publisher' => [
@@ -91,11 +96,6 @@ class BookRepository extends PinakesRepository {
             'isbn' => [
                 'caption' => 'ISBN',
                 'data' => 'isbn',
-            ],
-            'openlibrary' => [
-                'caption' => 'OpenLibrary',
-                'data' => fn(Book $b) => $b->getLinkOpenLibrary(),
-                'edit' => false
             ],
             'series' => [
                 'caption' => 'Series',
@@ -149,7 +149,7 @@ class BookRepository extends PinakesRepository {
 
     public function getDataFieldsShow(): array {
         return $this->composeDataFields([
-            'title', 'authors', 'publisher', 'published', 'first_published', 'isbn', 'openlibrary', 'tags', 'series', 'series_volume', 'created_at'
+            'title', 'authors', 'translators', 'publisher', 'published', 'first_published', 'isbn', 'tags', 'series', 'series_volume', 'created_at'
         ]);
     }
 

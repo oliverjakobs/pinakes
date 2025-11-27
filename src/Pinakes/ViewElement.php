@@ -5,17 +5,25 @@ namespace App\Pinakes;
 class ViewElement {
 
     public string $element;
-    public string $content;
+    public self|string $content;
     public array $classes = [];
     public array $attributes = [];
 
-    public function __construct(string $element, string $content = '') {
+    public function __construct(string $element, self|string $content = '') {
         $this->element = $element;
         $this->content = $content;
     }
 
-    public static function icon(string $name): self {
-        // TODO
+    public static function icon(string $icon): self {
+        $filename = Context::getAbsolutePath('/public/icons/bootstrap/' . $icon . '.svg');
+        $content = file_exists($filename) ? file_get_contents($filename) : '';
+        return new self('div', $content);
+    }
+
+    public static function separator(): self {
+        $result = new self('div', '');
+        $result->classes[] = 'separator';
+        return $result;
     }
 
     public static function tag(string $caption, string $color, string $url = ''): self {
@@ -32,20 +40,23 @@ class ViewElement {
         return $result;
     }
 
-    public static function anchor(string $caption, string $url, bool $extern = false): self {
+    public static function anchor(self|string $caption, string $url): self {
         $result = new self('a', $caption);
         $result->attributes['href'] = $url;
-
-        if ($extern) {
-            $result->classes[] = 'link-extern';
-            $result->attributes['target'] = '_blank';
-            $result->attributes['rel'] = 'noopener noreferrer';
-        }
 
         return $result;
     }
 
-    public static function hxButton(string $caption, string $url, string $method, string $target = ''): self {
+    public static function anchorExtern(self|string $caption, string $url): self {
+        $result = self::anchor($caption, $url);
+        $result->classes[] = 'link-extern';
+        $result->attributes['target'] = '_blank';
+        $result->attributes['rel'] = 'noopener noreferrer';
+
+        return $result;
+    }
+
+    public static function hxButton(self|string $caption, string $url, string $method, string $target = ''): self {
         $result = new self('button', $caption);
 
         $method = 'hx-' . strtolower($method);
@@ -58,12 +69,24 @@ class ViewElement {
         return $result;
     }
 
+    public static function buttonModal(self|string $caption, string $url): self {
+        $result = self::hxButton($caption, $url, 'GET', 'body');
+        $result->attributes['hx-swap'] = 'beforeend';
+
+        return $result;
+    }
+
     public function __toString(): string {
         return $this->getHtml();
     }
 
     public function addClasses(array $classes): self {
         $this->classes = array_merge($this->classes, $classes);
+        return $this;
+    }
+
+    public function setAttribute(string $key, string $value): self {
+        $this->attributes[$key] = $value;
         return $this;
     }
 

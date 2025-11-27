@@ -18,11 +18,14 @@ class Book extends PinakesEntity {
     #[ORM\Column(length: 255)]
     public ?string $title = null;
 
-    /**
-     * @var Collection<int, Author>
-     */
+    /** @var Collection<int, Author> */
     #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'books')]
     public Collection $authors;
+
+    /** @var Collection<int, Author> */
+    #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'translations')]
+    #[ORM\JoinTable(name: 'book_translator')]
+    public Collection $translators;
 
     #[ORM\Column(nullable: true)]
     public ?int $published = null;
@@ -67,7 +70,7 @@ class Book extends PinakesEntity {
 
     public function getLinkOpenLibrary(): ?ViewElement {
         if (empty($this->isbn)) return null;
-        return ViewElement::anchor('', 'https://openlibrary.org/isbn/' . $this->isbn, true);
+        return ViewElement::anchorExtern('OpenLibrary', 'https://openlibrary.org/isbn/' . $this->isbn)->addClasses(['button']);
     }
 
     public function getSeries(): ?Series {

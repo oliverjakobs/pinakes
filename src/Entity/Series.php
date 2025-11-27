@@ -35,12 +35,4 @@ class Series extends PinakesEntity {
     public function getId(): ?int {
         return $this->id;
     }
-
-    public function getLinkSelf(?string $value = null): ViewElement {
-        return ViewElement::anchor($value ?? (string)$this, '/book/series/' . $this->getId());
-    }
-
-    public function getLinkShow(): ViewElement {
-        return parent::getLinkSelf('Show');
-    }
 }

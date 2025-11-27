@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
-use App\Repository\TagRepository;
 use App\Entity\Tag;
 use App\Entity\User;
+use App\Repository\TagRepository;
+use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -15,30 +16,38 @@ class TagController extends PinakesController {
     public function list(Request $request, TagRepository $repository): Response {
         return $this->renderListFilter($request, $repository, 'Tags', params: [
             'actions' => [
-                $this->createLinkHx('New Tag', 'POST', '', 'tag_create'),
+                $this->createButtonModal('New Tag', 'tag_modal'),
             ]
         ]);
-    }
-
-    #[Route('/tag/create', name: 'tag_create', methods: ['POST'])]
-    public function create(Request $request, TagRepository $repository): Response {
-        $tag = new Tag();
-        $tag->name = 'New Tag';
-
-        $repository->save($tag);
-        return $this->redirectHx('tag_show', [ 'id' => $tag->getId() ]);
     }
 
     #[Route('/tag/show/{id}', name: 'tag_show', methods: ['GET'])]
-    public function show(Request $request, TagRepository $repository): Response {
+    public function show(Request $request, TagRepository $repository, BookRepository $books): Response {
         $tag = $this->getEntity($request, $repository);
+        return $this->renderListFilter($request, $books, 'Tag: ' . (string) $tag,
+            params: [ 'actions' => [
+                $tag->getLinkEdit(),
+                $tag->getLinkDelete(),
+            ]],
+            filter: [ 'tag' => $tag->getId() ]
+        );
+    }
 
-        return $this->renderShow($repository, $tag, 'show', [
-            'actions' => [
-                $this->getActionEdit($tag),
-                $this->getActionDelete($tag),
-            ]
-        ]);
+    #[Route('/tag/modal/{id?}', name: 'tag_modal', methods: ['GET', 'POST'])]
+    public function modal(Request $request, TagRepository $repository): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        $tag = $this->getEntity($request, $repository);
+        if (null === $tag) {
+            $tag = $repository->getTemplate();
+        }
+
+        if (Request::METHOD_POST === $request->getMethod()) {
+            $this->updateFromRequest($request, $repository, $tag);
+            return $this->redirectToRoute('tag_show', [ 'id' => $tag->getId() ]);
+        }
+
+        return $this->renderModal($repository, $tag);
     }
 
     #[Route('/tag/delete/{id}', name: 'tag_delete', methods: ['DELETE'])]
@@ -49,18 +58,5 @@ class TagController extends PinakesController {
         $repository->delete($tag);
 
         return $this->redirectHx('tag');
-    }
-
-    #[Route('/tag/form/{id}', name: 'tag_form', methods: ['GET', 'POST'])]
-    public function form(Request $request, TagRepository $repository): Response {
-        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $tag = $this->getEntity($request, $repository);
-
-        if (Request::METHOD_POST === $request->getMethod()) {
-            $this->updateFromRequest($request, $repository, $tag);
-            return $this->redirectToRoute('tag_show', [ 'id' => $tag->getId() ]);
-        }
-
-        return $this->renderForm($repository, $tag);
     }
 }

@@ -1,3 +1,6 @@
+{% extends "modals/modal.html.twig" %}
+
+{% block modal_content %}
 
 <form action="{{ app.request.requesturi }}" method="post">
   <table class="table">
@@ -14,5 +17,6 @@
     </tbody>
   </table>
   <button type="submit">Submit</button>
-  <button type="button" onClick="window.location.reload();">Cancel</button>
+  <button type="button" _="on click trigger closeModal">Cancel</button>
 </form>
+{% endblock %}

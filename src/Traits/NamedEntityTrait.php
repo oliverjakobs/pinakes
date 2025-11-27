@@ -17,15 +17,22 @@ trait NamedEntityTrait {
         return $this->findOneBy(['name' => $name]);
     }
 
+    public function getTemplate(): PinakesEntity {
+        $entity_name = $this->getEntityName();
+        $result = new $entity_name();
+        $result->name = 'New ' . $entity_name;
+
+        return $result;
+    }
+
     public function getOrCreate(string $name, bool $flush = true): PinakesEntity {
-        $entity = $this->findOneByName($name);
-        if (null === $entity) {
-            $entity_name = $this->getEntityName();
-            $entity = new $entity_name();
-            $entity->name = $name;
-            $this->save($entity, $flush);
+        $result = $this->findOneByName($name);
+        if (null === $result) {
+            $result = $this->getTemplate();
+            $result->name = $name;
+            $this->save($result, $flush);
         }
 
-        return $entity;
+        return $result;
     }
 }

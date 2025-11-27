@@ -3,10 +3,13 @@
 namespace App\Repository;
 
 use App\Entity\PinakesEntity;
+use App\Pinakes\Context;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\ArrayCollection;
+use DateTime;
 
 abstract class PinakesRepository extends ServiceEntityRepository {
 
@@ -101,24 +104,46 @@ abstract class PinakesRepository extends ServiceEntityRepository {
 
     abstract public function getSearchKey(): string;
 
-    public function update(PinakesEntity $entity, string $key, mixed $value) {
-        $field = $this->data_fields[$key];
+    public function update(PinakesEntity $entity, string $name, mixed $value): void {
+        $field = $this->data_fields[$name];
 
         $edit = $field['edit'] ?? true;
         if (!$edit) return;
 
-        $callback = $field['edit_callback'] ?? null;
-        if (is_callable($callback)) {
+        // callback
+        if (isset($field['edit_callback'])) {
+            $callback = $field['edit_callback'];
+            assert(is_callable($callback));
             $callback($entity, $value);
-        } else {
-            if (is_string($edit)) {
-                $key = $edit;
-            } else {
-                $key = $field['data'];
-            }
-
-            $entity->setValue($key, $value);
+            return;
         }
-        $this->save($entity);
+
+        // map value
+        $key = is_string($edit) ? $edit : $field['data'];
+
+        $meta = $this->getClassMetadata();
+        if ($meta->hasField($key)) {
+            $value = $value = match($meta->getFieldMapping($key)->type) {
+                'integer' => intval($value),
+                'float' => floatval($value),
+                'datetime' => new DateTime($value),
+                default => $value
+            };
+        } else if ($meta->hasAssociation($key)) {
+            $target = $meta->getAssociationMapping($key)->targetEntity;
+            $target_repository = Context::getRepository($target);
+
+            if ($meta->isSingleValuedAssociation($key)) {
+                $value = empty($value) ? null : $target_repository->getOrCreate($value, false);
+            } else if ($meta->isCollectionValuedAssociation($key)) {
+                $entities = array_map(fn ($e) => $target_repository->getOrCreate($e, false), $value);
+                $value = new ArrayCollection($entities);
+            }
+        } else {
+            assert(false, 'Unkown field ' . $key);
+        }
+
+        // set value
+        $entity->setValue($key, $value);
     }
 }

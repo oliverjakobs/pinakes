@@ -7,12 +7,17 @@ use App\Entity\Author;
 use App\Traits\NamedEntityTrait;
 use App\Pinakes\Renderer;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\QueryBuilder;
 
 class SeriesRepository extends PinakesRepository {
     use NamedEntityTrait;
 
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, Series::class);
+    }
+
+    protected function getQueryBuilder(array $filter): QueryBuilder {
+        return parent::getQueryBuilder($filter)->addSelect('v')->leftJoin('e.volumes', 'v');
     }
 
     protected function defineDataFields(): array {

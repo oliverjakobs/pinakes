@@ -23,11 +23,13 @@ class Author extends PinakesEntity {
     #[ORM\Column(length: 255)]
     public ?string $name = null;
 
-    /**
-     * @var Collection<int, Book>
-     */
+    /** @var Collection<int, Book> */
     #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'authors')]
     public Collection $books;
+
+    /** @var Collection<int, Book> */
+    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'translators')]
+    public Collection $translations;
 
     #[ORM\Column(length: 255, nullable: true)]
     public ?string $openlibrary = null;
@@ -44,16 +46,8 @@ class Author extends PinakesEntity {
         return $this->id;
     }
 
-    public function getLinkSelf(?string $value = null): ViewElement {
-        return ViewElement::anchor($value ?? (string)$this, '/book/author/' . $this->getId());
-    }
-
-    public function getLinkShow(): ViewElement {
-        return parent::getLinkSelf('Show');
-    }
-
     public function getLinkOpenLibrary(): ?ViewElement {
         if (null === $this->openlibrary) return null;
-        return ViewElement::anchor($this->openlibrary, 'https://openlibrary.org/authors/' . $this->openlibrary, true);
+        return ViewElement::anchorExtern($this->openlibrary, 'https://openlibrary.org/authors/' . $this->openlibrary);
     }
 }

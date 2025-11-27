@@ -10,6 +10,7 @@ use App\Repository\PublisherRepository;
 use App\Entity\Book;
 use App\Entity\Series;
 use App\Entity\User;
+use App\Pinakes\ViewElement;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -27,53 +28,6 @@ class BookController extends PinakesController {
                 $this->createLink('Export Books', 'book_export')->addClasses(['button']),
             ]
         ]);
-    }
-
-    #[Route('/book/tag/{id}', name: 'book_tag', methods: ['GET'])]
-    public function listTag(Request $request, BookRepository $repository, TagRepository $tag_rep): Response {
-        $tag = $this->getEntity($request, $tag_rep);
-        return $this->renderListFilter($request, $repository, 'Tag: ' . (string) $tag,
-            params: [ 'actions' => [
-                $tag->getLinkShow()->addClasses(['button'])
-            ]],
-            filter: [ 'tag' => $tag->getId() ]
-        );
-    }
-
-    #[Route('/book/author/{id}', name: 'book_author', methods: ['GET'])]
-    public function listAuthor(Request $request, BookRepository $repository, AuthorRepository $author_rep): Response {
-        $author = $this->getEntity($request, $author_rep);
-        return $this->renderListFilter($request, $repository, 'Author: ' . (string) $author,
-            fields: 'list_author',
-            params: [ 'actions' => [
-                $author->getLinkShow()->addClasses(['button'])
-            ]],
-            filter: [ 'author' => $author->getId() ]
-        );
-    }
-
-    #[Route('/book/series/{id}', name: 'book_series', methods: ['GET'])]
-    public function listSeries(Request $request, BookRepository $repository, SeriesRepository $series_rep): Response {
-        $series = $this->getEntity($request, $series_rep);
-        return $this->renderListFilter($request, $repository, 'Series: ' . (string) $series,
-            fields: 'list_series',
-            params: [ 'actions' => [
-                $series->getLinkShow()->addClasses(['button']),
-                $this->createLinkHx('New Book', 'POST', '', 'book_create', [ 'series' => $series->getId() ]),
-            ]],
-            filter: [ 'series' => $series->getId() ]
-        );
-    }
-
-    #[Route('/book/publisher/{id}', name: 'book_publisher', methods: ['GET'])]
-    public function listPublisher(Request $request, BookRepository $repository, PublisherRepository $publisher_rep): Response {
-        $publisher = $this->getEntity($request, $publisher_rep);
-        return $this->renderListFilter($request, $repository, 'Publisher: ' . (string) $publisher,
-            params: [ 'actions' => [
-                $publisher->getLinkShow()->addClasses(['button'])
-            ]],
-            filter: [ 'publisher' => $publisher->getId() ]
-        );
     }
 
     #[Route('/book/create', name: 'book_create', methods: ['POST'])]
@@ -96,10 +50,26 @@ class BookController extends PinakesController {
 
         return $this->renderShow($repository, $book, 'show', [
             'actions' => [
-                $this->getActionEdit($book),
-                $this->getActionDelete($book),
+                $book->getLinkOpenLibrary(),
+                ViewElement::separator(),
+                $book->getLinkEdit(),
+                $book->getLinkDelete(),
             ]
         ]);
+    }
+
+    #[Route('/book/modal/{id}', name: 'book_modal', methods: ['GET', 'POST'])]
+    public function modal(Request $request, BookRepository $repository): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        $book = $this->getEntity($request, $repository);
+
+        if (Request::METHOD_POST === $request->getMethod()) {
+            $this->updateFromRequest($request, $repository, $book);
+            return $this->redirectToRoute('book_show', [ 'id' => $book->getId() ]);
+        }
+
+        return $this->renderModal($repository, $book);
     }
 
     #[Route('/book/delete/{id}', name: 'book_delete', methods: ['DELETE'])]
@@ -110,19 +80,6 @@ class BookController extends PinakesController {
         $repository->delete($book);
 
         return $this->redirectHx('book');
-    }
-
-    #[Route('/book/form/{id}', name: 'book_form', methods: ['GET', 'POST'])]
-    public function form(Request $request, BookRepository $repository): Response {
-        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $book = $this->getEntity($request, $repository);
-
-        if (Request::METHOD_POST === $request->getMethod()) {
-            $this->updateFromRequest($request, $repository, $book);
-            return $this->redirectToRoute('book_show', [ 'id' => $book->getId() ]);
-        }
-
-        return $this->renderForm($repository, $book);
     }
 
     #[Route('/book/import', name: 'book_import', methods: ['GET'])]

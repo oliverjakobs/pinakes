@@ -42,19 +42,8 @@ class Tag extends PinakesEntity {
         return $this->id;
     }
 
-    private function getUrl(): string {
-        return '/book/tag/' . $this->getId();
-    }
-
-    public function getLinkSelf(?string $value = null): ViewElement {
-        return ViewElement::anchor($value ?? (string)$this, $this->getUrl());
-    }
-
-    public function getLinkShow(): ViewElement {
-        return parent::getLinkSelf('Show');
-    }
-
     public function getTag(): ViewElement {
-        return ViewElement::tag((string) $this, $this->color, $this->getUrl());
+        $link = $this->getLinkSelf();
+        return ViewElement::tag((string) $this, $this->color, $link->attributes['href']);
     }
 }

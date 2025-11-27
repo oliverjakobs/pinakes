@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
-use App\Entity\Book;
+use App\Entity\Publisher;
 use App\Entity\User;
 use App\Repository\PublisherRepository;
+use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,20 +18,33 @@ class PublisherController extends PinakesController {
     }
 
     #[Route('/publisher/show/{id}', name: 'publisher_show', methods: ['GET'])]
-    public function show(Request $request, PublisherRepository $repository): Response {
+    public function show(Request $request, PublisherRepository $repository, BookRepository $books): Response {
         $publisher = $this->getEntity($request, $repository);
+        return $this->renderListFilter($request, $books, 'Publisher: ' . (string) $publisher,
+            params: [ 'actions' => [
+                $publisher->getLinkEdit(),
+                $publisher->getLinkDelete(),
+            ]],
+            filter: [ 'publisher' => $publisher->getId() ]
+        );
+    }
 
-        return $this->renderShow($repository, $publisher, 'show', [
-            'actions' => [
-                $this->getActionEdit($publisher),
-                $this->getActionDelete($publisher),
-            ],
-            // 'content' => [
-            //     'title' => 'Books',
-            //     'filter' => $this->getFilter($request->query->all(), ['pp' => 10, 'publisher' => $publisher->getId()]),
-            //     'route' => 'publisher_show_filter'
-            // ]
-        ]);
+    #[Route('/publisher/modal/{id?}', name: 'publisher_modal', methods: ['GET', 'POST'])]
+    public function modal(Request $request, PublisherRepository $repository): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        $publisher = $this->getEntity($request, $repository);
+        if (null === $publisher) {
+            $publisher = new Publisher();
+            $publisher->name = 'New Publisher';
+        }
+
+        if (Request::METHOD_POST === $request->getMethod()) {
+            $this->updateFromRequest($request, $repository, $publisher);
+            return $this->redirectToRoute('publisher_show', [ 'id' => $publisher->getId() ]);
+        }
+
+        return $this->renderModal($repository, $publisher);
     }
 
     #[Route('/publisher/delete/{id}', name: 'publisher_delete', methods: ['DELETE'])]
@@ -41,18 +55,5 @@ class PublisherController extends PinakesController {
         $repository->delete($publisher);
 
         return $this->redirectToRoute('publisher');
-    }
-
-    #[Route('/publisher/form/{id}', name: 'publisher_form', methods: ['GET', 'POST'])]
-    public function form(Request $request, PublisherRepository $repository): Response {
-        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $publisher = $this->getEntity($request, $repository);
-
-        if (Request::METHOD_POST === $request->getMethod()) {
-            $this->updateFromRequest($request, $repository, $publisher);
-            return $this->redirectToRoute('publisher_show', [ 'id' => $publisher->getId() ]);
-        }
-
-        return $this->renderForm($repository, $publisher);
     }
 }

@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\Transaction;
+use App\Entity\User;
 use App\Pinakes\Renderer;
+use App\Pinakes\ViewElement;
 use Doctrine\Persistence\ManagerRegistry;
 
 class TransactionRepository extends PinakesRepository {
@@ -30,7 +32,6 @@ class TransactionRepository extends PinakesRepository {
             'reason' => [
                 'caption' => 'Reason',
                 'data' => 'reason',
-                'link' => self::LINK_SELF
             ],
             'amount' => [
                 'caption' => 'Amount',
@@ -43,11 +44,21 @@ class TransactionRepository extends PinakesRepository {
                 'data' => 'timestamp',
                 'style_class' => 'align-right fit-content'
             ],
+            'edit' => [
+                'caption' => '',
+                'data' => fn(Transaction $t) => $t->getLinkEdit(ViewElement::icon('pencil-square')),
+                'visibility' => User::ROLE_ADMIN
+            ],
+            'delete' => [
+                'caption' => '',
+                'data' => fn(Transaction $t) => $t->getLinkDelete(ViewElement::icon('trash3')),
+                'visibility' => User::ROLE_ADMIN
+            ],
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields([ 'timestamp', 'reason', 'amount' ]);
+        return $this->composeDataFields([ 'timestamp', 'reason', 'amount', 'edit', 'delete' ]);
     }
 
     public function getDataFieldsShow(): array {

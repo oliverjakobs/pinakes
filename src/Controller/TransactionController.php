@@ -16,16 +16,18 @@ class TransactionController extends PinakesController {
         return $this->renderListFilter($request, $repository, 'Transactions');
     }
 
-    #[Route('/transaction/show/{id}', name: 'transaction_show', methods: ['GET'])]
-    public function show(Request $request, TransactionRepository $repository): Response {
+    #[Route('/transaction/modal/{id}', name: 'transaction_modal', methods: ['GET', 'POST'])]
+    public function modal(Request $request, TransactionRepository $repository): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
+
         $transaction = $this->getEntity($request, $repository);
 
-        return $this->renderShow($repository, $transaction, 'show', [
-            'actions' => [
-                $this->getActionEdit($transaction),
-                $this->getActionDelete($transaction),
-            ],
-        ]);
+        if (Request::METHOD_POST === $request->getMethod()) {
+            $this->updateFromRequest($request, $repository, $transaction);
+            return $this->redirectToRoute('transaction');
+        }
+
+        return $this->renderModal($repository, $transaction);
     }
 
     #[Route('/transaction/delete/{id}', name: 'transaction_delete', methods: ['DELETE'])]
@@ -36,22 +38,5 @@ class TransactionController extends PinakesController {
         $repository->delete($transaction);
 
         return $this->redirectToRoute('transaction');
-    }
-
-    #[Route('/transaction/form/{id}', name: 'transaction_form', methods: ['GET', 'POST'])]
-    public function form(Request $request, TransactionRepository $repository): Response {
-        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $transaction = $this->getEntity($request, $repository);
-
-        if (Request::METHOD_POST === $request->getMethod()) {
-            $transaction->reason = $request->request->get('reason');
-            $transaction->amount = floatval($request->request->get('amount'));
-            $transaction->timestamp = new \DateTime($request->request->get('timestamp'));
-
-            $repository->save($transaction);
-            return $this->redirectToRoute('transaction_show', [ 'id' => $transaction->getId() ]);
-        }
-
-        return $this->renderForm($repository, $transaction);
     }
 }
