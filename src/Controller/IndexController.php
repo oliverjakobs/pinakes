@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\Transaction;
 use App\Repository\BookRepository;
 use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Request;
