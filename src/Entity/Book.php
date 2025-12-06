@@ -81,6 +81,12 @@ class Book extends PinakesEntity {
         return $this->volume?->volume;
     }
 
+    public function addTag(Tag $tag): void {
+        if (!$this->tags->contains($tag)) {
+            $this->tags->add($tag);
+        }
+    }
+
     public function getTags(): array {
         return $this->tags->map(fn ($tag) => $tag->getTag())->toArray();
     }

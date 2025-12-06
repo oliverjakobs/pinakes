@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Pinakes\ViewElement;
 use App\Repository\SeriesRepository;
 use App\Repository\BookRepository;
+use App\Repository\TagRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -29,6 +30,7 @@ class SeriesController extends PinakesController {
             fields: 'list_series',
             params: [ 'actions' => [
                 $this->createLinkHx('Add Volume', 'POST', '', 'book_create', [ 'series' => $series->getId() ]),
+                $this->createButtonModal('Add Tag', 'series_add_tag', [ 'id' => $series->getId() ]),
                 ViewElement::separator(),
                 $series->getLinkEdit(),
                 $series->getLinkDelete(),
@@ -63,5 +65,27 @@ class SeriesController extends PinakesController {
         $repository->delete($series);
 
         return $this->redirectHx('series');
+    }
+
+    #[Route('/series/add-tag/{id}', name: 'series_add_tag', methods: ['GET', 'POST'])]
+    public function addTag(Request $request, SeriesRepository $repository, TagRepository $tags): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        $series = $this->getEntity($request, $repository);
+
+        if (Request::METHOD_POST === $request->getMethod()) {
+            $tag = $tags->getOrCreate($request->request->get('tag'));
+            foreach ($series->volumes as $vol) {
+                $vol->addTag($tag);
+                $this->em->persist($vol);
+            }
+            $this->em->flush();
+            return $this->redirectToRoute('series_show', [ 'id' => $series->getId() ]);
+        }
+
+        return $this->render('modals/add_tag.html.twig', [
+            'caption' => 'Select tag',
+            'options' => $tags->getOptions()
+        ]);
     }
 }
