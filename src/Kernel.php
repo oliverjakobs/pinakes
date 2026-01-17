@@ -17,6 +17,7 @@ class Kernel extends BaseKernel
 
         Context::init(
             $this->container->get('doctrine.orm.entity_manager'),
+            $this->container->get('App\Pinakes\PinakesRouter'),
             $this->getProjectDir()
         );
     }

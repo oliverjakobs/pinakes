@@ -18,11 +18,7 @@ class AuthorRepository extends PinakesRepository {
     public function findBySeries(Series $series): EntityCollection {
         if (0 === $series->volumes->count()) return new EntityCollection(Author::class, []);
 
-        $qb = $this->getQueryBuilder([]);
-        foreach ($series->volumes as $idx => $book) {
-            $qb->orWhere('?' . $idx . ' MEMBER OF e.books');
-            $qb->setParameter($idx, $book);
-        }
+        $qb = $this->applyOr($this->getQueryBuilder(), $series->volumes, 'MEMBER OF', 'books');
         return new EntityCollection(Author::class, $qb->getQuery()->getResult());
     }
 

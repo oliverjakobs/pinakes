@@ -2,15 +2,15 @@
 
 namespace App\Repository;
 
-use App\Entity\Publisher;
+use App\Entity\BoardgamePublisher;
 use App\Traits\NamedEntityTrait;
 use Doctrine\Persistence\ManagerRegistry;
 
-class PublisherRepository extends PinakesRepository {
+class BoardgamePublisherRepository extends PinakesRepository {
     use NamedEntityTrait;
 
     public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Publisher::class);
+        parent::__construct($registry, BoardgamePublisher::class);
     }
 
     protected function defineDataFields(): array {
@@ -20,15 +20,15 @@ class PublisherRepository extends PinakesRepository {
                 'data' => 'name',
                 'link' => self::LINK_SELF
             ],
-            'book_count' => [
-                'caption' => 'Books',
-                'data' => fn(Publisher $p) => $p->books->count(),
+            'boardgame_count' => [
+                'caption' => 'Boardgames',
+                'data' => fn(BoardgamePublisher $p) => $p->boardgames->count(),
             ],
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields([ 'name', 'book_count' ]);
+        return $this->composeDataFields([ 'name', 'boardgame_count' ]);
     }
 
     public function getDataFieldsShow(): array {

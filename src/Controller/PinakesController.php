@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Pinakes\Link;
 use App\Pinakes\ViewElement;
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
@@ -76,20 +75,18 @@ abstract class PinakesController extends AbstractController {
         return $response;
     }
 
-    /**
-     * @return array<array, bool>
-     */
-    protected function getQueryFilter(array $query): array {
+    protected function getQueryFilter(array $query, &$filter_only = false): array {
         $filter = $query['filter'] ?? null;
-        if (null === $filter) return [ $query, false ];
+        if (null === $filter) return $query;
 
         unset($query['filter']);
         parse_str($filter, $result);
-        return [ array_merge($query, $result), true ];
+        $filter_only = true;
+        return array_merge($query, $result);
     }
 
-    public function renderListFilter(Request $request, PinakesRepository $repository, string $title, string $fields = 'list', array $params = [], array $filter = []): Response {
-        [ $query, $filter_only ] = $this->getQueryFilter($request->query->all());
+    public function renderList(Request $request, PinakesRepository $repository, string $title, string $fields = 'list', array $params = [], array $filter = []): Response {
+        $query = $this->getQueryFilter($request->query->all(), $filter_only);
         $filter = array_merge(self::DEFAULT_FILTER, $filter, $query);
 
         $params = array_merge([
@@ -98,11 +95,12 @@ abstract class PinakesController extends AbstractController {
             'data' => $repository->applyFilter($filter),
             'fields' => $this->getDataFields($repository, $fields),
             'allow_pagination' => true,
-            'allow_ordering' => true
+            'allow_ordering' => true,
+            'component_path' => 'components/table.html.twig'
         ], $params);
 
         if ($filter_only) {
-            $response = $this->render('components/table.html.twig', $params);
+            $response = $this->render($params['component_path'], $params);
             return $this->pushFilterUrl($response, $request, $filter);
         }
 
@@ -125,7 +123,16 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    public function renderModal(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show'): Response {
+    public function renderModal(Request $request, PinakesRepository $repository, string $redirect, string $fields = 'show'): Response {
+        $entity = $this->getEntity($request, $repository);
+        if (null === $entity) {
+            $entity = $repository->getTemplate();
+        }
+
+        if (Request::METHOD_POST === $request->getMethod()) {
+            return $this->updateEntityAndRedirect($request, $repository, $entity, $redirect);
+        }
+        
         $caption = $entity->getId() ? 'Edit ' : 'Create ';
         return $this->render('modals/entity.html.twig', [
             'caption' => $caption . $entity->getModelName(),
@@ -134,7 +141,7 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    protected function updateFromRequest(Request $request, PinakesRepository $repository, PinakesEntity $entity) {
+    protected function updateEntityAndRedirect(Request $request, PinakesRepository $repository, PinakesEntity $entity, string $redirect): Response {
         foreach ($request->request->all() as $name => $value) {
             if (is_array($value)) $value = array_filter($value, fn($v) => !empty($v));
             //if (empty($value)) $value = null;
@@ -142,6 +149,17 @@ abstract class PinakesController extends AbstractController {
             $repository->update($entity, $name, $value);
         }
         $repository->save($entity);
+        
+        return $this->redirectToRoute($redirect, [ 'id' => $entity->getId() ]);
+    }
+
+    protected function deleteEntityAndRedirect(Request $request, PinakesRepository $repository, string $redirect): Response {
+        $entity = $this->getEntity($request, $repository);
+
+        // TODO check if delete is allowed (e.g. author still has books)
+        $repository->delete($entity);
+
+        return $this->redirectHx($redirect);
     }
 
     public function redirectHx(string $route, array $parameters = []): Response {

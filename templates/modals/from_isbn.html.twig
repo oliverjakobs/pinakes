@@ -1,0 +1,17 @@
+{% extends 'modals/modal.html.twig' %}
+
+{% block modal_content %}
+
+<form action="{{ app.request.requesturi }}" method="post">
+
+  {% include '/elements/form/input.html.twig' with {
+    'name': 'isbn',
+    'type': 'text',
+    'value': null
+  } %}
+
+  <button type="submit">Submit</button>
+  <button type="button" _="on click trigger closeModal">Cancel</button>
+</form>
+
+{% endblock %}

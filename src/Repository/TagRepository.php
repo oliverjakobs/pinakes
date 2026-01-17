@@ -36,13 +36,9 @@ class TagRepository extends PinakesRepository {
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields([
-            'name', 'color', 'book_count'
-        ]);
+        return $this->composeDataFields([ 'name', 'color', 'book_count' ]);
     }
     public function getDataFieldsShow(): array {
-        return $this->composeDataFields([
-            'name', 'color'
-        ]);
+        return $this->composeDataFields([ 'name', 'color' ]);
     }
 }

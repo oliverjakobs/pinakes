@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
@@ -48,15 +48,12 @@ class Book extends PinakesEntity {
     #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
     public ?\DateTime $created_at = null;
 
-    /**
-     * @var Collection<int, Tag>
-     */
+    /** @var Collection<int, Tag> */
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'books')]
     public Collection $tags;
 
     public function __construct() {
         $this->authors = new ArrayCollection();
-        $this->series_volumes = new ArrayCollection();
         $this->tags = new ArrayCollection();
     }
 
@@ -71,14 +68,6 @@ class Book extends PinakesEntity {
     public function getLinkOpenLibrary(): ?ViewElement {
         if (empty($this->isbn)) return null;
         return ViewElement::anchorExtern('OpenLibrary', 'https://openlibrary.org/isbn/' . $this->isbn)->addClasses(['button']);
-    }
-
-    public function getSeries(): ?Series {
-        return $this->volume?->series;
-    }
-
-    public function getSeriesVolume(): ?string {
-        return $this->volume?->volume;
     }
 
     public function addTag(Tag $tag): void {

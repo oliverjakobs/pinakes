@@ -4,13 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Book;
 use App\Entity\Author;
-use App\Entity\Tag;
-use App\Entity\PinakesEntity;
-use App\Pinakes\Context;
 use App\Pinakes\Renderer;
 use App\Pinakes\EntityCollection;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\QueryBuilder;
 
 class BookRepository extends PinakesRepository {
@@ -23,28 +19,21 @@ class BookRepository extends PinakesRepository {
         return 'title';
     }
 
-    protected function getQueryBuilder(array $filter): QueryBuilder {
+    public function getTemplate(): Book {
+        $result = new Book();
+        $result->title = 'New Book';
+        $result->created_at = new \DateTime();
+        return $result;
+    }
+
+    protected function getQueryBuilder(array $filter = []): QueryBuilder {
         $qb = parent::getQueryBuilder($filter)->addSelect('a')->leftJoin('e.authors', 'a');
 
-        if (!empty($filter['author'])) {
-            $qb->andWhere($qb->expr()->isMemberOf(':author', 'e.authors'));
-            $qb->setParameter('author', $filter['author']);
-        }
-
-        if (!empty($filter['publisher'])) {
-            $qb->andWhere($qb->expr()->eq(':publisher', 'e.publisher'));
-            $qb->setParameter('publisher', $filter['publisher']);
-        }
-
-        if (!empty($filter['tag'])) {
-            $qb->andWhere($qb->expr()->isMemberOf(':tag', 'e.tags'));
-            $qb->setParameter('tag', $filter['tag']);
-        }
-
-        if (!empty($filter['series'])) {
-            $qb->andWhere($qb->expr()->eq(':series', 'e.series'));
-            $qb->setParameter('series', $filter['series']);
-        }
+        $this->applyAnd($qb, $filter['author'] ?? [], 'MEMBER OF', 'authors');
+        $this->applyAnd($qb, $filter['publisher'] ?? [], '=', 'publisher');
+        $this->applyAnd($qb, $filter['tag'] ?? [], 'MEMBER OF', 'tags');
+        $this->applyAnd($qb, $filter['ntag'] ?? [], 'NOT MEMBER OF', 'tags');
+        $this->applyAnd($qb, $filter['series'] ?? [], '=', 'series');
 
         return $qb;
     }

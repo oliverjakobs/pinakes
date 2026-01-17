@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use ReflectionClass;
 use App\Pinakes\ViewElement;
+use App\Pinakes\Context;
 
 abstract class PinakesEntity {
 
@@ -16,17 +17,17 @@ abstract class PinakesEntity {
     }
 
     public function getLinkSelf(?string $caption = null): ViewElement {
-        $url = '/' . $this->getModelName() . '/show/' . $this->getId();
+        $url = Context::getUrl($this->getModelName() . '_show', ['id' => $this->getId()]);
         return ViewElement::anchor($caption ?? (string)$this, $url);
     }
 
     public function getLinkEdit(?string $caption = null): ViewElement {
-        $url = '/' . $this->getModelName() . '/modal/' . $this->getId();
+        $url = Context::getUrl($this->getModelName() . '_modal', ['id' => $this->getId()]);
         return ViewElement::buttonModal($caption ?? 'Edit', $url);
     }
 
     public function getLinkDelete(?string $caption = null): ViewElement {
-        $url = '/' . $this->getModelName() . '/delete/' . $this->getId();
+        $url = Context::getUrl($this->getModelName() . '_delete', ['id' => $this->getId()]);
         return ViewElement::hxButton($caption ?? 'Delete', $url, 'DELETE');
     }
 
@@ -42,7 +43,7 @@ abstract class PinakesEntity {
             return;
         }
 
-        assert(false, 'Cant set ' . $data);
+        assert(false, 'Cant set ' . $key);
     }
 
     public function getValue(string $key): mixed {

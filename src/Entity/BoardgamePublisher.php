@@ -2,14 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\PublisherRepository;
+use App\Repository\BoardgamePublisherRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Pinakes\ViewElement;
 
-#[ORM\Entity(repositoryClass: PublisherRepository::class)]
-class Publisher extends PinakesEntity {
+#[ORM\Entity(repositoryClass: BoardgamePublisherRepository::class)]
+class BoardgamePublisher extends PinakesEntity {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -18,12 +17,12 @@ class Publisher extends PinakesEntity {
     #[ORM\Column(length: 255)]
     public ?string $name = null;
 
-    /** @var Collection<int, Book> */
-    #[ORM\OneToMany(targetEntity: Book::class, mappedBy: 'publisher')]
-    public Collection $books;
+    /** @var Collection<int, Boardgame> */
+    #[ORM\OneToMany(targetEntity: Boardgame::class, mappedBy: 'publisher')]
+    public Collection $boardgames;
 
     public function __construct() {
-        $this->books = new ArrayCollection();
+        $this->boardgames = new ArrayCollection();
     }
 
     public function __toString(): string {

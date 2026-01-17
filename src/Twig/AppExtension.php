@@ -13,9 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Routing\RouterInterface;
-use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Bundle\SecurityBundle\Security;
-use Exception;
 use ReflectionClass;
 use ReflectionProperty;
 use Twig\Extension\AbstractExtension;
@@ -38,6 +36,7 @@ class AppExtension extends AbstractExtension {
         return [
             new TwigFunction('render_value', [$this, 'renderValue']),
             new TwigFunction('render_form', [$this, 'renderForm']),
+            new TwigFunction('export', [$this, 'exportValue']),
             new TwigFunction('filter_url', [$this, 'getFilterUrl']),
             new TwigFunction('navigation_items', [$this, 'getNavigationItems']),
             new TwigFunction('icon', [$this, 'getIcon'])
@@ -72,7 +71,7 @@ class AppExtension extends AbstractExtension {
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
-    public function renderValue(array $field, PinakesEntity $entity, bool $export = false): string {
+    public function renderValue(array $field, PinakesEntity $entity): string {
         // Step 1: Get data
         assert(isset($field['data']), 'No data specified');
 
@@ -82,26 +81,24 @@ class AppExtension extends AbstractExtension {
             $data = $entity->getValue($field['data']);
         }
 
-        if (empty($data) || ($data instanceof ArrayCollection && $data->isEmpty())) return '-';
+        if (empty($data) || ($data instanceof Collection && $data->isEmpty())) return '-';
 
-        // Step 2: Apply link (if not export)
-        if (!$export) {
-            $link = $field['link'] ?? null;
+        // Step 2: Apply link
+        $link = $field['link'] ?? null;
 
-            if (PinakesRepository::LINK_SELF === $link) {
-                assert(!is_iterable($data), 'Iterables can only link to data');
-                $data = $entity->getLinkSelf((string) $data);
-            } else if (PinakesRepository::LINK_DATA === $link) {
-                if (is_iterable($data)) {
-                    if ($data instanceof Collection) $data = $data->toArray();
-                    $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
-                } else {
-                    assert($data instanceof PinakesEntity, 'Can only link to entities');
-                    $data = $data->getLinkSelf((string) $data);
-                }
+        if (PinakesRepository::LINK_SELF === $link) {
+            assert(!is_iterable($data), 'Iterables can only link to data');
+            $data = $entity->getLinkSelf((string) $data);
+        } else if (PinakesRepository::LINK_DATA === $link) {
+            if (is_iterable($data)) {
+                if ($data instanceof Collection) $data = $data->toArray();
+                $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
             } else {
-                assert(null === $link, 'Unkown link type');
+                assert($data instanceof PinakesEntity, 'Can only link to entities');
+                $data = $data->getLinkSelf((string) $data);
             }
+        } else {
+            assert(null === $link, 'Unkown link type');
         }
 
         // Step 3: Render data
@@ -176,5 +173,28 @@ class AppExtension extends AbstractExtension {
             'type' => $type,
             'value' => $data,
         ]);
+    }
+
+    // TODO simplify
+    public function exportValue(array $field, PinakesEntity $entity): string {
+        // Step 1: Get data
+        assert(isset($field['data']), 'No data specified');
+
+        if (is_callable($field['data'])) {
+            $data = $field['data']($entity);
+        } else {
+            $data = $entity->getValue($field['data']);
+        }
+
+        if (empty($data) || ($data instanceof ArrayCollection && $data->isEmpty())) return '-';
+
+        // Step 2: Render data
+        $render = $field['render'] ?? null;
+        if (is_callable($render)) return $render($data);
+
+        if (is_iterable($data)) return Renderer::RenderCollection($data);
+        if ($data instanceof \DateTime) return $data->format('d.m.Y');
+        if ($data instanceof ViewElement) return $data->getHtml();
+        return (string) $data;
     }
 }

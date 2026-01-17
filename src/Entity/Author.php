@@ -10,11 +10,6 @@ use App\Pinakes\ViewElement;
 
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
 class Author extends PinakesEntity {
-
-    const ROLE_AUTHOR = 'author';
-    const ROLE_TRANSLATOR = 'translator';
-    const ROLE_EDITOR = 'editor';
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

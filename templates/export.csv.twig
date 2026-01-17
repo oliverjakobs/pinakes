@@ -4,6 +4,6 @@
 {% for entity in data %}
 
 {% for field in fields %}
-"{{- render_value(field, entity, true) -}}"{% if not loop.last %},{% endif %}
+"{{- export(field, entity) -}}"{% if not loop.last %},{% endif %}
 {% endfor %}
 {% endfor %}

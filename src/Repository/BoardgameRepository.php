@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Repository;
+
+use App\Entity\Boardgame;
+use App\Traits\NamedEntityTrait;
+use Doctrine\Persistence\ManagerRegistry;
+
+class BoardgameRepository extends PinakesRepository {
+    use NamedEntityTrait;
+
+    public function __construct(ManagerRegistry $registry) {
+        parent::__construct($registry, Boardgame::class);
+    }
+
+    public function getTemplate(): Boardgame {
+        $result = new Boardgame();
+        $result->name = 'New Boardgame';
+        $result->created_at = new \DateTime();
+        $result->min_player = 1;
+        return $result;
+    }
+
+    protected function defineDataFields(): array {
+        return [
+            'name' => [
+                'caption' => 'Name',
+                'data' => 'name',
+                'link' => self::LINK_SELF
+            ],
+            'publisher' => [
+                'caption' => 'Publisher',
+                'data' => 'publisher',
+                'link' => self::LINK_DATA
+            ],
+            'player_count' => [
+                'caption' => 'Players',
+                'data' => fn(Boardgame $bg) => $bg->getPlayerCount(),
+            ],
+            'min_player' => [
+                'caption' => 'Players (min)',
+                'data' => 'min_player',
+            ],
+            'max_player' => [
+                'caption' => 'Players (max)',
+                'data' => 'max_player',
+            ],
+            'base_game' => [
+                'caption' => 'Base game',
+                'data' => 'base_game',
+                'link' => self::LINK_DATA
+            ],
+            'extensions' => [
+                'caption' => 'Extensions',
+                'data' => 'extensions',
+                'link' => self::LINK_DATA,
+                'edit' => false
+            ]
+        ];
+    }
+
+    public function getDataFieldsList(): array {
+        return $this->composeDataFields([ 'name', 'publisher', 'player_count' ]);
+    }
+
+    public function getDataFieldsShow(): array {
+        return $this->composeDataFields([ 'name', 'base_game', 'extensions', 'publisher', 'min_player', 'max_player' ]);
+    }
+}

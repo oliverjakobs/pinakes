@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
@@ -23,9 +23,7 @@ class Tag extends PinakesEntity {
     #[ORM\Column(length: 9, options: ['default' => '#ffffff'])]
     public ?string $color = null;
 
-    /**
-     * @var Collection<int, Book>
-     */
+    /** @var Collection<int, Book> */
     #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'tags')]
     public Collection $books;
 

@@ -2,18 +2,17 @@
 
 namespace App\Controller;
 
-use App\Entity\User;
 use App\Entity\Transaction;
 use App\Repository\BookRepository;
 use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class IndexController extends PinakesController {
 
     #[Route('/', name: 'pinakes')]
-    public function index(Request $request, BookRepository $books, TransactionRepository $transactions): Response {
+    public function index(BookRepository $books, TransactionRepository $transactions): Response {
         return $this->render('index.html.twig', [
             'filter' => self::DEFAULT_FILTER,
             'newest' => $books->getNewest(),
@@ -54,9 +53,7 @@ class IndexController extends PinakesController {
     }
 
     #[Route('/booksearch', name: 'booksearch', methods: ['GET'])]
-    public function booksearch(TransactionRepository $repository): Response {
-        return $this->render('booksearch.html.twig', [
-
-        ]);
+    public function booksearch(): Response {
+        return $this->render('booksearch.html.twig', [ ]);
     }
 }

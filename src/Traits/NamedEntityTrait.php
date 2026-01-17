@@ -20,18 +20,7 @@ trait NamedEntityTrait {
     public function getTemplate(): PinakesEntity {
         $entity_name = $this->getEntityName();
         $result = new $entity_name();
-        $result->name = 'New ' . $entity_name;
-
-        return $result;
-    }
-
-    public function getOrCreate(string $name, bool $flush = true): PinakesEntity {
-        $result = $this->findOneByName($name);
-        if (null === $result) {
-            $result = $this->getTemplate();
-            $result->name = $name;
-            $this->save($result, $flush);
-        }
+        $result->name = 'New ' . $result->getModelName();
 
         return $result;
     }

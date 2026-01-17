@@ -61,7 +61,7 @@
     position: relative;
 }
 
-.sidebar a:not(.logo), .sidebar label {
+.sidebar a:not(.logo) {
     padding: .6em 1em .6rem 1.6rem;
     text-decoration: none;
     color: var(--color-main);
@@ -71,38 +71,21 @@
     line-height: 1em;
 }
 
-.sidebar a:not(.logo):hover, .sidebar a.active, .sidebar input[type=checkbox]:hover ~ label {
+.sidebar a:not(.logo):hover, .sidebar a.active {
     background-color: var(--color-hover);
 }
 
-.sidebar nav input[type=checkbox] {
-    position: absolute;
-    cursor: pointer;
-    margin: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    opacity: 0;
-}
-
-.sidebar nav input[type=checkbox] ~ label::after {
+.sidebar nav a::after {
     text-align: right;
     flex: 1;
 }
 
-.sidebar nav input[type=checkbox]:not(:checked) ~ label::after {
+.sidebar nav a.arrow-down::after {
     content: '\23F7';
 }
 
-.sidebar nav input[type=checkbox]:checked ~ label::after {
+.sidebar nav a.arrow-up::after {
     content: '\23F6';
-}
-
-.sidebar nav input[type=checkbox]:not(:checked) ~ ul {
-    margin-top: 0;
-    max-height: 0;
-    opacity: 0;
-    transform: translateX(-50%);
 }
 
 .sidebar ul.subnav a {

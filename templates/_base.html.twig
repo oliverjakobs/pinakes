@@ -27,29 +27,38 @@
         <ul>
           {% for item in navigation_items() %}
             <li>
-              {% if item.items is defined %}
-                {% set active_child = false %}
 
-                {% for i in item.items %}
-                  {% if i.route == app.current_route %} {% set active_child = true %} {% endif %}
-                {% endfor %}
+              {% set active = item.route == app.current_route %}
+              {% set active_child = false %}
+              {% set children = item.items | default([]) %}
+              {% for child in children %}
+                {% if child.route == app.current_route %} {% set active_child = true %} {% endif %}
+              {% endfor %}
 
-                <input type="checkbox" {% if active_child %}disabled checked{% endif %}>
-                <label>{{ icon(item.icon) }} {{ item.caption }}</label>
+              <a href="{{ path(item.route) }}"
+                {% if active %}
+                  class="active{% if children is not empty %} arrow-up{% endif %}"
+                {% elseif active_child %}
+                  class="arrow-up"
+                {% elseif children is not empty %}
+                  class="arrow-down"
+                {% endif %}
+              >
+                {{ icon(item.icon) }} {{ item.caption }}
+              </a>
+
+              {% if children is not empty and (active or active_child) %}
                 <ul class="subnav">
-                {% for child in item.items %}
+                {% for child in children %}
                   <li>
                     <a href="{{ path(child.route) }}" {% if child.route == app.current_route %}class="active"{% endif %}>
                       {{ icon(child.icon) }} {{ child.caption }}
                     </a>
                   </li>
                 {% endfor %}
-                <ul>
-              {% else %}
-                <a href="{{ path(item.route) }}" {% if item.route == app.current_route %}class="active"{% endif %}>
-                  {{ icon(item.icon) }} {{ item.caption }}
-                </a>
+                </ul>
               {% endif %}
+
             </li>
           {% endfor %}
         </ul>

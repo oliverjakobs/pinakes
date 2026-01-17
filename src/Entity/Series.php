@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Entity;
 
@@ -18,9 +18,7 @@ class Series extends PinakesEntity {
     #[ORM\Column(length: 255)]
     public ?string $name = null;
 
-    /**
-     * @var Collection<int, Book>
-     */
+    /** @var Collection<int, Book> */
     #[ORM\OneToMany(targetEntity: Book::class, mappedBy: 'series')]
     public Collection $volumes;
 

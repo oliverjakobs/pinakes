@@ -2,8 +2,6 @@
 
 namespace App\Pinakes;
 
-use App\Entity\PinakesEntity;
-use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
 
 class Renderer {

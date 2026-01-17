@@ -9,6 +9,8 @@ class ViewElement {
     public array $classes = [];
     public array $attributes = [];
 
+    private string $_raw = ''; 
+
     public function __construct(string $element, self|string $content = '') {
         $this->element = $element;
         $this->content = $content;
@@ -17,7 +19,10 @@ class ViewElement {
     public static function icon(string $icon): self {
         $filename = Context::getAbsolutePath('/public/icons/bootstrap/' . $icon . '.svg');
         $content = file_exists($filename) ? file_get_contents($filename) : '';
-        return new self('div', $content);
+
+        $result = new self('svg');
+        $result->_raw = $content;
+        return $result;
     }
 
     public static function separator(): self {
@@ -91,6 +96,8 @@ class ViewElement {
     }
 
     public function getHtml(): string {
+        if (!empty($this->_raw)) return $this->_raw;
+
         $attr = array_map(fn ($k, $v) => sprintf('%s="%s"', $k, $v), array_keys($this->attributes), $this->attributes);
         $attr = implode(' ', $attr);
 

@@ -3,6 +3,7 @@
 namespace App\Pinakes;
 
 use App\Repository\PinakesRepository;
+use App\Pinakes\PinakesRouter;
 use Doctrine\ORM\EntityManagerInterface;
 
 class Context {
@@ -10,14 +11,15 @@ class Context {
 
     public function __construct(
         private EntityManagerInterface $em,
+        private PinakesRouter $router,
         private string $app_dir
     ) {
     }
 
-    public static function init(EntityManagerInterface $em, string $app_dir): void {
+    public static function init(EntityManagerInterface $em, PinakesRouter $router, string $app_dir): void {
         if (self::isInitialized()) return;
 
-        self::$_instance = new self($em, $app_dir);
+        self::$_instance = new self($em, $router, $app_dir);
     }
 
     public static function getInstance(): self {
@@ -41,5 +43,9 @@ class Context {
 
     public static function getAbsolutePath(string $path): string {
         return self::getInstance()->app_dir . $path;
+    }
+
+    public static function getUrl(string $route, array $params): string {
+        return self::getInstance()->router->generate($route, $params);
     }
 }

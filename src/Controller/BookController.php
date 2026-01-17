@@ -4,37 +4,40 @@ namespace App\Controller;
 
 use App\Repository\BookRepository;
 use App\Repository\TagRepository;
-use App\Repository\AuthorRepository;
-use App\Repository\SeriesRepository;
-use App\Repository\PublisherRepository;
 use App\Entity\Book;
 use App\Entity\Series;
 use App\Entity\User;
 use App\Pinakes\ViewElement;
+use App\Pinakes\OpenLibrary;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 
 class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
-    public function list(Request $request, BookRepository $repository): Response {
-        return $this->renderListFilter($request, $repository, 'Books', params: [
-            'actions' => [
-                $this->createLinkHx('New Book', 'POST', '', 'book_create'),
-                // TODO add from openlibrary isbn
-                $this->createLink('Import Books', 'book_import')->addClasses(['button']),
-                $this->createLink('Export Books', 'book_export')->addClasses(['button']),
+    public function list(Request $request, BookRepository $repository, TagRepository $tags): Response {
+        return $this->renderList($request, $repository, 'Books',
+            params: [
+                'actions' => [
+                    $this->createLinkHx('New Book', 'POST', '', 'book_create'),
+                    $this->createButtonModal('From ISBN', 'book_modal_isbn'),
+                    // $this->createLink('Import Books', 'book_import')->addClasses(['button']),
+                    // $this->createLink('Export Books', 'book_export')->addClasses(['button']),
+                ]
+            ],
+            filter: [ 
+                'ntag' => [
+                    $tags->findOneByName('Manga'),
+                ]
             ]
-        ]);
+        );
     }
 
     #[Route('/book/create', name: 'book_create', methods: ['POST'])]
-    public function create(Request $request, BookRepository $repository, #[MapQueryParameter] ?int $series = null): Response {
-        $book = new Book();
-        $book->title = 'New Book';
-        $book->created_at = new \DateTime();
+    public function create(BookRepository $repository, #[MapQueryParameter] ?int $series = null): Response {
+        $book = $repository->getTemplate();
 
         if (null !== $series) {
             $book->series = $this->em->getRepository(Series::class)->find($series);
@@ -44,8 +47,35 @@ class BookController extends PinakesController {
         return $this->redirectHx('book_show', [ 'id' => $book->getId() ]);
     }
 
+    #[Route('/book/modal-isbn', name: 'book_modal_isbn', methods: ['GET', 'POST'])]
+    public function modalIsbn(Request $request): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        if (Request::METHOD_POST === $request->getMethod()) {
+            $isbn = $request->request->get('isbn');
+            return $this->redirectToRoute('book_from_isbn', [ 'isbn' => $isbn ]);
+        }
+
+        return $this->render('modals/from_isbn.html.twig', [
+            'caption' => 'Enter ISBN',
+        ]);
+    }
+
+    #[Route('/book/from-isbn/{isbn}', name: 'book_from_isbn', methods: ['GET'])]
+    public function fromIsbn(string $isbn): Response {
+        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        $result = OpenLibrary::findByIsbn($isbn);
+
+        return $this->render('searchresult.html.twig', [
+            'results' => $result,
+        ]);
+    }
+
+
     #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
     public function show(Request $request, BookRepository $repository): Response {
+        /** @var Book */
         $book = $this->getEntity($request, $repository);
 
         return $this->renderShow($repository, $book, 'show', [
@@ -61,25 +91,13 @@ class BookController extends PinakesController {
     #[Route('/book/modal/{id}', name: 'book_modal', methods: ['GET', 'POST'])]
     public function modal(Request $request, BookRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-
-        $book = $this->getEntity($request, $repository);
-
-        if (Request::METHOD_POST === $request->getMethod()) {
-            $this->updateFromRequest($request, $repository, $book);
-            return $this->redirectToRoute('book_show', [ 'id' => $book->getId() ]);
-        }
-
-        return $this->renderModal($repository, $book);
+        return $this->renderModal($request, $repository, 'book_show');
     }
 
     #[Route('/book/delete/{id}', name: 'book_delete', methods: ['DELETE'])]
     public function delete(Request $request, BookRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-
-        $book = $this->getEntity($request, $repository);
-        $repository->delete($book);
-
-        return $this->redirectHx('book');
+        return $this->deleteEntityAndRedirect($request, $repository, 'book');
     }
 
     #[Route('/book/import', name: 'book_import', methods: ['GET'])]
@@ -88,7 +106,7 @@ class BookController extends PinakesController {
     }
 
     #[Route('/book/export', name: 'book_export', methods: ['GET'])]
-    public function export(Request $request, BookRepository $repository): Response {
+    public function export(BookRepository $repository): Response {
         $response = $this->render('export.csv.twig', [
             'data' => $repository->findAll(),
             'fields' => $this->getDataFields($repository, 'export'),

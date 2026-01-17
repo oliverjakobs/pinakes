@@ -7,7 +7,6 @@ use App\Pinakes\Context;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\ArrayCollection;
 use DateTime;
 
@@ -61,6 +60,24 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if ($flush) $em->flush();
     }
 
+    public function getTemplate(): PinakesEntity {
+        $entity_name = $this->getEntityName();
+        return new $entity_name();
+    }
+
+    public function getOrCreate(string $key, bool $flush = true): PinakesEntity {
+        $result = $this->findOneBy([ $this->getSearchKey() => $key ]);
+        if (null === $result) {
+            $result = $this->getTemplate();
+            $result->{$this->getSearchKey()} = $key;
+            $this->save($result, $flush);
+        }
+
+        return $result;
+    }
+
+    abstract public function getSearchKey(): string;
+
     public function getDefaultOrder(): array {
         return [];
     }
@@ -69,7 +86,31 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         return $this->findBy([], $order_by ?? $this->getDefaultOrder(), $limit, $offset);
     }
 
-    protected function getQueryBuilder(array $filter): QueryBuilder {
+    protected function applyAnd(QueryBuilder $qb, mixed $filter, string $op, string $target): QueryBuilder {
+        if (!is_iterable($filter)) $filter = [ $filter ];
+
+        foreach ($filter as $idx => $value) {
+            $key = $target . $idx;
+            $qb->andWhere(':' . $key . ' ' . $op . ' e.' . $target);
+            $qb->setParameter($key, $value);
+        }
+
+        return $qb;
+    }
+
+    protected function applyOr(QueryBuilder $qb, mixed $filter, string $op, string $target): QueryBuilder {
+        if (!is_iterable($filter)) $filter = [ $filter ];
+
+        foreach ($filter as $idx => $value) {
+            $key = $target . $idx;
+            $qb->orWhere(':' . $key . ' ' . $op . ' e.' . $target);
+            $qb->setParameter($key, $value);
+        }
+
+        return $qb;
+    }
+
+    protected function getQueryBuilder(array $filter = []): QueryBuilder {
         $qb = $this->createQueryBuilder('e');
 
         $search = $filter['search'] ?? [];
@@ -101,8 +142,6 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         }
         return $options;
     }
-
-    abstract public function getSearchKey(): string;
 
     public function update(PinakesEntity $entity, string $name, mixed $value): void {
         $field = $this->data_fields[$name];

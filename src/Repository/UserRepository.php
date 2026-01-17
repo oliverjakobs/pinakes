@@ -3,7 +3,6 @@
 namespace App\Repository;
 
 use App\Entity\User;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -34,22 +33,20 @@ class UserRepository extends PinakesRepository implements PasswordUpgraderInterf
 
     protected function defineDataFields(): array {
         return [
-            'username' => array(
+            'username' => [
                 'caption' => 'Username',
                 'data' => 'username'
-            ),
-            'roles' => array(
+            ],
+            'roles' => [
                 'caption' => 'Roles',
                 'data' => fn(User $u) => implode('; ', $u->getRoles()),
-            ),
+            ],
 
             // TODO impersonation
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields(array(
-            'username', 'roles'
-        ));
+        return $this->composeDataFields([ 'username', 'roles' ]);
     }
 }

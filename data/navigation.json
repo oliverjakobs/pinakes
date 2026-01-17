@@ -1,56 +1,87 @@
 [
     {
-        "route": "book",
+        "caption": "Books",
         "icon": "book",
-        "caption": "Books"
+        "route": "book",
+        "items": [
+            {
+                "caption": "Tags",
+                "route": "tag",
+                "icon": "tag"
+            },
+            {
+                "caption": "Authors",
+                "route": "author",
+                "icon": "vector-pen"
+            },
+            {
+                "caption": "Publishers",
+                "route": "publisher",
+                "icon": "send"
+            },
+            {
+                "caption": "Series",
+                "route": "series",
+                "icon": "bookmark"
+            }
+        ]
     },
     {
-        "route": "tag",
-        "icon": "hash",
-        "caption": "Tags"
-    },
-    {
-        "route": "author",
-        "icon": "vector-pen",
-        "caption": "Authors"
-    },
-    {
-        "route": "publisher",
-        "icon": "send",
-        "caption": "Publishers"
-    },
-    {
-        "route": "series",
-        "icon": "bookmark",
-        "caption": "Series"
-    },
-    {
+        "caption": "Booksearch",
         "route": "booksearch",
         "icon": "search",
-        "caption": "Booksearch",
         "role": "ROLE_LIBRARIAN"
     },
     {
+        "caption": "Bookfund",
         "route": "bookfund",
         "icon": "bank",
-        "caption": "Bookfund",
         "role": "ROLE_LIBRARIAN"
     },
     {
-        "route": "admin",
-        "icon": "database",
+        "caption": "Music",
+        "icon": "music-note-beamed",
+        "route": "music",
+        "items": [
+            {
+                "caption": "CDs",
+                "route": "music_cd",
+                "icon": "record-circle"
+            },
+            {
+                "caption": "Vinyls",
+                "route": "music_vinyl",
+                "icon": "vinyl-fill"
+            }
+        ]
+    },
+    {
+        "caption": "Boardgames",
+        "icon": "dice-5",
+        "route": "boardgame",
+        "items": [
+            {
+                "caption": "Publishers",
+                "route": "boardgamepublisher",
+                "icon": "box-seam"
+            }
+        ]
+    },
+    {
         "caption": "Admin",
+        "icon": "database",
+        "route": "admin",
         "role": "ROLE_ADMIN",
         "items": [
             {
+                "caption": "User",
                 "route": "user",
-                "icon": "people",
-                "caption": "User"
+                "icon": "people"
             },
             {
+                "caption": "Icons",
                 "route": "icons",
-                "icon": "bootstrap",
-                "caption": "Icons"
+                "icon": "bootstrap"
             }
         ]
     }

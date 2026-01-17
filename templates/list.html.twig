@@ -20,6 +20,7 @@
       hx-get="{{ filter_url(app.current_route, app.current_route_parameters, filter) }}"
       hx-target="[hx-table-content]">
   </div>
+  <div></div>
   {% include component_path | default('components/table.html.twig') %}
 </div>
 {% endblock %}
