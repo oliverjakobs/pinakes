@@ -7,6 +7,7 @@ use App\Pinakes\ViewElement;
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 use App\Pinakes\EntityCollection;
+use App\Pinakes\FormElement;
 use App\Pinakes\Renderer;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -36,6 +37,7 @@ class AppExtension extends AbstractExtension {
         return [
             new TwigFunction('render_value', [$this, 'renderValue']),
             new TwigFunction('render_form', [$this, 'renderForm']),
+            new TwigFunction('render_filter', [$this, 'renderFilter']),
             new TwigFunction('export', [$this, 'exportValue']),
             new TwigFunction('filter_url', [$this, 'getFilterUrl']),
             new TwigFunction('navigation_items', [$this, 'getNavigationItems']),
@@ -115,50 +117,40 @@ class AppExtension extends AbstractExtension {
         $edit = $field['edit'] ?? true;
         if (!$edit) return '';
 
+        // Step 1: Get data
         if (is_string($edit)) {
-            $key = $edit;
+            $property = $edit;
             $data = $entity->getValue($edit);
         } else if (is_callable($field['data'])) {
             $data = $field['data']($entity);
-            $key = null;
+            $property = null;
             assert(is_callable($field['edit_callback'] ?? null), 'No property or callback provided');
         } else {
-            $key = $field['data'];
-            $data = $entity->getValue($key);
+            $property = $field['data'];
+            $data = $entity->getValue($property);
         }
 
+        // Step 2: Get form element
         if ($data instanceof PersistentCollection) {
             $entity_name = $data->getTypeClass()->rootEntityName;
             $repository = $this->em->getRepository($entity_name);
-            return $this->twig->render('/elements/form/autocomplete.html.twig', [
-                'name' => $name,
-                'options' => $repository->getOptions(),
-                'values' => $data,
-            ]);
+            return FormElement::autocomplete($repository->getOptions(), $data)->render($this->twig, $name);
         }
 
         if ($data instanceof EntityCollection) {
             $entity_name = $data->getTypeClass();
             $repository = $this->em->getRepository($entity_name);
-            return $this->twig->render('/elements/form/autocomplete.html.twig', [
-                'name' => $name,
-                'options' => $repository->getOptions(),
-                'values' => $data,
-            ]);
+            return FormElement::autocomplete($repository->getOptions(), $data)->render($this->twig, $name);
         }
 
-        $property_type = (new ReflectionProperty($entity, $key))->getType();
+        $property_type = (new ReflectionProperty($entity, $property))->getType();
         if (!$property_type->isBuiltin()) {
             $class_name = $property_type->getName();
             $reflection = new ReflectionClass($class_name);
 
             if ($reflection->isSubclassOf(PinakesEntity::class)) {
                 $repository = $this->em->getRepository($class_name);
-                return $this->twig->render('/elements/form/autocomplete.html.twig', [
-                    'name' => $name,
-                    'options' => $repository->getOptions(),
-                    'values' => $data,
-                ]);
+                return FormElement::autocomplete($repository->getOptions(), $data)->render($this->twig, $name);
             }
         }
 
@@ -196,5 +188,10 @@ class AppExtension extends AbstractExtension {
         if ($data instanceof \DateTime) return $data->format('d.m.Y');
         if ($data instanceof ViewElement) return $data->getHtml();
         return (string) $data;
+    }
+
+    public function renderFilter(string $name, array $filter): string {
+        $form_element = $filter['form'];
+        return $form_element->render($this->twig, $name);
     }
 }

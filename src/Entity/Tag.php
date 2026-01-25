@@ -19,7 +19,6 @@ class Tag extends PinakesEntity {
     #[ORM\Column(length: 255)]
     public ?string $name = null;
 
-
     #[ORM\Column(length: 9, options: ['default' => '#ffffff'])]
     public ?string $color = null;
 

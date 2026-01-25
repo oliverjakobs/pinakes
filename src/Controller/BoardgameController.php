@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Entity\Boardgame;
+use App\Pinakes\FormElement;
 use App\Repository\BoardgameRepository;
 use App\Repository\BoardgamePublisherRepository;
 use App\Pinakes\ViewElement;
@@ -19,6 +20,12 @@ class BoardgameController extends PinakesController {
         return $this->renderList($request, $repository, 'Boardgames', params: [
             'actions' => [
                 $this->createLinkHx('New Game', 'POST', '', 'boardgame_create'),
+            ],
+            'filter_form' => [
+                'player_count' => [
+                    'caption' => 'Players',
+                    'form' => FormElement::number(null, 1, 16)
+                ],
             ]
         ]);
     }

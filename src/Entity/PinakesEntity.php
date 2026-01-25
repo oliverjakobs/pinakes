@@ -5,11 +5,16 @@ namespace App\Entity;
 use ReflectionClass;
 use App\Pinakes\ViewElement;
 use App\Pinakes\Context;
+use App\Repository\PinakesRepository;
 
 abstract class PinakesEntity {
 
     abstract public function getId(): ?int;
     abstract public function __toString(): string;
+
+    public static function getRepository(): PinakesRepository {
+        return Context::getRepository(static::class);
+    }
 
     public function getModelName(): string {
         $reflection = new ReflectionClass($this);

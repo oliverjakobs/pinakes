@@ -6,13 +6,12 @@ use App\Entity\Author;
 use App\Entity\Series;
 use App\Traits\NamedEntityTrait;
 use App\Pinakes\EntityCollection;
-use Doctrine\Persistence\ManagerRegistry;
 
 class AuthorRepository extends PinakesRepository {
     use NamedEntityTrait;
 
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Author::class);
+    protected static function getEntityClass(): string {
+        return Author::class;
     }
 
     public function findBySeries(Series $series): EntityCollection {

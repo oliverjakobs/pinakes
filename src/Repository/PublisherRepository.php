@@ -4,13 +4,12 @@ namespace App\Repository;
 
 use App\Entity\Publisher;
 use App\Traits\NamedEntityTrait;
-use Doctrine\Persistence\ManagerRegistry;
 
 class PublisherRepository extends PinakesRepository {
     use NamedEntityTrait;
 
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Publisher::class);
+    protected static function getEntityClass(): string {
+        return Publisher::class;
     }
 
     protected function defineDataFields(): array {

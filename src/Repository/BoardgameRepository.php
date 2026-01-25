@@ -3,14 +3,15 @@
 namespace App\Repository;
 
 use App\Entity\Boardgame;
+use App\Pinakes\FormElement;
 use App\Traits\NamedEntityTrait;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\QueryBuilder;
 
 class BoardgameRepository extends PinakesRepository {
     use NamedEntityTrait;
-
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Boardgame::class);
+    
+    protected static function getEntityClass(): string {
+        return Boardgame::class;
     }
 
     public function getTemplate(): Boardgame {
@@ -19,6 +20,20 @@ class BoardgameRepository extends PinakesRepository {
         $result->created_at = new \DateTime();
         $result->min_player = 1;
         return $result;
+    }
+
+    protected function defineFilters(): array {
+        return [
+            'player_count' => [
+                'caption' => 'Playercount',
+                'form' => FormElement::number(null, 1, 16),
+                'filter' => function (QueryBuilder $qb, $filter): QueryBuilder {
+                    $qb->andWhere(':player_count <= e.max_player');
+                    $qb->andWhere(':player_count >= e.min_player');
+                    return $qb->setParameter('player_count', $filter);
+                }
+            ]
+        ];
     }
 
     protected function defineDataFields(): array {

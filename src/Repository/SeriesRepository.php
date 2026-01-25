@@ -6,15 +6,13 @@ use App\Entity\Series;
 use App\Entity\Author;
 use App\Traits\NamedEntityTrait;
 use App\Pinakes\Renderer;
-use App\Pinakes\Context;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
 
 class SeriesRepository extends PinakesRepository {
     use NamedEntityTrait;
 
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Series::class);
+    protected static function getEntityClass(): string {
+        return Series::class;
     }
 
     protected function getQueryBuilder(array $filter = []): QueryBuilder {
@@ -30,13 +28,13 @@ class SeriesRepository extends PinakesRepository {
             ],
             'authors' => [
                 'caption' => 'Author(s)',
-                'data' => fn (Series $s) => Context::getRepository(Author::class)->findBySeries($s),
+                'data' => fn (Series $s) => $s->getAuthors(),
                 'link' => self::LINK_DATA,
                 'edit' => false
             ],
             'authors_inline' => [
                 'caption' => 'Author(s)',
-                'data' => fn (Series $s) => Context::getRepository(Author::class)->findBySeries($s),
+                'data' => fn (Series $s) => $s->getAuthors(),
                 'render' => fn ($data) => Renderer::RenderCollectionInline($data, '; ', 5),
                 'link' => self::LINK_DATA,
             ],

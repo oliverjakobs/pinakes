@@ -2,11 +2,11 @@
 
 namespace App\Entity;
 
+use App\Repository\AuthorRepository;
 use App\Repository\SeriesRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Pinakes\ViewElement;
 
 #[ORM\Entity(repositoryClass: SeriesRepository::class)]
 class Series extends PinakesEntity {
@@ -32,5 +32,9 @@ class Series extends PinakesEntity {
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public function getAuthors(): Collection {
+        return AuthorRepository::getInstance()->findBySeries($this);
     }
 }

@@ -4,13 +4,12 @@ namespace App\Repository;
 
 use App\Entity\BoardgamePublisher;
 use App\Traits\NamedEntityTrait;
-use Doctrine\Persistence\ManagerRegistry;
 
 class BoardgamePublisherRepository extends PinakesRepository {
     use NamedEntityTrait;
 
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, BoardgamePublisher::class);
+    protected static function getEntityClass(): string {
+        return BoardgamePublisher::class;
     }
 
     protected function defineDataFields(): array {

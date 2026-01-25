@@ -5,13 +5,12 @@ namespace App\Repository;
 use App\Entity\Tag;
 use App\Traits\NamedEntityTrait;
 use App\Pinakes\ViewElement;
-use Doctrine\Persistence\ManagerRegistry;
 
 class TagRepository extends PinakesRepository {
     use NamedEntityTrait;
 
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Tag::class);
+    protected static function getEntityClass(): string {
+        return Tag::class;
     }
 
     protected function defineDataFields(): array {

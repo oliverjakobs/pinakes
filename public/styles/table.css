@@ -1,22 +1,3 @@
-.table-control {
-    display: flex;
-    width: 100%;
-    margin-bottom: 0.8rem;
-}
-
-.table-control > :last-child:not(:only-child) {
-    margin-left: auto;
-}
-
-.table-control .search {
-    padding: 0.4em 0.8em 0.4em 2em;
-    width: 300px;
-    background-image: url('../icons/bootstrap/search.svg');
-    background-position: 0.42em;
-    background-repeat: no-repeat;
-    border: thin solid var(--table-border);
-}
-
 .table-container {
     width: fit-content;
 }
@@ -174,4 +155,54 @@
 .table td.fit-content {
     width: 0;
     min-width: fit-content;
+}
+
+/* --------------------------| control |---------------------------- */
+.table-control {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    gap: 1em;
+}
+
+.table-search {
+    padding: 0.4em 0.8em 0.4em 2em;
+    width: 300px;
+    background-image: url('../icons/bootstrap/search.svg');
+    background-position: 0.42em;
+    background-repeat: no-repeat;
+    border: thin solid var(--table-border);
+}
+
+.table-filter label {
+    cursor: pointer;
+}
+
+.table-filter input[type=checkbox] {
+    display: none;
+}
+
+.table-filter input[type=checkbox] ~ label::after {
+    text-align: right;
+    margin-left: 0.4em;
+}
+
+.table-filter form div {
+    align-content: center;
+}
+
+#table-filter-label::after {
+    content: '\23F7';
+}
+
+#table-filter-label.checked::after {
+    content: '\23F6';
+}
+
+.table-filter input[type=checkbox]:not(:checked) ~ .filter-dropdown {
+    display: none;
+}
+
+.filter-dropdown {
+    margin-bottom: 0.8rem;
 }

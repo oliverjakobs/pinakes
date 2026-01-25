@@ -6,13 +6,12 @@ use App\Entity\Book;
 use App\Entity\Author;
 use App\Pinakes\Renderer;
 use App\Pinakes\EntityCollection;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
 
 class BookRepository extends PinakesRepository {
 
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Book::class);
+    protected static function getEntityClass(): string {
+        return Book::class;
     }
 
     public function getSearchKey(): string{

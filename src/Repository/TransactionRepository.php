@@ -6,12 +6,11 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use App\Pinakes\Renderer;
 use App\Pinakes\ViewElement;
-use Doctrine\Persistence\ManagerRegistry;
 
 class TransactionRepository extends PinakesRepository {
 
-    public function __construct(ManagerRegistry $registry) {
-        parent::__construct($registry, Transaction::class);
+    protected static function getEntityClass(): string {
+        return Transaction::class;
     }
 
     public function getSearchKey(): string{

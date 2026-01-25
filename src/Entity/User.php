@@ -42,7 +42,6 @@ class User extends PinakesEntity implements UserInterface, PasswordAuthenticated
         return $this->username;
     }
 
-
     /**
      * A visual identifier that represents this user.
      *
@@ -57,9 +56,7 @@ class User extends PinakesEntity implements UserInterface, PasswordAuthenticated
      */
     public function getRoles(): array {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = self::ROLE_USER;
-
+        $roles[] = self::ROLE_USER; // guarantee every user at least has ROLE_USER
         return array_unique($roles);
     }
 
@@ -78,18 +75,15 @@ class User extends PinakesEntity implements UserInterface, PasswordAuthenticated
         return $this->password;
     }
 
-    public function setPassword(string $password): static
-    {
+    public function setPassword(string $password): static {
         $this->password = $password;
-
         return $this;
     }
 
     /**
      * @see UserInterface
      */
-    public function eraseCredentials(): void
-    {
+    public function eraseCredentials(): void {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
     }

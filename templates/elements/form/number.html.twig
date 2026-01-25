@@ -1,0 +1,8 @@
+<input 
+    type="number"
+    id="{{ name }}"
+    name="{{ name }}"
+    {% if value is defined %}value="{{ value }}"{% endif %}
+    {% if min is defined %}min="{{ min }}"{% endif %}
+    {% if max is defined %}max="{{ max }}"{% endif %}
+>

@@ -20,13 +20,24 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     const INPUT_TIME = 'time';
 
     private array $data_fields;
+    private array $filters;
 
-    public function __construct(ManagerRegistry $registry, string $entityClass) {
-        parent::__construct($registry, $entityClass);
+    public function __construct(ManagerRegistry $registry) {
+        parent::__construct($registry, static::getEntityClass());
         $this->data_fields = $this->defineDataFields();
+        $this->filters = $this->defineFilters();
     }
     
+    abstract static protected function getEntityClass(): string;
     abstract protected function defineDataFields(): array;
+
+    protected function defineFilters(): array {
+        return [];
+    }
+
+    public static function getInstance(): static {
+        return Context::getRepository(static::getEntityClass());
+    }
 
     protected function composeDataFields(?array $names = null): array {
         if (null === $names) return $this->data_fields;
@@ -132,7 +143,18 @@ abstract class PinakesRepository extends ServiceEntityRepository {
 
     /** @return PinakesEntity[] */
     public function applyFilter(array $filter): array {
-        return $this->getQueryBuilder($filter)->getQuery()->getResult();
+        $qb = $this->getQueryBuilder($filter);
+        
+        // append predefined filters
+        foreach ($filter as $name => $value) {
+            $def = $this->filters[$name] ?? null;
+            if (null === $def) continue;
+
+            $filter_fn = $def['filter'];
+            $qb = $filter_fn($qb, $value);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     public function getOptions(): array {

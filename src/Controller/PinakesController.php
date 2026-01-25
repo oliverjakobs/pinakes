@@ -58,11 +58,17 @@ abstract class PinakesController extends AbstractController {
     }
 
     protected function pushFilterUrl(Response $response, Request $request, array $filter): Response {
-        $page = $filter['page'];
-        $query = array_filter([
-            'search' => $filter['search'] ?? null,
-            'page' => $page > 1 ? $page : null,
-        ]);
+        $diff = [
+            'order_dir' => null,
+            'order_by' => null,
+            'pp' => null
+        ];
+
+        if (1 === intval($filter['page'])) {
+            $diff['page'] = null;
+        }
+
+        $query = array_diff_key($filter, $diff);
 
         // TODO dont push if only order changed
         $referer = $request->headers->get('referer');
@@ -86,7 +92,7 @@ abstract class PinakesController extends AbstractController {
     }
 
     public function renderList(Request $request, PinakesRepository $repository, string $title, string $fields = 'list', array $params = [], array $filter = []): Response {
-        $query = $this->getQueryFilter($request->query->all(), $filter_only);
+        $query = $this->getQueryFilter(array_filter($request->query->all()), $filter_only);
         $filter = array_merge(self::DEFAULT_FILTER, $filter, $query);
 
         $params = array_merge([

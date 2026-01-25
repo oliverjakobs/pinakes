@@ -90,3 +90,43 @@ a.link-extern::after {
   font-weight: bold;
   padding-left: 0.4em;
 }
+
+/* --------------------------| range |---------------------------- */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track,
+input[type="range"]::-moz-range-track {
+  background-color: #c7c2af;
+  border-radius: 2px;
+  height: 0.5rem;
+}
+
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-moz-range-thumb {
+  background-color: #442d2d;
+  border: none; /*Removes extra border that FF applies*/
+  border-radius: 3px;
+  height: 1.5rem;
+  width: 0.6rem;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; /* Override default look */
+  appearance: none;
+  margin-top: -8px; /* Centers thumb on the track */
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb,
+input[type="range"]:focus::-moz-range-thumb {
+  outline: 2px solid #442d2d;
+  outline-offset: 0.125rem;
+}
