@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Tag;
+use App\Pinakes\DataType;
 use App\Traits\NamedEntityTrait;
-use App\Pinakes\ViewElement;
 
 class TagRepository extends PinakesRepository {
     use NamedEntityTrait;
@@ -23,8 +23,7 @@ class TagRepository extends PinakesRepository {
             'color' => [
                 'caption' => 'Color',
                 'data' => 'color',
-                'render' => fn($data) => ViewElement::tag($data, $data)->addClasses(['monospace'])->getHtml(),
-                'input_type' => 'color',
+                'data_type' => DataType::color(),
             ],
             'book_count' => [
                 'caption' => 'Books',

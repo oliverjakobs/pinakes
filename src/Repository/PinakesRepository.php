@@ -3,12 +3,14 @@
 namespace App\Repository;
 
 use App\Entity\PinakesEntity;
-use App\Pinakes\Context;
+use App\Pinakes\DataType;
+use App\Pinakes\Helper;
+use App\Pinakes\Pinakes;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Common\Collections\ArrayCollection;
-use DateTime;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\PersistentCollection;
 
 abstract class PinakesRepository extends ServiceEntityRepository {
 
@@ -25,18 +27,13 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, static::getEntityClass());
         $this->data_fields = $this->defineDataFields();
-        $this->filters = $this->defineFilters();
     }
     
     abstract static protected function getEntityClass(): string;
     abstract protected function defineDataFields(): array;
 
-    protected function defineFilters(): array {
-        return [];
-    }
-
     public static function getInstance(): static {
-        return Context::getRepository(static::getEntityClass());
+        return Pinakes::getRepository(static::getEntityClass());
     }
 
     protected function composeDataFields(?array $names = null): array {
@@ -55,6 +52,94 @@ abstract class PinakesRepository extends ServiceEntityRepository {
 
         assert(method_exists($this, $func), $func . ' missing for ' . $this::class);
         return $this->$func();
+    }
+
+    public function getFilters(): array {
+        return [];
+    }
+
+    private function getDataType(string $property) {
+        $meta = $this->getClassMetadata();
+        if ($meta->hasField($property)) {
+            return new DataType($meta->getFieldMapping($property)->type);
+        }
+        
+        if ($meta->hasAssociation($property)) {
+            $target_entity = $meta->getAssociationMapping($property)->targetEntity;
+
+            if ($meta->isSingleValuedAssociation($property)) {
+                return DataType::entity($target_entity);
+            } else if ($meta->isCollectionValuedAssociation($property)) {
+                return DataType::collection($target_entity);
+            }
+        }
+        
+        assert(false, 'Unkown field ' . $property);
+    }
+
+    private static function guessDataType(PinakesEntity $entity, ?string $property, mixed $data): DataType {
+        if (null !== $property) {
+            return $entity->getRepository()->getDataType($property);
+        }        
+        
+        if ($data instanceof PersistentCollection) {
+            return DataType::collection($data->getTypeClass()->rootEntityName);
+        }
+        
+        if ($data instanceof Collection) {
+            assert(!$data->isEmpty(), 'Cannot determine type of empty Collection');
+            return DataType::collection($data->first()::class);
+        }
+
+        assert(false, 'Failed to guess DataType field ' . $property);
+        return new DataType(gettype($data));
+    }
+
+    const MODE_RENDER = 0;
+    const MODE_EDIT = 1;
+    const MODE_EXPORT = 2;
+
+    public static function parseDataField(array $field, PinakesEntity $entity, int $mode = self::MODE_RENDER): array {
+        assert(isset($field['data']), 'No data specified');
+
+        // Step 1: Get data
+        $edit = $field['edit'] ?? null;
+        if (self::MODE_EDIT === $mode && is_string($edit)) {
+            $property = $edit;
+            $data = $entity->getValue($edit);
+        } else if (is_callable($field['data'])) {
+            $property = null;
+            $data = $field['data']($entity);
+        } else {
+            $property = $field['data'];
+            $data = $entity->getValue($property);
+        }
+
+        if (self::MODE_RENDER === $mode && Helper::isEmpty($data)) return [ null, null ];  
+
+        // Step 2: Get datatype
+        $data_type =  $field['data_type'] ?? self::guessDataType($entity, $property, $data);
+        return [ $data, $data_type ];
+    }
+
+    public function update(PinakesEntity $entity, string $name, string|array $value): void {
+        $field = $this->data_fields[$name];
+
+        $edit = $field['edit'] ?? true;
+        if (!$edit) return;
+
+        // callback
+        $callback = $field['edit_callback'] ?? null;
+        if (null !== $callback) {
+            assert(is_callable($callback));
+            $callback($entity, $value);
+            return;
+        }
+
+        $property = is_string($edit) ? $edit : $field['data'];        
+        $data_type = $this->getDataType($property);
+
+        $entity->setValue($property, $data_type->parse($value));
     }
 
     public function save(PinakesEntity $entity, bool $flush = true) {
@@ -163,48 +248,5 @@ abstract class PinakesRepository extends ServiceEntityRepository {
             $options[$entity->getId()] = (string)$entity;
         }
         return $options;
-    }
-
-    public function update(PinakesEntity $entity, string $name, mixed $value): void {
-        $field = $this->data_fields[$name];
-
-        $edit = $field['edit'] ?? true;
-        if (!$edit) return;
-
-        // callback
-        if (isset($field['edit_callback'])) {
-            $callback = $field['edit_callback'];
-            assert(is_callable($callback));
-            $callback($entity, $value);
-            return;
-        }
-
-        // map value
-        $key = is_string($edit) ? $edit : $field['data'];
-
-        $meta = $this->getClassMetadata();
-        if ($meta->hasField($key)) {
-            $value = $value = match($meta->getFieldMapping($key)->type) {
-                'integer' => intval($value),
-                'float' => floatval($value),
-                'datetime' => new DateTime($value),
-                default => $value
-            };
-        } else if ($meta->hasAssociation($key)) {
-            $target = $meta->getAssociationMapping($key)->targetEntity;
-            $target_repository = Context::getRepository($target);
-
-            if ($meta->isSingleValuedAssociation($key)) {
-                $value = empty($value) ? null : $target_repository->getOrCreate($value, false);
-            } else if ($meta->isCollectionValuedAssociation($key)) {
-                $entities = array_map(fn ($e) => $target_repository->getOrCreate($e, false), $value);
-                $value = new ArrayCollection($entities);
-            }
-        } else {
-            assert(false, 'Unkown field ' . $key);
-        }
-
-        // set value
-        $entity->setValue($key, $value);
     }
 }

@@ -2,10 +2,15 @@
 
 namespace App\Entity;
 
+use App\Pinakes\DataType;
 use ReflectionClass;
 use App\Pinakes\ViewElement;
-use App\Pinakes\Context;
+use App\Pinakes\Pinakes;
 use App\Repository\PinakesRepository;
+use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use ReflectionProperty;
 
 abstract class PinakesEntity {
 
@@ -13,7 +18,7 @@ abstract class PinakesEntity {
     abstract public function __toString(): string;
 
     public static function getRepository(): PinakesRepository {
-        return Context::getRepository(static::class);
+        return Pinakes::getRepository(static::class);
     }
 
     public function getModelName(): string {
@@ -22,17 +27,17 @@ abstract class PinakesEntity {
     }
 
     public function getLinkSelf(?string $caption = null): ViewElement {
-        $url = Context::getUrl($this->getModelName() . '_show', ['id' => $this->getId()]);
+        $url = Pinakes::getUrl($this->getModelName() . '_show', ['id' => $this->getId()]);
         return ViewElement::anchor($caption ?? (string)$this, $url);
     }
 
     public function getLinkEdit(?string $caption = null): ViewElement {
-        $url = Context::getUrl($this->getModelName() . '_modal', ['id' => $this->getId()]);
+        $url = Pinakes::getUrl($this->getModelName() . '_modal', ['id' => $this->getId()]);
         return ViewElement::buttonModal($caption ?? 'Edit', $url);
     }
 
     public function getLinkDelete(?string $caption = null): ViewElement {
-        $url = Context::getUrl($this->getModelName() . '_delete', ['id' => $this->getId()]);
+        $url = Pinakes::getUrl($this->getModelName() . '_delete', ['id' => $this->getId()]);
         return ViewElement::hxButton($caption ?? 'Delete', $url, 'DELETE');
     }
 
@@ -51,16 +56,8 @@ abstract class PinakesEntity {
         assert(false, 'Cant set ' . $key);
     }
 
-    public function getValue(string $key): mixed {
-        if (property_exists($this, $key)) {
-            return $this->$key;
-        }
-
-        $getter = 'get' . str_replace('_', '', ucwords($key, '_'));
-        if (method_exists($this, $getter)) {
-            return $this->{$getter}();
-        }
-
-        assert(false, 'Cant get ' . $key);
+    public function getValue(string $property): mixed {
+        assert(property_exists($this, $property), 'Unknown property ' . $property);
+        return $this->$property;
     }
 }

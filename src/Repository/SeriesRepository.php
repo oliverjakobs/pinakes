@@ -4,8 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Series;
 use App\Entity\Author;
+use App\Pinakes\DataType;
 use App\Traits\NamedEntityTrait;
-use App\Pinakes\Renderer;
 use Doctrine\ORM\QueryBuilder;
 
 class SeriesRepository extends PinakesRepository {
@@ -35,7 +35,7 @@ class SeriesRepository extends PinakesRepository {
             'authors_inline' => [
                 'caption' => 'Author(s)',
                 'data' => fn (Series $s) => $s->getAuthors(),
-                'render' => fn ($data) => Renderer::RenderCollectionInline($data, '; ', 5),
+                'data_type' => DataType::collection(Author::class, '; '),
                 'link' => self::LINK_DATA,
             ],
             'volume_count' => [

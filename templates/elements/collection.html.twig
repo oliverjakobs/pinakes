@@ -1,15 +1,15 @@
-<?php declare(strict_types=1);
 
-namespace App\Pinakes;
+{% if separator is defined and separator is not empty %} 
+    {{}}
 
-use Doctrine\Common\Collections\Collection;
+{% else %}
 
-class Renderer {
-    public static function RenderCurrency(float $data, string $currency = '€'): string {
-        return sprintf('%.2f %s', $data, $currency);
-    }
 
-    public static function RenderCollection(Collection|array $data, int $limit = PHP_INT_MAX): string {
+{% endif %}
+
+
+
+public static function RenderCollection(Collection|array $data, int $limit = PHP_INT_MAX): string {
         if ($data instanceof Collection) $data = $data->toArray();
 
         if (count($data) > $limit) {
@@ -33,5 +33,3 @@ class Renderer {
         }
         return implode($separator, $data);
     }
-
-}

@@ -4,8 +4,10 @@ namespace App\Repository;
 
 use App\Entity\Book;
 use App\Entity\Author;
-use App\Pinakes\Renderer;
-use App\Pinakes\EntityCollection;
+use App\Entity\Tag;
+use App\Pinakes\DataType;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\QueryBuilder;
 
 class BookRepository extends PinakesRepository {
@@ -37,9 +39,9 @@ class BookRepository extends PinakesRepository {
         return $qb;
     }
 
-    public function getNewest(): EntityCollection {
+    public function getNewest(): Collection {
         $qb = $this->createQueryBuilder('b')->orderBy('b.created_at', 'DESC')->setMaxResults(5);
-        return new EntityCollection(Author::class, $qb->getQuery()->getResult());
+        return new ArrayCollection($qb->getQuery()->getResult());
     }
 
     protected function defineDataFields(): array {
@@ -52,7 +54,7 @@ class BookRepository extends PinakesRepository {
             'authors_inline' => [
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'render' => fn ($data) => Renderer::RenderCollectionInline($data, '; '),
+                'data_type' => DataType::collection(Author::class, '; '),
                 'link' => self::LINK_DATA,
                 'edit' => false
             ],
@@ -98,19 +100,17 @@ class BookRepository extends PinakesRepository {
             'tags' => [
                 'caption' => 'Tags',
                 'data' => fn (Book $b) => $b->getTags(),
-                'render' => fn ($data) => Renderer::RenderCollectionInline($data),
-                'edit' => 'tags'
+                'data_type' => DataType::collection(Tag::class, ' '),
+                'edit' => 'tags',
             ],
             'tags_export' => [
                 'caption' => 'Tags',
                 'data' => 'tags',
-                'render' => fn ($data) => Renderer::RenderCollectionInline($data, '; '),
             ],
             'created_at' => [
                 'caption' => 'Created at',
                 'data' => 'created_at',
                 'edit' => false
-
             ]
         ];
     }

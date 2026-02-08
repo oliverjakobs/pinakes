@@ -1,9 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace App\Pinakes;
+namespace App\Renderable;
 
-class ViewElement {
+use App\Pinakes\Pinakes;
 
+class ViewElement implements Renderable {
     public string $element;
     public self|string $content;
     public array $classes = [];
@@ -82,7 +83,7 @@ class ViewElement {
     }
 
     public function __toString(): string {
-        return $this->getHtml();
+        return $this->render();
     }
 
     public function addClasses(array $classes): self {
@@ -94,10 +95,10 @@ class ViewElement {
         $this->attributes[$key] = $value;
         return $this;
     }
-
-    public function getHtml(): string {
+    
+    public function render(): string {
         if (!empty($this->_raw)) return $this->_raw;
-
+        
         $attr = array_map(fn ($k, $v) => sprintf('%s="%s"', $k, $v), array_keys($this->attributes), $this->attributes);
         $attr = implode(' ', $attr);
 

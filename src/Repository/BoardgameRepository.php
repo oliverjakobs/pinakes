@@ -3,7 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Boardgame;
-use App\Pinakes\FormElement;
+use App\Renderable\FormElement;
 use App\Traits\NamedEntityTrait;
 use Doctrine\ORM\QueryBuilder;
 
@@ -22,11 +22,12 @@ class BoardgameRepository extends PinakesRepository {
         return $result;
     }
 
-    protected function defineFilters(): array {
+    public function getFilters(): array {
         return [
             'player_count' => [
-                'caption' => 'Playercount',
-                'form' => FormElement::number(null, 1, 16),
+                'caption' => 'Players',
+                // TODO datatype
+                'form' => FormElement::number('player_count', null, 1, 16),
                 'filter' => function (QueryBuilder $qb, $filter): QueryBuilder {
                     $qb->andWhere(':player_count <= e.max_player');
                     $qb->andWhere(':player_count >= e.min_player');
@@ -80,5 +81,9 @@ class BoardgameRepository extends PinakesRepository {
 
     public function getDataFieldsShow(): array {
         return $this->composeDataFields([ 'name', 'base_game', 'extensions', 'publisher', 'min_player', 'max_player' ]);
+    }
+
+    public function getDataFieldsFilter(): array {
+        return $this->composeDataFields([ 'player_count' ]);
     }
 }

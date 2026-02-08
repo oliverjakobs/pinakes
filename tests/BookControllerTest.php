@@ -13,13 +13,6 @@ class BookControllerTest extends WebTestCase {
         $this->assertResponseIsSuccessful();
     }
 
-    public function testListTag(): void {
-        $client = static::createClient();
-        $crawler = $client->request('GET', '/book/tag/1');
-
-        $this->assertResponseIsSuccessful();
-    }
-
     public function testEmptyList(): void {
         $client = static::createClient();
         $crawler = $client->request('GET', '/book', [

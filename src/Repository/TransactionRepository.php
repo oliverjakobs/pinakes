@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Transaction;
 use App\Entity\User;
-use App\Pinakes\Renderer;
+use App\Pinakes\DataType;
 use App\Pinakes\ViewElement;
 
 class TransactionRepository extends PinakesRepository {
@@ -35,7 +35,7 @@ class TransactionRepository extends PinakesRepository {
             'amount' => [
                 'caption' => 'Amount',
                 'data' => 'amount',
-                'render' => fn($data) => Renderer::RenderCurrency($data),
+                'data_type' => DataType::currency(),
                 'style_class' => 'align-right fit-content'
             ],
             'timestamp' => [

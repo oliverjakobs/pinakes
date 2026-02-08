@@ -5,7 +5,8 @@ namespace App\Repository;
 use App\Entity\Author;
 use App\Entity\Series;
 use App\Traits\NamedEntityTrait;
-use App\Pinakes\EntityCollection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 class AuthorRepository extends PinakesRepository {
     use NamedEntityTrait;
@@ -14,11 +15,11 @@ class AuthorRepository extends PinakesRepository {
         return Author::class;
     }
 
-    public function findBySeries(Series $series): EntityCollection {
-        if (0 === $series->volumes->count()) return new EntityCollection(Author::class, []);
+    public function findBySeries(Series $series): Collection {
+        if (0 === $series->volumes->count()) return new ArrayCollection();
 
         $qb = $this->applyOr($this->getQueryBuilder(), $series->volumes, 'MEMBER OF', 'books');
-        return new EntityCollection(Author::class, $qb->getQuery()->getResult());
+        return new ArrayCollection($qb->getQuery()->getResult());
     }
 
     protected function defineDataFields(): array {

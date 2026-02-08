@@ -3,28 +3,30 @@
 namespace App\Pinakes;
 
 use App\Repository\PinakesRepository;
-use App\Pinakes\PinakesRouter;
+use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Twig\Environment;
 
-class Context {
+class Pinakes {
     private static ?self $_instance = null;
 
     public function __construct(
         private EntityManagerInterface $em,
-        private PinakesRouter $router,
+        private RouterInterface $router,
+        private Environment $twig,
         private string $app_dir
     ) {
     }
 
-    public static function init(EntityManagerInterface $em, PinakesRouter $router, string $app_dir): void {
+    public static function init(EntityManagerInterface $em, RouterInterface $router, Environment $twig, string $app_dir): void {
         if (self::isInitialized()) return;
 
-        self::$_instance = new self($em, $router, $app_dir);
+        self::$_instance = new self($em, $router, $twig, $app_dir);
     }
 
     public static function getInstance(): self {
         if (!self::isInitialized()) {
-            throw new \RuntimeException('Context has not been initialized.');
+            throw new \RuntimeException('Pinakes has not been initialized.');
         }
         return self::$_instance;
     }
@@ -47,5 +49,9 @@ class Context {
 
     public static function getUrl(string $route, array $params): string {
         return self::getInstance()->router->generate($route, $params);
+    }
+
+    public static function renderTemplate(string $path, array $params): string {
+        return self::getInstance()->twig->render($path, $params);
     }
 }

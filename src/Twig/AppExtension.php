@@ -2,23 +2,17 @@
 
 namespace App\Twig;
 
-use App\Pinakes\Context;
-use App\Pinakes\ViewElement;
+use App\Pinakes\Pinakes;
 use App\Entity\PinakesEntity;
+use App\Pinakes\DataType;
+use App\Pinakes\Helper;
 use App\Repository\PinakesRepository;
-use App\Pinakes\EntityCollection;
-use App\Pinakes\FormElement;
 use App\Pinakes\Renderer;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Bundle\SecurityBundle\Security;
-use ReflectionClass;
-use ReflectionProperty;
 use Twig\Extension\AbstractExtension;
-use Twig\Environment;
 use Twig\TwigFunction;
 use Twig\TwigFilter;
 use Twig\Markup;
@@ -26,10 +20,8 @@ use Twig\Markup;
 class AppExtension extends AbstractExtension {
 
     public function __construct(
-        private EntityManagerInterface $em,
         private RouterInterface $router,
         private Security $security,
-        private Environment $twig
     ) {
     }
 
@@ -47,7 +39,7 @@ class AppExtension extends AbstractExtension {
 
     public function getFilters(): array {
         return [
-            new TwigFilter('fmt_currency', fn(float $value) => Renderer::RenderCurrency($value)),
+            new TwigFilter('fmt_currency', fn(float $value) => DataType::currency()->render($value)),
         ];
     }
 
@@ -57,7 +49,7 @@ class AppExtension extends AbstractExtension {
     }
 
     public function getNavigationItems(): array {
-        $filename = Context::getAbsolutePath('/data/navigation.json');
+        $filename = Pinakes::getAbsolutePath('/data/navigation.json');
         assert(file_exists($filename));
 
         $content = file_get_contents($filename);
@@ -68,22 +60,16 @@ class AppExtension extends AbstractExtension {
     }
 
     public function getIcon(string $name): ?Markup {
-        $filename = Context::getAbsolutePath('/public/icons/bootstrap/' . $name . '.svg');
+        $filename = Pinakes::getAbsolutePath('/public/icons/bootstrap/' . $name . '.svg');
         if (!file_exists($filename)) return null;
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
     public function renderValue(array $field, PinakesEntity $entity): string {
         // Step 1: Get data
-        assert(isset($field['data']), 'No data specified');
+        [$data, $data_type] = PinakesRepository::parseDataField($field, $entity);
 
-        if (is_callable($field['data'])) {
-            $data = $field['data']($entity);
-        } else {
-            $data = $entity->getValue($field['data']);
-        }
-
-        if (empty($data) || ($data instanceof Collection && $data->isEmpty())) return '-';
+        if (null === $data_type) return '-';
 
         // Step 2: Apply link
         $link = $field['link'] ?? null;
@@ -104,13 +90,7 @@ class AppExtension extends AbstractExtension {
         }
 
         // Step 3: Render data
-        $render = $field['render'] ?? null;
-        if (is_callable($render)) return $render($data);
-
-        if (is_iterable($data)) return Renderer::RenderCollection($data);
-        if ($data instanceof \DateTime) return $data->format('d.m.Y');
-        if ($data instanceof ViewElement) return $data->getHtml();
-        return (string) $data;
+        return $data_type->render($data);
     }
 
     public function renderForm(string $name, array $field, PinakesEntity $entity): string {
@@ -118,53 +98,11 @@ class AppExtension extends AbstractExtension {
         if (!$edit) return '';
 
         // Step 1: Get data
-        if (is_string($edit)) {
-            $property = $edit;
-            $data = $entity->getValue($edit);
-        } else if (is_callable($field['data'])) {
-            $data = $field['data']($entity);
-            $property = null;
-            assert(is_callable($field['edit_callback'] ?? null), 'No property or callback provided');
-        } else {
-            $property = $field['data'];
-            $data = $entity->getValue($property);
-        }
+        [$data, $data_type] = PinakesRepository::parseDataField($field, $entity, PinakesRepository::MODE_EDIT);
 
         // Step 2: Get form element
-        if ($data instanceof PersistentCollection) {
-            $entity_name = $data->getTypeClass()->rootEntityName;
-            $repository = $this->em->getRepository($entity_name);
-            return FormElement::autocomplete($repository->getOptions(), $data)->render($this->twig, $name);
-        }
-
-        if ($data instanceof EntityCollection) {
-            $entity_name = $data->getTypeClass();
-            $repository = $this->em->getRepository($entity_name);
-            return FormElement::autocomplete($repository->getOptions(), $data)->render($this->twig, $name);
-        }
-
-        $property_type = (new ReflectionProperty($entity, $property))->getType();
-        if (!$property_type->isBuiltin()) {
-            $class_name = $property_type->getName();
-            $reflection = new ReflectionClass($class_name);
-
-            if ($reflection->isSubclassOf(PinakesEntity::class)) {
-                $repository = $this->em->getRepository($class_name);
-                return FormElement::autocomplete($repository->getOptions(), $data)->render($this->twig, $name);
-            }
-        }
-
-        $type = $field['input_type'] ?? 'text';
-        if ($data instanceof \DateTime) {
-            if ('text' === $type) $type = PinakesRepository::INPUT_DATE;
-            $data = $data->format('Y-m-d');
-        }
-
-        return $this->twig->render('/elements/form/input.html.twig', [
-            'name' => $name,
-            'type' => $type,
-            'value' => $data,
-        ]);
+        $form = $data_type->getForm($name, $data);
+        return $form->render();
     }
 
     // TODO simplify
@@ -178,20 +116,18 @@ class AppExtension extends AbstractExtension {
             $data = $entity->getValue($field['data']);
         }
 
-        if (empty($data) || ($data instanceof ArrayCollection && $data->isEmpty())) return '-';
+        if (null === $data 
+            || (!is_scalar($data) && empty($data)) 
+            || ($data instanceof ArrayCollection && $data->isEmpty())) {
+            return '-';
+        }
 
         // Step 2: Render data
-        $render = $field['render'] ?? null;
-        if (is_callable($render)) return $render($data);
-
-        if (is_iterable($data)) return Renderer::RenderCollection($data);
-        if ($data instanceof \DateTime) return $data->format('d.m.Y');
-        if ($data instanceof ViewElement) return $data->getHtml();
         return (string) $data;
     }
 
     public function renderFilter(string $name, array $filter): string {
         $form_element = $filter['form'];
-        return $form_element->render($this->twig, $name);
+        return $form_element->render($name);
     }
 }
