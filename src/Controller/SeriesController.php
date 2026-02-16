@@ -4,7 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Series;
 use App\Entity\User;
-use App\Pinakes\ViewElement;
+use App\Renderable\Link;
+use App\Renderable\ViewElement;
 use App\Repository\SeriesRepository;
 use App\Repository\BookRepository;
 use App\Repository\TagRepository;
@@ -18,7 +19,7 @@ class SeriesController extends PinakesController {
     public function list(Request $request, SeriesRepository $repository): Response {
         return $this->renderList($request, $repository, 'Series', params: [
             'actions' => [
-                $this->createButtonModal('New Series', 'series_modal'),
+                Link::modal('New Series', 'series_modal'),
             ]
         ]);
     }
@@ -29,8 +30,8 @@ class SeriesController extends PinakesController {
         return $this->renderList($request, $books, 'Series: ' . (string) $series,
             fields: 'list_series',
             params: [ 'actions' => [
-                $this->createLinkHx('Add Volume', 'POST', '', 'book_create', [ 'series' => $series->getId() ]),
-                $this->createButtonModal('Add Tag', 'series_add_tag', [ 'id' => $series->getId() ]),
+                Link::post('Add Volume', 'book_create', [ 'series' => $series->getId() ]),
+                Link::modal('Add Tag', 'series_add_tag', [ 'id' => $series->getId() ]),
                 ViewElement::separator(),
                 $series->getLinkEdit(),
                 $series->getLinkDelete(),

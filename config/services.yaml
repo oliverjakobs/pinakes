@@ -29,3 +29,7 @@ services:
     app.twig:
         alias: 'Twig\Environment'
         public: true
+
+    app.auth_checker:
+        alias: 'Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface'
+        public: true

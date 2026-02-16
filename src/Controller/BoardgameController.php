@@ -3,9 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Renderable\Link;
+use App\Renderable\ViewElement;
 use App\Repository\BoardgameRepository;
 use App\Repository\BoardgamePublisherRepository;
-use App\Pinakes\ViewElement;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,7 +18,7 @@ class BoardgameController extends PinakesController {
     public function list(Request $request, BoardgameRepository $repository): Response {
         return $this->renderList($request, $repository, 'Boardgames', params: [
             'actions' => [
-                $this->createLinkHx('New Game', 'POST', '', 'boardgame_create'),
+                Link::post('New Game', 'boardgame_create'),
             ],
             'filter_form' => $repository->getFilters()
         ]);
@@ -41,7 +42,7 @@ class BoardgameController extends PinakesController {
 
         return $this->renderShow($repository, $boardgame, 'show', [
             'actions' => [
-                $this->createLinkHx('Add Extension', 'POST', '', 'boardgame_create', [ 'base' => $boardgame->getId() ]),
+                Link::post('Add Extension', 'boardgame_create', [ 'base' => $boardgame->getId() ]),
                 ViewElement::separator(),
                 $boardgame->getLinkEdit(),
                 $boardgame->getLinkDelete(),

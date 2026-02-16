@@ -18,6 +18,7 @@ class Kernel extends BaseKernel
         Pinakes::init(
             $this->container->get('doctrine.orm.entity_manager'),
             $this->container->get('app.router'),
+            $this->container->get('app.auth_checker'),
             $this->container->get('app.twig'),
             $this->getProjectDir()
         );

@@ -8,6 +8,7 @@ use App\Pinakes\DataType;
 use App\Pinakes\Helper;
 use App\Repository\PinakesRepository;
 use App\Pinakes\Renderer;
+use App\Renderable\ViewElement;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Routing\RouterInterface;
@@ -67,34 +68,35 @@ class AppExtension extends AbstractExtension {
 
     public function renderValue(array $field, PinakesEntity $entity): string {
         // Step 1: Get data
+        /** @var DataType data_type */
         [$data, $data_type] = PinakesRepository::parseDataField($field, $entity);
 
-        if (null === $data_type) return '-';
-
         // Step 2: Apply link
-        $link = $field['link'] ?? null;
-
-        if (PinakesRepository::LINK_SELF === $link) {
-            assert(!is_iterable($data), 'Iterables can only link to data');
-            $data = $entity->getLinkSelf((string) $data);
-        } else if (PinakesRepository::LINK_DATA === $link) {
-            if (is_iterable($data)) {
-                if ($data instanceof Collection) $data = $data->toArray();
-                $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
+        if (null !== $data) {
+            $link = $field['link'] ?? null;
+            if (PinakesRepository::LINK_SELF === $link) {
+                assert(!is_iterable($data), 'Iterables can only link to data');
+                $data = $entity->getLinkSelf((string) $data);
+            } else if (PinakesRepository::LINK_DATA === $link) {
+                if (is_iterable($data)) {
+                    if ($data instanceof Collection) $data = $data->toArray();
+                    $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
+                } else {
+                    assert($data instanceof PinakesEntity, 'Can only link to entities');
+                    $data = $data->getLinkSelf((string) $data);
+                }
             } else {
-                assert($data instanceof PinakesEntity, 'Can only link to entities');
-                $data = $data->getLinkSelf((string) $data);
+                assert(null === $link, 'Unkown link type');
             }
-        } else {
-            assert(null === $link, 'Unkown link type');
         }
 
         // Step 3: Render data
-        return $data_type->render($data);
+        $value = $data_type->render($data);
+        return ViewElement::create('td', $value)->addClasses($data_type->getStyleClasses())->render();
     }
 
     public function renderForm(string $name, array $field, PinakesEntity $entity): string {
-        $edit = $field['edit'] ?? true;
+        $edit = $field['edit'] ?? true; // TODO default to false
         if (!$edit) return '';
 
         // Step 1: Get data
@@ -105,25 +107,14 @@ class AppExtension extends AbstractExtension {
         return $form->render();
     }
 
-    // TODO simplify
+    // TODO test
     public function exportValue(array $field, PinakesEntity $entity): string {
         // Step 1: Get data
-        assert(isset($field['data']), 'No data specified');
+        /** @var DataType data_type */
+        [$data, $data_type] = PinakesRepository::parseDataField($field, $entity, PinakesRepository::MODE_EXPORT);
 
-        if (is_callable($field['data'])) {
-            $data = $field['data']($entity);
-        } else {
-            $data = $entity->getValue($field['data']);
-        }
-
-        if (null === $data 
-            || (!is_scalar($data) && empty($data)) 
-            || ($data instanceof ArrayCollection && $data->isEmpty())) {
-            return '-';
-        }
-
-        // Step 2: Render data
-        return (string) $data;
+        // Step 3: Render data
+        return $data_type->render($data);
     }
 
     public function renderFilter(string $name, array $filter): string {

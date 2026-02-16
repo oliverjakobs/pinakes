@@ -7,8 +7,9 @@ use App\Repository\TagRepository;
 use App\Entity\Book;
 use App\Entity\Series;
 use App\Entity\User;
-use App\Pinakes\ViewElement;
 use App\Pinakes\OpenLibrary;
+use App\Renderable\Link;
+use App\Renderable\ViewElement;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,8 +22,8 @@ class BookController extends PinakesController {
         return $this->renderList($request, $repository, 'Books',
             params: [
                 'actions' => [
-                    $this->createLinkHx('New Book', 'POST', '', 'book_create'),
-                    $this->createButtonModal('From ISBN', 'book_modal_isbn'),
+                    Link::post('New Book', 'book_create'),
+                    Link::modal('From ISBN', 'book_modal_isbn'),
                     // $this->createLink('Import Books', 'book_import')->addClasses(['button']),
                     // $this->createLink('Export Books', 'book_export')->addClasses(['button']),
                 ]
@@ -109,7 +110,7 @@ class BookController extends PinakesController {
     public function export(BookRepository $repository): Response {
         $response = $this->render('export.csv.twig', [
             'data' => $repository->findAll(),
-            'fields' => $this->getDataFields($repository, 'export'),
+            'fields' => $repository->getDataFields('export'),
         ]);
         $response->headers->set('Content-Type', 'text/csv');
         $response->headers->set('Content-Disposition', 'attachment; filename="export.csv"');

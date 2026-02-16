@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Renderable\Link;
 use App\Repository\TagRepository;
 use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,7 +16,7 @@ class TagController extends PinakesController {
     public function list(Request $request, TagRepository $repository): Response {
         return $this->renderList($request, $repository, 'Tags', params: [
             'actions' => [
-                $this->createButtonModal('New Tag', 'tag_modal'),
+                Link::modal('New Tag', 'tag_modal'),
             ]
         ]);
     }

@@ -2,28 +2,19 @@
 
 namespace App\Renderable;
 
-use App\Pinakes\Pinakes;
-
 class ViewElement implements Renderable {
     public string $element;
     public self|string $content;
     public array $classes = [];
     public array $attributes = [];
 
-    private string $_raw = ''; 
-
-    public function __construct(string $element, self|string $content = '') {
+    private function __construct(string $element, self|string $content = '') {
         $this->element = $element;
         $this->content = $content;
     }
 
-    public static function icon(string $icon): self {
-        $filename = Pinakes::getAbsolutePath('/public/icons/bootstrap/' . $icon . '.svg');
-        $content = file_exists($filename) ? file_get_contents($filename) : '';
-
-        $result = new self('svg');
-        $result->_raw = $content;
-        return $result;
+    public static function create(string $element, self|string $content = ''): self {
+        return new self($element, $content);
     }
 
     public static function separator(): self {
@@ -32,12 +23,8 @@ class ViewElement implements Renderable {
         return $result;
     }
 
-    public static function tag(string $caption, string $color, string $url = ''): self {
-        if (!empty($url)) {
-            $result = self::anchor($caption, $url);;
-        } else {
-            $result = new self('div', $caption);
-        }
+    public static function tag(self|string $caption, string $color): self {
+        $result = new self('div', $caption);
 
         $fg = (hexdec(ltrim($color, '#')) > 0xffffff/2) ? 'black':'white';
         $result->attributes['style'] = sprintf('background-color:%s;color:%s;', $color, $fg);
@@ -46,40 +33,9 @@ class ViewElement implements Renderable {
         return $result;
     }
 
-    public static function anchor(self|string $caption, string $url): self {
-        $result = new self('a', $caption);
-        $result->attributes['href'] = $url;
-
-        return $result;
-    }
-
-    public static function anchorExtern(self|string $caption, string $url): self {
-        $result = self::anchor($caption, $url);
-        $result->classes[] = 'link-extern';
-        $result->attributes['target'] = '_blank';
-        $result->attributes['rel'] = 'noopener noreferrer';
-
-        return $result;
-    }
-
-    public static function hxButton(self|string $caption, string $url, string $method, string $target = ''): self {
-        $result = new self('button', $caption);
-
-        $method = 'hx-' . strtolower($method);
-        $result->attributes[$method] = $url;
-
-        if (!empty($target)) {
-            $result->attributes['hx-target'] = $target;
-        }
-
-        return $result;
-    }
-
-    public static function buttonModal(self|string $caption, string $url): self {
-        $result = self::hxButton($caption, $url, 'GET', 'body');
-        $result->attributes['hx-swap'] = 'beforeend';
-
-        return $result;
+    public static function ul(array $items): self {
+        $content = implode(PHP_EOL, array_map(fn ($i) => '<li>' . $i . '</li>', $items));
+        return new self('ul', $content);
     }
 
     public function __toString(): string {
@@ -96,9 +52,7 @@ class ViewElement implements Renderable {
         return $this;
     }
     
-    public function render(): string {
-        if (!empty($this->_raw)) return $this->_raw;
-        
+    public function render(): string {       
         $attr = array_map(fn ($k, $v) => sprintf('%s="%s"', $k, $v), array_keys($this->attributes), $this->attributes);
         $attr = implode(' ', $attr);
 
@@ -109,7 +63,7 @@ class ViewElement implements Renderable {
         }
 
         return <<<HTML
-            <$this->element $attr $class >$this->content</$this->element>
+            <$this->element $attr $class>$this->content</$this->element>
         HTML;
     }
 }

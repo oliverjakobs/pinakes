@@ -14,9 +14,7 @@
       {% for field in fields %}
         <tr>
           <td class="fit-content">{{ field.caption }}:</td>
-          <td {% if field.style_class is defined %}class="{{ field.style_class }}"{% endif %}>
-            {{ render_value(field, entity) | raw }}
-          </td>
+          {{ render_value(field, entity) | raw }}
         </tr>
       {% endfor %}
       </tbody>

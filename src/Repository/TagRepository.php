@@ -28,7 +28,6 @@ class TagRepository extends PinakesRepository {
             'book_count' => [
                 'caption' => 'Books',
                 'data' => fn(Tag $t) => $t->books->count(),
-                'style_class' => 'align-right fit-content'
             ],
         ];
     }

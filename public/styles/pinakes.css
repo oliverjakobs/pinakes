@@ -44,6 +44,11 @@ a.link-extern::after {
   white-space: nowrap;
 }
 
+.tag * {
+  text-decoration: none;
+  color: inherit;
+}
+
 .monospace {
   font-family: "Lucida Console", monospace;
 }

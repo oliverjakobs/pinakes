@@ -5,7 +5,8 @@ namespace App\Repository;
 use App\Entity\Transaction;
 use App\Entity\User;
 use App\Pinakes\DataType;
-use App\Pinakes\ViewElement;
+use App\Renderable\Icon;
+use App\Renderable\ViewElement;
 
 class TransactionRepository extends PinakesRepository {
 
@@ -36,21 +37,19 @@ class TransactionRepository extends PinakesRepository {
                 'caption' => 'Amount',
                 'data' => 'amount',
                 'data_type' => DataType::currency(),
-                'style_class' => 'align-right fit-content'
             ],
             'timestamp' => [
                 'caption' => 'Timestamp',
                 'data' => 'timestamp',
-                'style_class' => 'align-right fit-content'
             ],
             'edit' => [
                 'caption' => '',
-                'data' => fn(Transaction $t) => $t->getLinkEdit(ViewElement::icon('pencil-square')),
+                'data' => fn(Transaction $t) => $t->getLinkEdit(Icon::create('pencil-square')),
                 'visibility' => User::ROLE_ADMIN
             ],
             'delete' => [
                 'caption' => '',
-                'data' => fn(Transaction $t) => $t->getLinkDelete(ViewElement::icon('trash3')),
+                'data' => fn(Transaction $t) => $t->getLinkDelete(Icon::create('trash3')),
                 'visibility' => User::ROLE_ADMIN
             ],
         ];

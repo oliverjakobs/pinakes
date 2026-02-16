@@ -2,18 +2,12 @@
 
 namespace App\Entity;
 
-use App\Pinakes\DataType;
 use ReflectionClass;
-use App\Pinakes\ViewElement;
 use App\Pinakes\Pinakes;
+use App\Renderable\Link;
 use App\Repository\PinakesRepository;
-use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
-use ReflectionProperty;
 
 abstract class PinakesEntity {
-
     abstract public function getId(): ?int;
     abstract public function __toString(): string;
 
@@ -26,19 +20,16 @@ abstract class PinakesEntity {
         return strtolower($reflection->getShortName());
     }
 
-    public function getLinkSelf(?string $caption = null): ViewElement {
-        $url = Pinakes::getUrl($this->getModelName() . '_show', ['id' => $this->getId()]);
-        return ViewElement::anchor($caption ?? (string)$this, $url);
+    public function getLinkSelf(?string $caption = null): Link {
+        return Link::create($caption ?? (string)$this, $this->getModelName() . '_show', ['id' => $this->getId()]);
     }
 
-    public function getLinkEdit(?string $caption = null): ViewElement {
-        $url = Pinakes::getUrl($this->getModelName() . '_modal', ['id' => $this->getId()]);
-        return ViewElement::buttonModal($caption ?? 'Edit', $url);
+    public function getLinkEdit(?string $caption = null): Link {
+        return Link::modal($caption ?? 'Edit', $this->getModelName() . '_modal', ['id' => $this->getId()]);
     }
 
-    public function getLinkDelete(?string $caption = null): ViewElement {
-        $url = Pinakes::getUrl($this->getModelName() . '_delete', ['id' => $this->getId()]);
-        return ViewElement::hxButton($caption ?? 'Delete', $url, 'DELETE');
+    public function getLinkDelete(?string $caption = null): Link {
+        return Link::delete($caption ?? 'Delete', $this->getModelName() . '_delete', ['id' => $this->getId()]);
     }
 
     public function setValue(string $key, mixed $value) {

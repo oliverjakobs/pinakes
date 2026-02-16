@@ -3,8 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\TagRepository;
-use App\Pinakes\ViewElement;
-use App\Pinakes\Renderer;
+use App\Renderable\ViewElement;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -40,7 +39,6 @@ class Tag extends PinakesEntity {
     }
 
     public function getTag(): ViewElement {
-        $link = $this->getLinkSelf();
-        return ViewElement::tag((string) $this, $this->color, $link->attributes['href']);
+        return ViewElement::tag((string) $this->getLinkSelf(), $this->color);
     }
 }

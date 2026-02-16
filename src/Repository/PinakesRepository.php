@@ -6,6 +6,7 @@ use App\Entity\PinakesEntity;
 use App\Pinakes\DataType;
 use App\Pinakes\Helper;
 use App\Pinakes\Pinakes;
+use App\Renderable\Renderable;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -49,9 +50,10 @@ abstract class PinakesRepository extends ServiceEntityRepository {
 
     public function getDataFields(string $fields): array {
         $func = 'getDataFields' . str_replace('_', '', ucwords($fields, '_'));
-
         assert(method_exists($this, $func), $func . ' missing for ' . $this::class);
-        return $this->$func();
+        $result = $this->$func();
+
+        return array_filter($result, fn ($field) => Pinakes::isGranted($field['visibility'] ?? null));
     }
 
     public function getFilters(): array {
@@ -61,7 +63,7 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     private function getDataType(string $property) {
         $meta = $this->getClassMetadata();
         if ($meta->hasField($property)) {
-            return new DataType($meta->getFieldMapping($property)->type);
+            return DataType::fromFieldMapping($meta->getFieldMapping($property));
         }
         
         if ($meta->hasAssociation($property)) {
@@ -80,7 +82,7 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     private static function guessDataType(PinakesEntity $entity, ?string $property, mixed $data): DataType {
         if (null !== $property) {
             return $entity->getRepository()->getDataType($property);
-        }        
+        }
         
         if ($data instanceof PersistentCollection) {
             return DataType::collection($data->getTypeClass()->rootEntityName);
@@ -91,8 +93,11 @@ abstract class PinakesRepository extends ServiceEntityRepository {
             return DataType::collection($data->first()::class);
         }
 
-        assert(false, 'Failed to guess DataType field ' . $property);
-        return new DataType(gettype($data));
+        if (is_int($data)) return DataType::integer();
+        if (is_float($data)) return DataType::float();
+        if (is_string($data) || $data instanceof Renderable) return DataType::string();
+
+        assert(false, 'Unknown data type');
     }
 
     const MODE_RENDER = 0;
@@ -115,14 +120,14 @@ abstract class PinakesRepository extends ServiceEntityRepository {
             $data = $entity->getValue($property);
         }
 
-        if (self::MODE_RENDER === $mode && Helper::isEmpty($data)) return [ null, null ];  
+        if (self::MODE_RENDER === $mode && Helper::isEmpty($data)) $data = null;  
 
         // Step 2: Get datatype
         $data_type =  $field['data_type'] ?? self::guessDataType($entity, $property, $data);
         return [ $data, $data_type ];
     }
 
-    public function update(PinakesEntity $entity, string $name, string|array $value): void {
+    public function update(PinakesEntity $entity, string $name, string|array|null $value): void {
         $field = $this->data_fields[$name];
 
         $edit = $field['edit'] ?? true;

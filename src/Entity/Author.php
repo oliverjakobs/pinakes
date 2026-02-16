@@ -6,7 +6,7 @@ use App\Repository\AuthorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use App\Pinakes\ViewElement;
+use App\Renderable\Link;
 
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
 class Author extends PinakesEntity {
@@ -41,8 +41,8 @@ class Author extends PinakesEntity {
         return $this->id;
     }
 
-    public function getLinkOpenLibrary(): ?ViewElement {
+    public function getLinkOpenLibrary(): ?Link {
         if (null === $this->openlibrary) return null;
-        return ViewElement::anchorExtern($this->openlibrary, 'https://openlibrary.org/authors/' . $this->openlibrary);
+        return Link::extern($this->openlibrary, 'https://openlibrary.org/authors/' . $this->openlibrary);
     }
 }

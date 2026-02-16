@@ -76,12 +76,10 @@ class BookRepository extends PinakesRepository {
             'published' => [
                 'caption' => 'Year Published',
                 'data' => 'published',
-                'style_class' => 'align-right fit-content'
             ],
             'first_published' => [
                 'caption' => 'First Published',
                 'data' => 'first_published',
-                'style_class' => 'align-right fit-content'
             ],
             'isbn' => [
                 'caption' => 'ISBN',
@@ -95,7 +93,6 @@ class BookRepository extends PinakesRepository {
             'series_volume' => [
                 'caption' => 'Vol.',
                 'data' => 'series_volume',
-                'style_class' => 'align-right'
             ],
             'tags' => [
                 'caption' => 'Tags',

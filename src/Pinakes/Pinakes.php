@@ -5,6 +5,7 @@ namespace App\Pinakes;
 use App\Repository\PinakesRepository;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Twig\Environment;
 
 class Pinakes {
@@ -13,15 +14,16 @@ class Pinakes {
     public function __construct(
         private EntityManagerInterface $em,
         private RouterInterface $router,
+        private AuthorizationCheckerInterface $auth,
         private Environment $twig,
         private string $app_dir
     ) {
     }
 
-    public static function init(EntityManagerInterface $em, RouterInterface $router, Environment $twig, string $app_dir): void {
+    public static function init(EntityManagerInterface $em, RouterInterface $router, AuthorizationCheckerInterface $auth, Environment $twig, string $app_dir): void {
         if (self::isInitialized()) return;
 
-        self::$_instance = new self($em, $router, $twig, $app_dir);
+        self::$_instance = new self($em, $router, $auth, $twig, $app_dir);
     }
 
     public static function getInstance(): self {
@@ -47,11 +49,16 @@ class Pinakes {
         return self::getInstance()->app_dir . $path;
     }
 
-    public static function getUrl(string $route, array $params): string {
+    public static function getUrl(string $route, array $params = []): string {
         return self::getInstance()->router->generate($route, $params);
     }
 
     public static function renderTemplate(string $path, array $params): string {
         return self::getInstance()->twig->render($path, $params);
+    }
+
+    public static function isGranted(?string $role): bool {
+        if (null === $role) return true;
+        return self::getInstance()->auth->isGranted($role);
     }
 }

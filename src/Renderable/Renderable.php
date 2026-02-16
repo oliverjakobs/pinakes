@@ -3,5 +3,7 @@
 namespace App\Renderable;
 
 interface Renderable {
+    
+    public function __toString(): string;
     public function render(): string;
 }

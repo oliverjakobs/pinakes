@@ -7,7 +7,7 @@ use App\Pinakes\Pinakes;
 use Doctrine\Common\Collections\Collection;
 
 class FormElement implements Renderable {
-    public function __construct(
+    private function __construct(
         private string $name,
         private string $twig_path,
         private array $params) {
@@ -33,6 +33,10 @@ class FormElement implements Renderable {
             'options' => $options,
             'values' => $values,
         ]);
+    }
+
+    public function __toString(): string {
+        return $this->render();
     }
 
     public function render(): string {

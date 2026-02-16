@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
-use App\Pinakes\ViewElement;
 use App\Entity\PinakesEntity;
+use App\Pinakes\Helper;
 use App\Repository\PinakesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -25,21 +25,6 @@ abstract class PinakesController extends AbstractController {
         $this->em = $em;
     }
 
-    public function createLink(string $caption, string $route, array $parameters = []): ViewElement {
-        $url = $this->generateUrl($route, $parameters);
-        return ViewElement::anchor($caption, $url);
-    }
-
-    public function createLinkHx(string $caption, string $method, string $target, string $route, array $parameters = []): ViewElement {
-        $url = $this->generateUrl($route, $parameters);
-        return ViewElement::hxButton($caption, $url, $method, $target);
-    }
-
-    public function createButtonModal(string $caption, string $route, array $parameters = []): ViewElement {
-        $url = $this->generateUrl($route, $parameters);
-        return ViewElement::buttonModal($caption, $url);
-    }
-
     protected function getEntity(Request $request, PinakesRepository $repository): ?PinakesEntity {
         $id = $request->attributes->get('id');
         if (null === $id) return null;
@@ -50,11 +35,6 @@ abstract class PinakesController extends AbstractController {
         }
 
         return $entity;
-    }
-
-    public function getDataFields(PinakesRepository $repository, string $fields): array {
-        $result = $repository->getDataFields($fields);
-        return array_filter($result, fn ($field) => isset($field['visibility']) ? $this->isGranted($field['visibility']) : true);
     }
 
     protected function pushFilterUrl(Response $response, Request $request, array $filter): Response {
@@ -99,7 +79,7 @@ abstract class PinakesController extends AbstractController {
             'title' => $title,
             'filter' => $filter,
             'data' => $repository->applyFilter($filter),
-            'fields' => $this->getDataFields($repository, $fields),
+            'fields' => $repository->getDataFields($fields),
             'allow_pagination' => true,
             'allow_ordering' => true,
             'component_path' => 'components/table.html.twig'
@@ -122,13 +102,6 @@ abstract class PinakesController extends AbstractController {
         return $this->render('show.html.twig', array_merge($defaults, $params));
     }
 
-    public function renderForm(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show'): Response {
-        return $this->render('components/form.html.twig', [
-            'entity' => $entity,
-            'fields' => $this->getDataFields($repository, $fields),
-        ]);
-    }
-
     public function renderModal(Request $request, PinakesRepository $repository, string $redirect, string $fields = 'show'): Response {
         $entity = $this->getEntity($request, $repository);
         if (null === $entity) {
@@ -143,15 +116,14 @@ abstract class PinakesController extends AbstractController {
         return $this->render('modals/entity.html.twig', [
             'caption' => $caption . $entity->getModelName(),
             'entity' => $entity,
-            'fields' => $this->getDataFields($repository, $fields),
+            'fields' => $repository->getDataFields($fields),
         ]);
     }
 
     protected function updateEntityAndRedirect(Request $request, PinakesRepository $repository, PinakesEntity $entity, string $redirect): Response {
         foreach ($request->request->all() as $name => $value) {
-            if (is_array($value)) $value = array_filter($value, fn($v) => !empty($v));
-            //if (empty($value)) $value = null;
-
+            if (is_array($value)) $value = Helper::filterEmpty($value);
+            if (Helper::isEmpty($value)) $value = null;
             $repository->update($entity, $name, $value);
         }
         $repository->save($entity);

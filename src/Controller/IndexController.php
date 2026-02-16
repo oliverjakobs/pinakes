@@ -16,7 +16,7 @@ class IndexController extends PinakesController {
         return $this->render('index.html.twig', [
             'filter' => self::DEFAULT_FILTER,
             'newest' => $books->getNewest(),
-            'newest_fields' => $this->getDataFields($books, 'newest'),
+            'newest_fields' => $books->getDataFields('newest'),
             'balance' => $transactions->getBalance()
         ]);
     }

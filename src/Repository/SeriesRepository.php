@@ -40,8 +40,7 @@ class SeriesRepository extends PinakesRepository {
             ],
             'volume_count' => [
                 'caption' => 'Volumes',
-                'data' => fn(Series $s) => $s->volumes->count(),
-                'style_class' => 'align-right'
+                'data' => fn(Series $s) => $s->volumes->count()
             ],
         ];
     }

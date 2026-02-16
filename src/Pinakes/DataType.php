@@ -4,9 +4,11 @@ namespace App\Pinakes;
 
 use App\Renderable\Renderable;
 use App\Renderable\FormElement;
+use App\Renderable\ViewElement;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping\FieldMapping;
 
 class DataType {
 
@@ -21,11 +23,26 @@ class DataType {
     const TYPE_ENTITY = 'entity';
     const TYPE_COLLECTION = 'collection';
 
-    // TODO maybe private?
-    public function __construct(
+    private function __construct(
         private string $type,
         private array $config = []
     ) {
+    }
+
+    public static function fromFieldMapping(FieldMapping $mapping): self {
+        return new self($mapping->type);
+    }
+
+    public static function string(): self {
+        return new self(self::TYPE_STRING);
+    }
+
+    public static function integer(): self {
+        return new self(self::TYPE_INTEGER);
+    }
+
+    public static function float(): self {
+        return new self(self::TYPE_FLOAT);
     }
 
     public static function currency(string $currency = '€'): self {
@@ -68,15 +85,16 @@ class DataType {
         };
     }
 
-    public function parse(string|array $value): mixed {
+    public function parse(string|array|null $value): mixed {
         switch ($this->type) {
             case self::TYPE_ENTITY:
-                if (empty($value)) return null;
+                if (null === $value) return null;
                 assert(is_string($value), 'Expected string got array');
                 $repository = Pinakes::getRepository($this->config['target']);
                 return $repository->getOrCreate($value, false);
 
             case self::TYPE_COLLECTION:
+                if (null === $value) return new ArrayCollection();
                 assert(is_array($value), 'Expected array got string');
                 $repository = Pinakes::getRepository($this->config['target']);
                 $entities = array_map(fn ($e) => $repository->getOrCreate($e, false), $value);
@@ -86,41 +104,35 @@ class DataType {
                 return new DateTime($value);
             case self::TYPE_CURRENCY:
             case self::TYPE_FLOAT:
-                if (0 === strlen($value)) return null;
+                if (null === $value) return null;
                 return floatval($value);
             case self::TYPE_INTEGER:
-                if (0 === strlen($value)) return null;
+                if (null === $value) return null;
                 return intval($value);
         }
 
         return $value;
     }
 
-    private function renderCollection(mixed $data): string {
-        
-        if ($data instanceof Collection) $data = $data->toArray();
-
-        $separator = $this->config['separator'] ?? null;
-        if (null !== $separator) {
-            return implode($separator, $data);
-        }
-
-        $data = implode(PHP_EOL, array_map(fn ($e) => '<li>' . $e . '</li>', $data));
-        return <<<HTML
-        <ul class="collection">
-        $data
-        </ul>
-        HTML;
-    }
-
     public function render(mixed $data): string {
+        if (null === $data) return '-';
+
         switch ($this->type) {
             case self::TYPE_ENTITY:
                 return (string) $data;
+
             case self::TYPE_COLLECTION:
-                return $this->renderCollection($data);
+                if ($data instanceof Collection) $data = $data->toArray();
+        
+                $separator = $this->config['separator'] ?? null;
+                if (null !== $separator) return implode($separator, $data);
+        
+                return ViewElement::ul($data)->addClasses(['collection'])->render();
+
             case self::TYPE_CURRENCY:
                 return sprintf($this->config['fmt'], $data);
+            case self::TYPE_COLOR:
+                return ViewElement::tag($data, $data)->addClasses(['monospace'])->render();
             case self::TYPE_DATETIME:
                 assert($data instanceof DateTime);
                 return $data->format($this->config['fmt'] ?? 'd.m.Y');
@@ -145,5 +157,16 @@ class DataType {
                 return FormElement::number($name, $value, $min, $max);
         }
         return FormElement::input($name, 'text', $value);
+    }
+
+    public function getStyleClasses(): array {
+        switch ($this->type) {
+            case self::TYPE_DATETIME:
+            case self::TYPE_CURRENCY:
+            case self::TYPE_INTEGER:
+                return [ 'align-right', 'fit-content' ];
+        }
+
+        return [];
     }
 }
