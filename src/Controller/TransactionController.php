@@ -12,7 +12,7 @@ class TransactionController extends PinakesController {
 
     #[Route('/transaction', name: 'transaction', methods: ['GET'])]
     public function list(Request $request, TransactionRepository $repository): Response {
-        return $this->renderList($request, $repository, 'Transactions');
+        return $this->renderList($request, 'Transactions', $repository->createTable());
     }
 
     #[Route('/transaction/modal/{id}', name: 'transaction_modal', methods: ['GET', 'POST'])]

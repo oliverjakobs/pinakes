@@ -66,10 +66,10 @@ class AppExtension extends AbstractExtension {
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
-    public function renderValue(array $field, PinakesEntity $entity): string {
+    public function renderValue(PinakesEntity $entity, array $field): string {
         // Step 1: Get data
         /** @var DataType data_type */
-        [$data, $data_type] = PinakesRepository::parseDataField($field, $entity);
+        [$data, $data_type] = PinakesRepository::parseDataField($entity, $field);
 
         // Step 2: Apply link
         if (null !== $data) {
@@ -95,12 +95,12 @@ class AppExtension extends AbstractExtension {
         return ViewElement::create('td', $value)->addClasses($data_type->getStyleClasses())->render();
     }
 
-    public function renderForm(string $name, array $field, PinakesEntity $entity): string {
+    public function renderForm(PinakesEntity $entity, string $name, array $field): string {
         $edit = $field['edit'] ?? true; // TODO default to false
         if (!$edit) return '';
 
         // Step 1: Get data
-        [$data, $data_type] = PinakesRepository::parseDataField($field, $entity, PinakesRepository::MODE_EDIT);
+        [$data, $data_type] = PinakesRepository::parseDataField($entity, $field, PinakesRepository::MODE_EDIT);
 
         // Step 2: Get form element
         $form = $data_type->getForm($name, $data);
@@ -108,17 +108,16 @@ class AppExtension extends AbstractExtension {
     }
 
     // TODO test
-    public function exportValue(array $field, PinakesEntity $entity): string {
+    public function exportValue(PinakesEntity $entity, array $field): string {
         // Step 1: Get data
         /** @var DataType data_type */
-        [$data, $data_type] = PinakesRepository::parseDataField($field, $entity, PinakesRepository::MODE_EXPORT);
+        [$data, $data_type] = PinakesRepository::parseDataField($entity, $field, PinakesRepository::MODE_EXPORT);
 
         // Step 3: Render data
         return $data_type->render($data);
     }
 
-    public function renderFilter(string $name, array $filter): string {
-        $form_element = $filter['form'];
-        return $form_element->render($name);
+    public function renderFilter(PinakesRepository $repository, string $name, array $field, array $filter): string {
+        return $repository->parseFilter($field, $name, $filter[$name] ?? null)->render();
     }
 }

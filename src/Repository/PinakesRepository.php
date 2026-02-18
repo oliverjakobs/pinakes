@@ -3,9 +3,11 @@
 namespace App\Repository;
 
 use App\Entity\PinakesEntity;
+use App\Pinakes\DataTable;
 use App\Pinakes\DataType;
 use App\Pinakes\Helper;
 use App\Pinakes\Pinakes;
+use App\Renderable\FormElement;
 use App\Renderable\Renderable;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -28,6 +30,7 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, static::getEntityClass());
         $this->data_fields = $this->defineDataFields();
+        $this->filters = $this->getFilters();
     }
     
     abstract static protected function getEntityClass(): string;
@@ -79,7 +82,8 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         assert(false, 'Unkown field ' . $property);
     }
 
-    private static function guessDataType(PinakesEntity $entity, ?string $property, mixed $data): DataType {
+
+    private static function guessDataType(PinakesEntity $entity, ?string $property, mixed $data): ?DataType {   
         if (null !== $property) {
             return $entity->getRepository()->getDataType($property);
         }
@@ -97,34 +101,59 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if (is_float($data)) return DataType::float();
         if (is_string($data) || $data instanceof Renderable) return DataType::string();
 
-        assert(false, 'Unknown data type');
+        return null;
     }
 
     const MODE_RENDER = 0;
     const MODE_EDIT = 1;
     const MODE_EXPORT = 2;
 
-    public static function parseDataField(array $field, PinakesEntity $entity, int $mode = self::MODE_RENDER): array {
+    private static function getProperty(array $field, int $mode = self::MODE_RENDER): ?string {
+        if (self::MODE_EDIT === $mode) {
+            $edit = $field['edit'] ?? null;
+            if (is_string($edit)) return $edit;
+        }
+        
+        $data = $field['data'] ?? null;
+        if (is_callable($data)) return null;
+        
+        assert(null !== $data, 'No property');
+        return $data;
+    }
+
+    public static function parseDataField(PinakesEntity $entity, array $field, int $mode = self::MODE_RENDER): array {
         assert(isset($field['data']), 'No data specified');
 
         // Step 1: Get data
-        $edit = $field['edit'] ?? null;
-        if (self::MODE_EDIT === $mode && is_string($edit)) {
-            $property = $edit;
-            $data = $entity->getValue($edit);
-        } else if (is_callable($field['data'])) {
-            $property = null;
-            $data = $field['data']($entity);
-        } else {
-            $property = $field['data'];
+        $property = self::getProperty($field, $mode);
+        if (null !== $property) {
             $data = $entity->getValue($property);
+        } else {
+            $data = $field['data']($entity);
         }
 
         if (self::MODE_RENDER === $mode && Helper::isEmpty($data)) $data = null;  
 
         // Step 2: Get datatype
-        $data_type =  $field['data_type'] ?? self::guessDataType($entity, $property, $data);
+        $data_type = $field['data_type'] ?? null;
+        if (null === $data_type) {
+            $data_type = self::guessDataType($entity, $property, $data);
+        }
+        assert(null !== $data_type, 'Failed to determine data type');
         return [ $data, $data_type ];
+    }
+
+    public function parseFilter(array $field, string $name, mixed $value): FormElement {
+        $data_type = $field['data_type'] ?? null;
+        if (null === $data_type) {
+            $property = $this->getProperty($field, self::MODE_EDIT);
+            assert(null !== $property, 'No property found. Please define a data type');
+
+            $data_type = $this->getDataType($property);
+        }
+
+        assert(null !== $data_type, 'Failed to determine data type');
+        return $data_type->getForm($name, $data_type->parse($value));
     }
 
     public function update(PinakesEntity $entity, string $name, string|array|null $value): void {
@@ -245,6 +274,10 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         }
 
         return $qb->getQuery()->getResult();
+    }
+
+    public function createTable(string $fields = 'list'): DataTable {
+        return new DataTable($this, $fields);
     }
 
     public function getOptions(): array {

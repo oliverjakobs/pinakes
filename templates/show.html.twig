@@ -14,7 +14,7 @@
       {% for field in fields %}
         <tr>
           <td class="fit-content">{{ field.caption }}:</td>
-          {{ render_value(field, entity) | raw }}
+          {{ render_value(entity, field) | raw }}
         </tr>
       {% endfor %}
       </tbody>

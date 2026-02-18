@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Boardgame;
+use App\Pinakes\DataType;
 use App\Renderable\FormElement;
 use App\Traits\NamedEntityTrait;
 use Doctrine\ORM\QueryBuilder;
@@ -26,8 +27,7 @@ class BoardgameRepository extends PinakesRepository {
         return [
             'player_count' => [
                 'caption' => 'Players',
-                // TODO datatype
-                'form' => FormElement::number('player_count', null, 1, 16),
+                'data_type' => DataType::integer(1, 16),
                 'filter' => function (QueryBuilder $qb, $filter): QueryBuilder {
                     $qb->andWhere(':player_count <= e.max_player');
                     $qb->andWhere(':player_count >= e.min_player');
@@ -52,6 +52,7 @@ class BoardgameRepository extends PinakesRepository {
             'player_count' => [
                 'caption' => 'Players',
                 'data' => fn(Boardgame $bg) => $bg->getPlayerCount(),
+                'data_type' => DataType::integer(1, 16)
             ],
             'min_player' => [
                 'caption' => 'Players (min)',

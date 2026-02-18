@@ -17,26 +17,27 @@ class SeriesController extends PinakesController {
 
     #[Route('/series', name: 'series', methods: ['GET'])]
     public function list(Request $request, SeriesRepository $repository): Response {
-        return $this->renderList($request, $repository, 'Series', params: [
-            'actions' => [
+        return $this->renderList($request, 'Series', $repository->createTable(),
+            actions: [
                 Link::modal('New Series', 'series_modal'),
             ]
-        ]);
+        );
     }
 
     #[Route('/series/show/{id}', name: 'series_show', methods: ['GET'])]
     public function show(Request $request, SeriesRepository $repository, BookRepository $books): Response {
         $series = $this->getEntity($request, $repository);
-        return $this->renderList($request, $books, 'Series: ' . (string) $series,
-            fields: 'list_series',
-            params: [ 'actions' => [
+
+        $table = $books->createTable('list_series')->applyFilter([ 'series' => $series->getId() ]);
+
+        return $this->renderList($request, 'Series: ' . (string) $series, $table,
+            actions: [
                 Link::post('Add Volume', 'book_create', [ 'series' => $series->getId() ]),
                 Link::modal('Add Tag', 'series_add_tag', [ 'id' => $series->getId() ]),
                 ViewElement::separator(),
                 $series->getLinkEdit(),
                 $series->getLinkDelete(),
-            ]],
-            filter: [ 'series' => $series->getId() ]
+            ]
         );
     }
 

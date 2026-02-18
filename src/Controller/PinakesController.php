@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\PinakesEntity;
+use App\Pinakes\DataTable;
 use App\Pinakes\Helper;
 use App\Repository\PinakesRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -11,13 +12,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 abstract class PinakesController extends AbstractController {
-
-    const DEFAULT_FILTER = [
-        'order_by' => null,
-        'order_dir' => 'desc',
-        'page' => 1,
-        'pp' => 30,
-    ];
 
     protected EntityManagerInterface $em;
 
@@ -68,26 +62,31 @@ abstract class PinakesController extends AbstractController {
         unset($query['filter']);
         parse_str($filter, $result);
         $filter_only = true;
-        return array_merge($query, $result);
+        return array_merge($result, $query);
     }
 
-    public function renderList(Request $request, PinakesRepository $repository, string $title, string $fields = 'list', array $params = [], array $filter = []): Response {
+    public function renderList(Request $request, string $title, DataTable $table, array $actions = [], array $filter_form = []): Response {
         $query = $this->getQueryFilter(array_filter($request->query->all()), $filter_only);
-        $filter = array_merge(self::DEFAULT_FILTER, $filter, $query);
+        
+        $table->applyFilter($query);
 
-        $params = array_merge([
+        $params = [
             'title' => $title,
-            'filter' => $filter,
-            'data' => $repository->applyFilter($filter),
-            'fields' => $repository->getDataFields($fields),
+            // TODO only table as param
+            'filter' => $table->getFilter(),
+            'repository' => $table->getRepository(),
+            'data' => $table->getData(),
+            'fields' => $table->getDataFields(),
             'allow_pagination' => true,
             'allow_ordering' => true,
-            'component_path' => 'components/table.html.twig'
-        ], $params);
+            'component_path' => 'components/table.html.twig',
+            'actions' => $actions,
+            'filter_form' => $filter_form
+        ];
 
         if ($filter_only) {
             $response = $this->render($params['component_path'], $params);
-            return $this->pushFilterUrl($response, $request, $filter);
+            return $this->pushFilterUrl($response, $request, $table->getFilter());
         }
 
         return $this->render('list.html.twig', $params);

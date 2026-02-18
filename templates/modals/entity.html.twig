@@ -6,7 +6,7 @@
   <table class="table">
     <tbody>
     {% for name, field in fields %}
-      {% set form = render_form(name, field, entity) %}
+      {% set form = render_form(entity, name, field) %}
       {% if form is not empty %}
         <tr>
           <td><label for="{{ name }}">{{ field.caption }}:</label></td>

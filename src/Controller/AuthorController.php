@@ -13,19 +13,20 @@ class AuthorController extends PinakesController {
 
     #[Route('/author', name: 'author', methods: ['GET'])]
     public function list(Request $request, AuthorRepository $repository): Response {
-        return $this->renderList($request, $repository, 'Authors');
+        return $this->renderList($request, 'Authors', $repository->createTable());
     }
 
     #[Route('/author/show/{id}', name: 'author_show', methods: ['GET'])]
     public function show(Request $request, AuthorRepository $repository, BookRepository $books): Response {
         $author = $this->getEntity($request, $repository);
-        return $this->renderList($request, $books, 'Author: ' . (string) $author,
-            fields: 'list_author',
-            params: [ 'actions' => [
+
+        $table = $books->createTable('list_author')->applyFilter([ 'author' => $author->getId() ]);
+
+        return $this->renderList($request, 'Author: ' . (string) $author, $table,
+            actions: [
                 $author->getLinkEdit(),
                 $author->getLinkDelete(),
-            ]],
-            filter: [ 'author' => $author->getId() ]
+            ]
         );
     }
 

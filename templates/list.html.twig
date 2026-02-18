@@ -38,7 +38,7 @@
         {% for name, form in filter_form %}
           <div>
             <label for="{{ name }}">{{ form.caption }}</label>
-            {{ render_filter(name, form) | raw }}
+            {{ render_filter(repository, name, form, filter) | raw }}
           </div>
         {% endfor %}
         <button type="submit">Apply</button>

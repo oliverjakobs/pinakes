@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Transaction;
+use App\Pinakes\DataTable;
 use App\Repository\BookRepository;
 use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,7 +15,7 @@ class IndexController extends PinakesController {
     #[Route('/', name: 'pinakes')]
     public function index(BookRepository $books, TransactionRepository $transactions): Response {
         return $this->render('index.html.twig', [
-            'filter' => self::DEFAULT_FILTER,
+            'filter' => DataTable::DEFAULT_FILTER,
             'newest' => $books->getNewest(),
             'newest_fields' => $books->getDataFields('newest'),
             'balance' => $transactions->getBalance()

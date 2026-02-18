@@ -37,12 +37,18 @@ class DataType {
         return new self(self::TYPE_STRING);
     }
 
-    public static function integer(): self {
-        return new self(self::TYPE_INTEGER);
+    public static function integer(?int $min = null, ?int $max = null): self {
+        return new self(self::TYPE_INTEGER, [
+            'min' => $min,
+            'max' => $max
+        ]);
     }
 
-    public static function float(): self {
-        return new self(self::TYPE_FLOAT);
+    public static function float(?float $min = null, ?float $max = null): self {
+        return new self(self::TYPE_FLOAT, [
+            'min' => $min,
+            'max' => $max
+        ]);
     }
 
     public static function currency(string $currency = '€'): self {

@@ -16,12 +16,12 @@ class BoardgameController extends PinakesController {
 
     #[Route('/boardgame', name: 'boardgame', methods: ['GET'])]
     public function list(Request $request, BoardgameRepository $repository): Response {
-        return $this->renderList($request, $repository, 'Boardgames', params: [
-            'actions' => [
+        return $this->renderList($request, 'Boardgames', $repository->createTable(),
+            actions: [
                 Link::post('New Game', 'boardgame_create'),
             ],
-            'filter_form' => $repository->getFilters()
-        ]);
+            filter_form: $repository->getFilters()
+        );
     }
 
     #[Route('/boardgame/create', name: 'boardgame_create', methods: ['POST'])]
@@ -66,7 +66,7 @@ class BoardgameController extends PinakesController {
     // Publisher
     #[Route('/boardgame/publisher', name: 'boardgamepublisher', methods: ['GET'])]
     public function listPublisher(Request $request, BoardgamePublisherRepository $repository): Response {
-        return $this->renderList($request, $repository, 'Boardgame publishers');
+        return $this->renderList($request, 'Boardgame publishers', $repository->createTable());
     }
 
     #[Route('/boardgame/publisher/{id}', name: 'boardgamepublisher_show', methods: ['GET'])]

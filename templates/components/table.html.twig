@@ -32,7 +32,7 @@
   {% for entity in data|slice(offset, filter.pp) %}
     <tr>
     {% for field in fields %}
-      {{ render_value(field, entity) | raw }}
+      {{ render_value(entity, field) | raw }}
     {% endfor %}
     </tr>
   {% else %}

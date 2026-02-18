@@ -7,6 +7,7 @@ use App\Repository\TagRepository;
 use App\Entity\Book;
 use App\Entity\Series;
 use App\Entity\User;
+use App\Pinakes\DataTable;
 use App\Pinakes\OpenLibrary;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
@@ -19,19 +20,16 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository, TagRepository $tags): Response {
-        return $this->renderList($request, $repository, 'Books',
-            params: [
-                'actions' => [
-                    Link::post('New Book', 'book_create'),
-                    Link::modal('From ISBN', 'book_modal_isbn'),
-                    // $this->createLink('Import Books', 'book_import')->addClasses(['button']),
-                    // $this->createLink('Export Books', 'book_export')->addClasses(['button']),
-                ]
-            ],
-            filter: [ 
-                'ntag' => [
-                    $tags->findOneByName('Manga'),
-                ]
+        $table = $repository->createTable()->applyFilter([ 
+            'ntag' => [ $tags->findOneByName('Manga'), ]
+        ]);
+
+        return $this->renderList($request, 'Books', $table,
+            actions: [
+                Link::post('New Book', 'book_create'),
+                Link::modal('From ISBN', 'book_modal_isbn'),
+                // $this->createLink('Import Books', 'book_import')->addClasses(['button']),
+                // $this->createLink('Export Books', 'book_export')->addClasses(['button']),
             ]
         );
     }

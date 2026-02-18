@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Pinakes\DataTable;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,18 +12,18 @@ class AdminController extends PinakesController {
 
     #[Route('/admin', name: 'admin', methods: ['GET'])]
     public function admin(Request $request, UserRepository $repository): Response {
-        return $this->renderList($request, $repository, 'Users');
+        return $this->renderList($request, 'Users', $repository->createTable());
     }
 
     #[Route('/user', name: 'user', methods: ['GET'])]
     public function list(Request $request, UserRepository $repository): Response {
-        return $this->renderList($request, $repository, 'Users');
+        return $this->renderList($request, 'Users', $repository->createTable());
     }
 
     #[Route('/icons', name: 'icons', methods: ['GET'])]
     public function icons(Request $request): Response {
         $query = $this->getQueryFilter($request->query->all(), $filter_only);
-        $filter = array_merge(self::DEFAULT_FILTER, $query);
+        $filter = array_merge(DataTable::DEFAULT_FILTER, $query);
 
         $icons = glob('./icons/bootstrap/*' . ($filter['search'] ?? '') . '*.svg');
         $icons = array_map(function ($path) {

@@ -14,18 +14,20 @@ class PublisherController extends PinakesController {
 
     #[Route('/publisher', name: 'publisher', methods: ['GET'])]
     public function list(Request $request, PublisherRepository $repository): Response {
-        return $this->renderList($request, $repository, 'Publishers');
+        return $this->renderList($request, 'Publishers', $repository->createTable());
     }
 
     #[Route('/publisher/show/{id}', name: 'publisher_show', methods: ['GET'])]
     public function show(Request $request, PublisherRepository $repository, BookRepository $books): Response {
         $publisher = $this->getEntity($request, $repository);
-        return $this->renderList($request, $books, 'Publisher: ' . (string) $publisher,
-            params: [ 'actions' => [
+
+        $table = $books->createTable()->applyFilter([ 'publisher' => $publisher->getId() ]);
+
+        return $this->renderList($request, 'Publisher: ' . (string) $publisher, $table,
+            actions: [
                 $publisher->getLinkEdit(),
                 $publisher->getLinkDelete(),
-            ]],
-            filter: [ 'publisher' => $publisher->getId() ]
+            ],
         );
     }
 

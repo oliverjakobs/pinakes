@@ -14,22 +14,24 @@ class TagController extends PinakesController {
 
     #[Route('/tag', name: 'tag', methods: ['GET'])]
     public function list(Request $request, TagRepository $repository): Response {
-        return $this->renderList($request, $repository, 'Tags', params: [
-            'actions' => [
+        return $this->renderList($request, 'Tags', $repository->createTable(),
+            actions: [
                 Link::modal('New Tag', 'tag_modal'),
             ]
-        ]);
+        );
     }
 
     #[Route('/tag/show/{id}', name: 'tag_show', methods: ['GET'])]
     public function show(Request $request, TagRepository $repository, BookRepository $books): Response {
         $tag = $this->getEntity($request, $repository);
-        return $this->renderList($request, $books, 'Tag: ' . (string) $tag,
-            params: [ 'actions' => [
+
+        $table = $books->createTable()->applyFilter([ 'tag' => $tag->getId() ]);
+
+        return $this->renderList($request, 'Tag: ' . (string) $tag, $table,
+            actions: [
                 $tag->getLinkEdit(),
                 $tag->getLinkDelete(),
-            ]],
-            filter: [ 'tag' => $tag->getId() ]
+            ]
         );
     }
 
