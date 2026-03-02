@@ -36,9 +36,7 @@ class AdminController extends PinakesController {
 
         $params = [
             'title' =>'Icons',
-            'filter' => $filter,
-            'data' => $icons,
-            'fields' => [],
+            'table' => DataTable::fromData($icons),
             'allow_pagination' => true,
             'allow_ordering' => true,
             'component_path' => 'components/tiled.html.twig'

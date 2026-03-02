@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Tag;
+use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
 use App\Traits\NamedEntityTrait;
 
@@ -18,7 +19,7 @@ class TagRepository extends PinakesRepository {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => self::LINK_SELF
+                'link' => DataColumn::LINK_SELF
             ],
             'color' => [
                 'caption' => 'Color',
@@ -28,6 +29,7 @@ class TagRepository extends PinakesRepository {
             'book_count' => [
                 'caption' => 'Books',
                 'data' => fn(Tag $t) => $t->books->count(),
+                'data_type' => DataType::integer()
             ],
         ];
     }

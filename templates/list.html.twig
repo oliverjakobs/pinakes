@@ -15,9 +15,9 @@
       type="search"
       placeholder="Search..."
       name="search"
-      value="{{ filter.search|default }}"
+      value="{{ table.search }}"
       hx-trigger="keyup[key=='Enter']"
-      hx-get="{{ filter_url(app.current_route, app.current_route_parameters, filter) }}"
+      hx-get="{{ filter_url(app.request, table.filter) }}"
       hx-target="[hx-table-content]">
     {% if filter_form is defined %}
     <label
@@ -33,12 +33,12 @@
     <input type="checkbox" id="table-filter-check">
     <div class="filter-dropdown">
       <form 
-        hx-get="{{ filter_url(app.current_route, app.current_route_parameters, filter) }}"
+        hx-get="{{ filter_url(app.request, table.filter) }}"
         hx-target="[hx-table-content]">
         {% for name, form in filter_form %}
           <div>
             <label for="{{ name }}">{{ form.caption }}</label>
-            {{ render_filter(repository, name, form, filter) | raw }}
+            {{ render_filter(table, name, form) | raw }}
           </div>
         {% endfor %}
         <button type="submit">Apply</button>

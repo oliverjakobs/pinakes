@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Publisher;
+use App\Pinakes\DataColumn;
+use App\Pinakes\DataType;
 use App\Traits\NamedEntityTrait;
 
 class PublisherRepository extends PinakesRepository {
@@ -17,11 +19,12 @@ class PublisherRepository extends PinakesRepository {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => self::LINK_SELF
+                'link' => DataColumn::LINK_SELF
             ],
             'book_count' => [
                 'caption' => 'Books',
                 'data' => fn(Publisher $p) => $p->books->count(),
+                'data_type' => DataType::integer()
             ],
         ];
     }

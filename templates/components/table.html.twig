@@ -1,17 +1,21 @@
-{% set route = app.current_route %}
-{% set params = app.current_route_parameters %}
-
 <div hx-table-content class="table-container">
 
 <table class="table">
   <thead>
     <tr>
-    {% for key, field in fields %}
-      {% set direction = (field.data == filter.order_by) ? filter.order_dir : '' %}
+    {% for field in table.dataFields %}
+    {# TODO order by datafield #}
+    {# TODo change cursor on hover #}
+      {% set can_order_by = (allow_ordering ?? true) and field.canOrderBy %}
+      {% if can_order_by %}
+        {% set direction = (field.property == table.filter.order_by) ? table.filter.order_dir : '' %}
+      {% else %}
+        {% set direction = '' %}
+      {% endif %}
       <th
-        {% if allow_ordering ?? true %}
-          hx-get="{{ filter_url(route, params, filter, {
-            'order_by': field.data,
+        {% if can_order_by %}
+          hx-get="{{ filter_url(app.request, table.filter, {
+            'order_by': field.property,
             'order_dir': (direction == 'asc') ? 'desc' : 'asc',
             'page': 1
           }) }}"
@@ -28,16 +32,15 @@
     </tr>
   </thead>
   <tbody>
-  {% set offset = (filter.page - 1) * filter.pp %}
-  {% for entity in data|slice(offset, filter.pp) %}
+  {% for entity in table.currentPage %}
     <tr>
-    {% for field in fields %}
+    {% for field in table.dataFields %}
       {{ render_value(entity, field) | raw }}
     {% endfor %}
     </tr>
   {% else %}
     <tr class="empty">
-      <td colspan="{{ fields|length }}">Nothing found!</td>
+      <td colspan="{{ table.dataFields|length }}">Nothing found!</td>
     </tr>
   {% endfor %}
   </tbody>
@@ -45,8 +48,7 @@
 
 {% if allow_pagination ?? true %}
   {% include 'elements/pagination.html.twig' with {
-    'filter': filter,
-    'max_count': data|length,
+    'table': table
   } only %}
 {% endif %}
 

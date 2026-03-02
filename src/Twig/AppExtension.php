@@ -4,27 +4,16 @@ namespace App\Twig;
 
 use App\Pinakes\Pinakes;
 use App\Entity\PinakesEntity;
+use App\Pinakes\DataColumn;
+use App\Pinakes\DataTable;
 use App\Pinakes\DataType;
-use App\Pinakes\Helper;
-use App\Repository\PinakesRepository;
-use App\Pinakes\Renderer;
-use App\Renderable\ViewElement;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\Common\Collections\ArrayCollection;
-use Symfony\Component\Routing\RouterInterface;
-use Symfony\Bundle\SecurityBundle\Security;
+use Symfony\Component\HttpFoundation\Request;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 use Twig\TwigFilter;
 use Twig\Markup;
 
 class AppExtension extends AbstractExtension {
-
-    public function __construct(
-        private RouterInterface $router,
-        private Security $security,
-    ) {
-    }
 
     public function getFunctions(): array {
         return [
@@ -44,9 +33,11 @@ class AppExtension extends AbstractExtension {
         ];
     }
 
-    public function getFilterUrl(string $route, array $params, array ...$filters): string {
+    public function getFilterUrl(Request $request, array ...$filters): string {
+        $route = $request->attributes->get('_route');
+        $params = $request->attributes->get('_route_params');
         $params['filter'] = http_build_query(array_merge(...$filters));
-        return $this->router->generate($route, $params);
+        return Pinakes::getUrl($route, $params);
     }
 
     public function getNavigationItems(): array {
@@ -57,7 +48,7 @@ class AppExtension extends AbstractExtension {
         if (!$content) return [];
 
         $items = json_decode($content, true);
-        return array_filter($items, fn ($item) => isset($item['role']) ? $this->security->isGranted($item['role']) : true);
+        return array_filter($items, fn ($item) => Pinakes::isGranted($item['role'] ?? null));
     }
 
     public function getIcon(string $name): ?Markup {
@@ -66,58 +57,23 @@ class AppExtension extends AbstractExtension {
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
-    public function renderValue(PinakesEntity $entity, array $field): string {
-        // Step 1: Get data
-        /** @var DataType data_type */
-        [$data, $data_type] = PinakesRepository::parseDataField($entity, $field);
-
-        // Step 2: Apply link
-        if (null !== $data) {
-            $link = $field['link'] ?? null;
-            if (PinakesRepository::LINK_SELF === $link) {
-                assert(!is_iterable($data), 'Iterables can only link to data');
-                $data = $entity->getLinkSelf((string) $data);
-            } else if (PinakesRepository::LINK_DATA === $link) {
-                if (is_iterable($data)) {
-                    if ($data instanceof Collection) $data = $data->toArray();
-                    $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
-                } else {
-                    assert($data instanceof PinakesEntity, 'Can only link to entities');
-                    $data = $data->getLinkSelf((string) $data);
-                }
-            } else {
-                assert(null === $link, 'Unkown link type');
-            }
-        }
-
-        // Step 3: Render data
-        $value = $data_type->render($data);
-        return ViewElement::create('td', $value)->addClasses($data_type->getStyleClasses())->render();
+    public function renderValue(PinakesEntity $entity, DataColumn $col): string {
+        return $col->renderValue($entity);
     }
 
-    public function renderForm(PinakesEntity $entity, string $name, array $field): string {
-        $edit = $field['edit'] ?? true; // TODO default to false
-        if (!$edit) return '';
-
-        // Step 1: Get data
-        [$data, $data_type] = PinakesRepository::parseDataField($entity, $field, PinakesRepository::MODE_EDIT);
-
-        // Step 2: Get form element
-        $form = $data_type->getForm($name, $data);
-        return $form->render();
+    public function renderForm(PinakesEntity $entity, DataColumn $col): string {
+        return $col->renderForm($entity);
     }
 
     // TODO test
-    public function exportValue(PinakesEntity $entity, array $field): string {
-        // Step 1: Get data
-        /** @var DataType data_type */
-        [$data, $data_type] = PinakesRepository::parseDataField($entity, $field, PinakesRepository::MODE_EXPORT);
-
-        // Step 3: Render data
-        return $data_type->render($data);
+    public function exportValue(PinakesEntity $entity, DataColumn $col): string {
+        return $col->renderExport($entity);
     }
 
-    public function renderFilter(PinakesRepository $repository, string $name, array $field, array $filter): string {
-        return $repository->parseFilter($field, $name, $filter[$name] ?? null)->render();
+    public function renderFilter(DataTable $table, string $name, array $field): string {
+        $filter = $table->getFilterValue($name);
+
+        $col = $table->getColumn($name);
+        return $col->getFilterForm($filter)->render();
     }
 }

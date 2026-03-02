@@ -9,7 +9,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TagRepository::class)]
-class Tag extends PinakesEntity {
+class Tag extends PinakesEntity implements TagInterface {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

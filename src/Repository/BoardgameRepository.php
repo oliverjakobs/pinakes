@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Boardgame;
+use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
 use App\Renderable\FormElement;
 use App\Traits\NamedEntityTrait;
@@ -42,12 +43,12 @@ class BoardgameRepository extends PinakesRepository {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => self::LINK_SELF
+                'link' => DataColumn::LINK_SELF
             ],
             'publisher' => [
                 'caption' => 'Publisher',
                 'data' => 'publisher',
-                'link' => self::LINK_DATA
+                'link' => DataColumn::LINK_DATA
             ],
             'player_count' => [
                 'caption' => 'Players',
@@ -65,12 +66,12 @@ class BoardgameRepository extends PinakesRepository {
             'base_game' => [
                 'caption' => 'Base game',
                 'data' => 'base_game',
-                'link' => self::LINK_DATA
+                'link' => DataColumn::LINK_DATA
             ],
             'extensions' => [
                 'caption' => 'Extensions',
                 'data' => 'extensions',
-                'link' => self::LINK_DATA,
+                'link' => DataColumn::LINK_DATA,
                 'edit' => false
             ]
         ];

@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\BoardgamePublisher;
+use App\Pinakes\DataColumn;
 use App\Traits\NamedEntityTrait;
 
 class BoardgamePublisherRepository extends PinakesRepository {
@@ -17,7 +18,7 @@ class BoardgamePublisherRepository extends PinakesRepository {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => self::LINK_SELF
+                'link' => DataColumn::LINK_SELF
             ],
             'boardgame_count' => [
                 'caption' => 'Boardgames',

@@ -45,11 +45,13 @@ class TransactionRepository extends PinakesRepository {
             'edit' => [
                 'caption' => '',
                 'data' => fn(Transaction $t) => $t->getLinkEdit(Icon::create('pencil-square')),
+                'data_type' => DataType::action(),
                 'visibility' => User::ROLE_ADMIN
             ],
             'delete' => [
                 'caption' => '',
                 'data' => fn(Transaction $t) => $t->getLinkDelete(Icon::create('trash3')),
+                'data_type' => DataType::action(),
                 'visibility' => User::ROLE_ADMIN
             ],
         ];

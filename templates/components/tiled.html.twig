@@ -4,8 +4,7 @@
 <div hx-table-content class="table-container">
 
 <div class="tiled">
-  {% set offset = (filter.page - 1) * filter.pp %}
-  {% for entity in data|slice(offset, filter.pp) %}
+  {% for entity in table.currentPage %}
     <div class="card">
       <div class="icon">{{ icon(entity.icon)}}</div>
       <div class="caption">{{ entity.caption }}</div>
@@ -17,8 +16,7 @@
 
 {% if allow_pagination ?? true %}
   {% include 'elements/pagination.html.twig' with {
-    'filter': filter,
-    'max_count': data|length,
+    'table': table
   } only %}
 {% endif %}
 

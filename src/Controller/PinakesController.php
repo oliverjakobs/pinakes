@@ -68,15 +68,13 @@ abstract class PinakesController extends AbstractController {
     public function renderList(Request $request, string $title, DataTable $table, array $actions = [], array $filter_form = []): Response {
         $query = $this->getQueryFilter(array_filter($request->query->all()), $filter_only);
         
+        // TODO fix filters specified in action not working properly (e.g. ntag=manga in books)
         $table->applyFilter($query);
 
         $params = [
             'title' => $title,
-            // TODO only table as param
-            'filter' => $table->getFilter(),
-            'repository' => $table->getRepository(),
-            'data' => $table->getData(),
-            'fields' => $table->getDataFields(),
+            'table' => $table,
+            // TODO allow_ to table + maybe component_path too
             'allow_pagination' => true,
             'allow_ordering' => true,
             'component_path' => 'components/table.html.twig',
@@ -123,7 +121,10 @@ abstract class PinakesController extends AbstractController {
         foreach ($request->request->all() as $name => $value) {
             if (is_array($value)) $value = Helper::filterEmpty($value);
             if (Helper::isEmpty($value)) $value = null;
-            $repository->update($entity, $name, $value);
+
+            $col = $repository->getColumn($name);
+            assert(null !== $col, 'Unknown column ' . $name);
+            $col->updateEntity($entity, $value);
         }
         $repository->save($entity);
         

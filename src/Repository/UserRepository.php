@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Pinakes\DataColumn;
+use App\Pinakes\DataType;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
@@ -39,6 +41,7 @@ class UserRepository extends PinakesRepository implements PasswordUpgraderInterf
             'roles' => [
                 'caption' => 'Roles',
                 'data' => fn(User $u) => implode('; ', $u->getRoles()),
+                'data_type' => DataType::string()
             ],
 
             // TODO impersonation

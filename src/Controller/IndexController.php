@@ -15,9 +15,7 @@ class IndexController extends PinakesController {
     #[Route('/', name: 'pinakes')]
     public function index(BookRepository $books, TransactionRepository $transactions): Response {
         return $this->render('index.html.twig', [
-            'filter' => DataTable::DEFAULT_FILTER,
-            'newest' => $books->getNewest(),
-            'newest_fields' => $books->getDataFields('newest'),
+            'newest' => $books->createTable('newest')->setData($books->getNewest()),
             'balance' => $transactions->getBalance()
         ]);
     }

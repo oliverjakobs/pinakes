@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\Tag;
+use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -39,9 +40,9 @@ class BookRepository extends PinakesRepository {
         return $qb;
     }
 
-    public function getNewest(): Collection {
+    public function getNewest(): array {
         $qb = $this->createQueryBuilder('b')->orderBy('b.created_at', 'DESC')->setMaxResults(5);
-        return new ArrayCollection($qb->getQuery()->getResult());
+        return $qb->getQuery()->getResult();
     }
 
     protected function defineDataFields(): array {
@@ -49,65 +50,68 @@ class BookRepository extends PinakesRepository {
             'title' => [
                 'caption' => 'Title',
                 'data' => 'title',
-                'link' => self::LINK_SELF
+                'link' => DataColumn::LINK_SELF,
+                'edit' => true
             ],
             'authors_inline' => [
                 'caption' => 'Author(s)',
                 'data' => 'authors',
                 'data_type' => DataType::collection(Author::class, '; '),
-                'link' => self::LINK_DATA,
-                'edit' => false
+                'link' => DataColumn::LINK_DATA
             ],
             'authors' => [
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'link' => self::LINK_DATA,
+                'link' => DataColumn::LINK_DATA,
+                'edit' => true
             ],
             'translators' => [
                 'caption' => 'Translator(s)',
                 'data' => 'translators',
-                'link' => self::LINK_DATA,
+                'link' => DataColumn::LINK_DATA,
+                'edit' => true
             ],
             'publisher' => [
                 'caption' => 'Publisher',
                 'data' => 'publisher',
-                'link' => self::LINK_DATA,
+                'link' => DataColumn::LINK_DATA,
+                'edit' => true
             ],
             'published' => [
                 'caption' => 'Year Published',
                 'data' => 'published',
+                'edit' => true
             ],
             'first_published' => [
                 'caption' => 'First Published',
                 'data' => 'first_published',
+                'edit' => true
             ],
             'isbn' => [
                 'caption' => 'ISBN',
                 'data' => 'isbn',
+                'edit' => true
             ],
             'series' => [
                 'caption' => 'Series',
                 'data' => 'series',
-                'link' => self::LINK_DATA
+                'link' => DataColumn::LINK_DATA,
+                'edit' => true
             ],
             'series_volume' => [
                 'caption' => 'Vol.',
                 'data' => 'series_volume',
+                'edit' => true
             ],
             'tags' => [
                 'caption' => 'Tags',
-                'data' => fn (Book $b) => $b->getTags(),
-                'data_type' => DataType::collection(Tag::class, ' '),
-                'edit' => 'tags',
-            ],
-            'tags_export' => [
-                'caption' => 'Tags',
                 'data' => 'tags',
+                'data_type' => DataType::tags(Tag::class),
+                'edit' => true
             ],
             'created_at' => [
                 'caption' => 'Created at',
-                'data' => 'created_at',
-                'edit' => false
+                'data' => 'created_at'
             ]
         ];
     }
@@ -140,7 +144,7 @@ class BookRepository extends PinakesRepository {
 
     public function getDataFieldsExport(): array {
         return $this->composeDataFields([
-            'created_at', 'title', 'authors_inline', 'publisher', 'tags_export', 'published', 'first_published', 'isbn', 'series', 'series_volume'
+            'created_at', 'title', 'authors_inline', 'publisher', 'tags', 'published', 'first_published', 'isbn', 'series', 'series_volume'
         ]);
     }
 }

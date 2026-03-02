@@ -2,8 +2,11 @@
 
 namespace App\Pinakes;
 
+use App\Entity\PinakesEntity;
+use App\Entity\TagInterface;
 use App\Renderable\Renderable;
 use App\Renderable\FormElement;
+use App\Renderable\Link;
 use App\Renderable\ViewElement;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -17,11 +20,14 @@ class DataType {
     const TYPE_FLOAT = 'float';
 
     const TYPE_DATETIME = 'datetime';
-    const TYPE_COLOR = 'color';
     const TYPE_CURRENCY = 'currency';
+    const TYPE_COLOR = 'color';
 
     const TYPE_ENTITY = 'entity';
     const TYPE_COLLECTION = 'collection';
+    const TYPE_TAGS = 'tags';
+
+    const TYPE_ACTION = 'action';
 
     private function __construct(
         private string $type,
@@ -57,34 +63,43 @@ class DataType {
         ]);
     }
 
-    public static function color(): self {
-        return new self(self::TYPE_COLOR);
-    }
-
     public static function datetime(string $fmt): self {
         return new self(self::TYPE_DATETIME, [
             'fmt' => $fmt
         ]);
     }
 
-    private static function isValidTarget(string $target) {
-        return str_starts_with($target, 'App\\Entity\\');
+    public static function color(): self {
+        return new self(self::TYPE_COLOR);
+    }
+
+    public static function action(): self {
+        return new self(self::TYPE_ACTION);
+    }
+
+    private static function isValidTarget(string $target): bool {
+        return is_a($target, PinakesEntity::class, true);
     }
 
     public static function entity(string $entity): self {
-        assert(self::isValidTarget($entity), 'Invalid target');
+        assert(self::isValidTarget($entity), 'Invalid target ' . $entity);
         return new self(self::TYPE_ENTITY, [ 'target' => $entity ]);
     }
 
     public static function collection(string $entity, ?string $separator = null): self {
-        assert(self::isValidTarget($entity), 'Invalid target');
-        return new self(self::TYPE_COLLECTION, [
-            'target' => $entity,
-            'separator' => $separator,
-        ]);
+        $result = self::entity($entity);
+        $result->type = self::TYPE_COLLECTION;
+        return $result;
     }
 
-    public function __toString() {
+    public static function tags(string $entity): self {
+        assert(is_a($entity, TagInterface::class, true), 'Invalid tag-target ' . $entity);
+        $result = self::entity($entity);
+        $result->type = self::TYPE_TAGS;
+        return $result;
+    }
+
+    public function __toString(): string {
         return $this->type . match($this->type) {
             self::TYPE_ENTITY, self::TYPE_COLLECTION => '(' . $this->config['target'] . ')',
             default => ''
@@ -99,6 +114,7 @@ class DataType {
                 $repository = Pinakes::getRepository($this->config['target']);
                 return $repository->getOrCreate($value, false);
 
+            case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
                 if (null === $value) return new ArrayCollection();
                 assert(is_array($value), 'Expected array got string');
@@ -115,6 +131,8 @@ class DataType {
             case self::TYPE_INTEGER:
                 if (null === $value) return null;
                 return intval($value);
+            case self::TYPE_ACTION:
+                assert(false, 'Cannot parse for type "' . $this->type . '"');
         }
 
         return $value;
@@ -135,6 +153,12 @@ class DataType {
         
                 return ViewElement::ul($data)->addClasses(['collection'])->render();
 
+            case self::TYPE_TAGS:
+                if ($data instanceof Collection) $data = $data->toArray();
+
+                $data = array_map(fn ($tag) => $tag->getTag(), $data);
+                return implode(' ', $data);
+
             case self::TYPE_CURRENCY:
                 return sprintf($this->config['fmt'], $data);
             case self::TYPE_COLOR:
@@ -142,6 +166,9 @@ class DataType {
             case self::TYPE_DATETIME:
                 assert($data instanceof DateTime);
                 return $data->format($this->config['fmt'] ?? 'd.m.Y');
+            case self::TYPE_ACTION:
+                assert($data instanceof Link);
+                return $data->render();
         }
         return (string) $data;
     }
@@ -149,6 +176,7 @@ class DataType {
     public function getForm(string $name, mixed $value): Renderable {
         switch ($this->type) {
             case self::TYPE_ENTITY:
+            case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
                 $repository = Pinakes::getRepository($this->config['target']);
                 return FormElement::autocomplete($name, $repository->getOptions(), $value);
@@ -161,6 +189,8 @@ class DataType {
                 $min = $this->config['min'] ?? null;
                 $max = $this->config['max'] ?? null;
                 return FormElement::number($name, $value, $min, $max);
+            case self::TYPE_ACTION:
+                assert(false, 'Cannot edit type "' . $this->type . '"');
         }
         return FormElement::input($name, 'text', $value);
     }
