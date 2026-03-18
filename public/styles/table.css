@@ -18,6 +18,10 @@
     background-color: var(--table-header);
 }
 
+.table th.can-order {
+    cursor: pointer;
+}
+
 .table th .caption {
     margin-right: 1.2em;
 }

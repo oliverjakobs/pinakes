@@ -7,7 +7,6 @@ use App\Repository\TagRepository;
 use App\Entity\Book;
 use App\Entity\Series;
 use App\Entity\User;
-use App\Pinakes\DataTable;
 use App\Pinakes\OpenLibrary;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
@@ -20,9 +19,7 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository, TagRepository $tags): Response {
-        $table = $repository->createTable()->applyFilter([ 
-            'ntag' => [ $tags->findOneByName('Manga'), ]
-        ]);
+        $table = $repository->createTable()->addFilter('ntag', $tags->findOneByName('Manga'));
 
         return $this->renderList($request, 'Books', $table,
             actions: [
@@ -77,14 +74,14 @@ class BookController extends PinakesController {
         /** @var Book */
         $book = $this->getEntity($request, $repository);
 
-        return $this->renderShow($repository, $book, 'show', [
-            'actions' => [
+        return $this->renderShow($repository, $book, 'show', 
+            actions: [
                 $book->getLinkOpenLibrary(),
                 ViewElement::separator(),
                 $book->getLinkEdit(),
                 $book->getLinkDelete(),
             ]
-        ]);
+        );
     }
 
     #[Route('/book/modal/{id}', name: 'book_modal', methods: ['GET', 'POST'])]

@@ -10,7 +10,7 @@ trait NamedEntityTrait {
     }
 
     public function getDefaultOrder(): array {
-        return [ 'name' => 'ASC' ];
+        return [ 'name' => 'asc' ];
     }
 
     public function findOneByName(string $name): ?PinakesEntity {

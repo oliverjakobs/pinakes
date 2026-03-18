@@ -26,6 +26,17 @@ button:hover, .button:hover {
   background-color: var(--color-hover);
 }
 
+button:disabled, .button.disabled {
+  background-color: var(--table-header);
+  cursor: not-allowed;
+}
+
+.disabled:not(button, .button) {
+  color: var(--color-secondary);
+  cursor: not-allowed;
+  text-decoration: underline;
+}
+
 a.link-extern::after {
   content: url('../icons/bootstrap/box-arrow-up-right.svg');
   padding-left: 0.4em;

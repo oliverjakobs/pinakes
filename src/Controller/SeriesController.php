@@ -28,7 +28,7 @@ class SeriesController extends PinakesController {
     public function show(Request $request, SeriesRepository $repository, BookRepository $books): Response {
         $series = $this->getEntity($request, $repository);
 
-        $table = $books->createTable('list_series')->applyFilter([ 'series' => $series->getId() ]);
+        $table = $books->createTable('list_series')->addFilter('series', $series);
 
         return $this->renderList($request, 'Series: ' . (string) $series, $table,
             actions: [

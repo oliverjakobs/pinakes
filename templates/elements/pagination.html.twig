@@ -17,7 +17,7 @@
 
     {% if table.page > 1 %}
       <li class="icon">
-        <a href="{{ filter_url(app.request, table.filter, {'page': table.page - 1}) }}"
+        <a href="{{ filter_url(app.request, table, {'page': table.page - 1}) }}"
             hx-swap="outerHTML"
             class="prev-next"
             hx-target="[hx-table-content]">
@@ -28,7 +28,7 @@
 
     {% if start > 1 %}
       <li>
-        <a href="{{ filter_url(app.request, table.filter, {'page': 1}) }}"
+        <a href="{{ filter_url(app.request, table, {'page': 1}) }}"
             hx-swap="outerHTML"
             hx-target="[hx-table-content]">
           {{1}}
@@ -42,7 +42,7 @@
         {% if p == table.page %}
           <a class="active">{{p}}</a>
         {% else %}
-          <a href="{{ filter_url(app.request, table.filter, {'page': p}) }}"
+          <a href="{{ filter_url(app.request, table, {'page': p}) }}"
               hx-swap="outerHTML"
               hx-target="[hx-table-content]">
             {{p}}
@@ -54,7 +54,7 @@
     {% if end < max_pages %}
       <li>&#8230;</li>
       <li>
-        <a href="{{ filter_url(app.request, table.filter, {'page': max_pages}) }}"
+        <a href="{{ filter_url(app.request, table, {'page': max_pages}) }}"
             hx-swap="outerHTML"
             hx-target="[hx-table-content]">
           {{ max_pages }}
@@ -64,7 +64,7 @@
 
     {% if table.page < max_pages %}
       <li class="icon">
-        <a href="{{ filter_url(app.request, table.filter, {'page': table.page + 1}) }}"
+        <a href="{{ filter_url(app.request, table, {'page': table.page + 1}) }}"
             hx-swap="outerHTML"
             class="prev-next"
             hx-target="[hx-table-content]">

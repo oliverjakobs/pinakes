@@ -6,6 +6,7 @@ use App\Pinakes\DataTable;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\Routing\Attribute\Route;
 
 class AdminController extends PinakesController {
@@ -21,11 +22,8 @@ class AdminController extends PinakesController {
     }
 
     #[Route('/icons', name: 'icons', methods: ['GET'])]
-    public function icons(Request $request): Response {
-        $query = $this->getQueryFilter($request->query->all(), $filter_only);
-        $filter = array_merge(DataTable::DEFAULT_FILTER, $query);
-
-        $icons = glob('./icons/bootstrap/*' . ($filter['search'] ?? '') . '*.svg');
+    public function icons(Request $request, #[MapQueryParameter] ?string $search = ''): Response {
+        $icons = glob('./icons/bootstrap/*' . $search . '*.svg');
         $icons = array_map(function ($path) {
             $name = basename($path, '.svg');
             return [
@@ -34,20 +32,9 @@ class AdminController extends PinakesController {
             ];
         }, $icons);
 
-        $params = [
-            'title' =>'Icons',
-            'table' => DataTable::fromData($icons),
-            'allow_pagination' => true,
-            'allow_ordering' => true,
-            'component_path' => 'components/tiled.html.twig'
-        ];
+        $table = DataTable::fromData($icons)->setComponentPath('components/icons.html.twig');
 
-        if ($filter_only) {
-            $response = $this->render('components/tiled.html.twig', $params);
-            return $this->pushFilterUrl($response, $request, $filter);
-        }
-
-        return $this->render('list.html.twig', $params);
+        return $this->renderList($request, 'Icons', $table);
     }
 
 }

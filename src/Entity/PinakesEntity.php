@@ -29,7 +29,12 @@ abstract class PinakesEntity {
     }
 
     public function getLinkDelete(?string $caption = null): Link {
-        return Link::delete($caption ?? 'Delete', $this->getModelName() . '_delete', ['id' => $this->getId()]);
+        return Link::delete($caption ?? 'Delete', $this->getModelName() . '_delete', ['id' => $this->getId()])
+            ->setDisabledMessage($this->getMessageDelete());
+    }
+
+    public function getMessageDelete(): string {
+        return '';
     }
 
     public function setValue(string $key, mixed $value) {

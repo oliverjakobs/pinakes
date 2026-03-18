@@ -33,11 +33,15 @@ class AppExtension extends AbstractExtension {
         ];
     }
 
-    public function getFilterUrl(Request $request, array ...$filters): string {
+    public function getFilterUrl(Request $request, DataTable $table, array $filter = []): string {
         $route = $request->attributes->get('_route');
         $params = $request->attributes->get('_route_params');
-        $params['filter'] = http_build_query(array_merge(...$filters));
-        return Pinakes::getUrl($route, $params);
+        return Pinakes::getUrl($route, array_merge(
+            $params,
+            $table->getFilter(),
+            $filter,
+            ['filter_only' => true]
+        ));
     }
 
     public function getNavigationItems(): array {
@@ -70,10 +74,8 @@ class AppExtension extends AbstractExtension {
         return $col->renderExport($entity);
     }
 
-    public function renderFilter(DataTable $table, string $name, array $field): string {
-        $filter = $table->getFilterValue($name);
-
-        $col = $table->getColumn($name);
-        return $col->getFilterForm($filter)->render();
+    public function renderFilter(DataTable $table, DataColumn $col): string {
+        $value = $table->getFilterValue($col->name);
+        return $col->getFilterForm($value)->render();
     }
 }

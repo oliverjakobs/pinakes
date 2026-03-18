@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Boardgame;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
-use App\Renderable\FormElement;
 use App\Traits\NamedEntityTrait;
 use Doctrine\ORM\QueryBuilder;
 
@@ -24,18 +23,10 @@ class BoardgameRepository extends PinakesRepository {
         return $result;
     }
 
-    public function getFilters(): array {
-        return [
-            'player_count' => [
-                'caption' => 'Players',
-                'data_type' => DataType::integer(1, 16),
-                'filter' => function (QueryBuilder $qb, $filter): QueryBuilder {
-                    $qb->andWhere(':player_count <= e.max_player');
-                    $qb->andWhere(':player_count >= e.min_player');
-                    return $qb->setParameter('player_count', $filter);
-                }
-            ]
-        ];
+    protected function getQueryBuilder(array $filter = []): QueryBuilder {
+        $qb = parent::getQueryBuilder($filter);
+        $this->applyAnd($qb, $filter['publisher'] ?? [], '=', 'publisher');
+        return $qb;
     }
 
     protected function defineDataFields(): array {
@@ -53,7 +44,12 @@ class BoardgameRepository extends PinakesRepository {
             'player_count' => [
                 'caption' => 'Players',
                 'data' => fn(Boardgame $bg) => $bg->getPlayerCount(),
-                'data_type' => DataType::integer(1, 16)
+                'data_type' => DataType::integer(1, 16),
+                'filter' => function (QueryBuilder $qb, $filter): QueryBuilder {
+                    $qb->andWhere(':player_count <= e.max_player');
+                    $qb->andWhere(':player_count >= e.min_player');
+                    return $qb->setParameter('player_count', $filter);
+                }
             ],
             'min_player' => [
                 'caption' => 'Players (min)',

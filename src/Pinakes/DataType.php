@@ -89,6 +89,7 @@ class DataType {
     public static function collection(string $entity, ?string $separator = null): self {
         $result = self::entity($entity);
         $result->type = self::TYPE_COLLECTION;
+        $result->config['separator'] = $separator;
         return $result;
     }
 

@@ -17,9 +17,9 @@
       name="search"
       value="{{ table.search }}"
       hx-trigger="keyup[key=='Enter']"
-      hx-get="{{ filter_url(app.request, table.filter) }}"
+      hx-get="{{ filter_url(app.request, table) }}"
       hx-target="[hx-table-content]">
-    {% if filter_form is defined %}
+    {% if filters is not empty %}
     <label
       id="table-filter-label"
       for="table-filter-check" 
@@ -28,17 +28,17 @@
     </label>
     {% endif %}
   </div>
-  {% if filter_form is defined %}
+  {% if filters is not empty %}
   <div class="table-filter">
     <input type="checkbox" id="table-filter-check">
     <div class="filter-dropdown">
       <form 
-        hx-get="{{ filter_url(app.request, table.filter) }}"
+        hx-get="{{ filter_url(app.request, table) }}"
         hx-target="[hx-table-content]">
-        {% for name, form in filter_form %}
+        {% for form in filters %}
           <div>
-            <label for="{{ name }}">{{ form.caption }}</label>
-            {{ render_filter(table, name, form) | raw }}
+            <label for="{{ form.name }}">{{ form.caption }}</label>
+            {{ render_filter(table, form) | raw }}
           </div>
         {% endfor %}
         <button type="submit">Apply</button>
@@ -46,6 +46,6 @@
     </div>
   </div>
   {% endif %}
-  {% include component_path | default('components/table.html.twig') %}
+  {% include table.componentPath %}
 </div>
 {% endblock %}

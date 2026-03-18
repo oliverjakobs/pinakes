@@ -130,6 +130,8 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if (!is_iterable($filter)) $filter = [ $filter ];
 
         foreach ($filter as $idx => $value) {
+            if ($value instanceof PinakesEntity) $value = $value->getId();
+
             $key = $target . $idx;
             $qb->andWhere(':' . $key . ' ' . $op . ' e.' . $target);
             $qb->setParameter($key, $value);
@@ -142,6 +144,8 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if (!is_iterable($filter)) $filter = [ $filter ];
 
         foreach ($filter as $idx => $value) {
+            if ($value instanceof PinakesEntity) $value = $value->getId();
+            
             $key = $target . $idx;
             $qb->orWhere(':' . $key . ' ' . $op . ' e.' . $target);
             $qb->setParameter($key, $value);
@@ -176,11 +180,9 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         
         // append predefined filters
         foreach ($filter as $name => $value) {
-            $def = $this->filters[$name] ?? null;
-            if (null === $def) continue;
-
-            $filter_fn = $def['filter'];
-            $qb = $filter_fn($qb, $value);
+            $field = $this->data_fields[$name] ?? null;
+            if (null === $field) continue;
+            $qb = $field->filter($qb, $value);
         }
 
         return $qb->getQuery()->getResult();

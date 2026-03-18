@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\PinakesEntity;
 use App\Pinakes\DataTable;
 use App\Pinakes\Helper;
+use App\Renderable\Link;
 use App\Repository\PinakesRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,72 +32,54 @@ abstract class PinakesController extends AbstractController {
         return $entity;
     }
 
-    protected function pushFilterUrl(Response $response, Request $request, array $filter): Response {
-        $diff = [
-            'order_dir' => null,
-            'order_by' => null,
-            'pp' => null
-        ];
-
-        if (1 === intval($filter['page'])) {
-            $diff['page'] = null;
-        }
-
-        $query = array_diff_key($filter, $diff);
-
+    protected function pushFilterUrl(Response $response, Request $request, DataTable $table): Response {
         // TODO dont push if only order changed
         $referer = $request->headers->get('referer');
         if (null !== $referer) {
+            $query = $table->buildQuery();
+
             $url = parse_url($referer, PHP_URL_PATH);
-            if (!empty($query)) $url .= '?' . http_build_query($query);
+            if (!empty($query)) $url .= '?' . $query;
             $response->headers->set('HX-Push-Url', $url);
         }
 
         return $response;
     }
 
-    protected function getQueryFilter(array $query, &$filter_only = false): array {
-        $filter = $query['filter'] ?? null;
-        if (null === $filter) return $query;
+    public function renderList(Request $request, string $title, DataTable $table, array $actions = [], array $filters = []): Response {
+        $filter_only = $table->setQuery($request->query->all());
 
-        unset($query['filter']);
-        parse_str($filter, $result);
-        $filter_only = true;
-        return array_merge($result, $query);
-    }
-
-    public function renderList(Request $request, string $title, DataTable $table, array $actions = [], array $filter_form = []): Response {
-        $query = $this->getQueryFilter(array_filter($request->query->all()), $filter_only);
-        
-        // TODO fix filters specified in action not working properly (e.g. ntag=manga in books)
-        $table->applyFilter($query);
+        foreach ($actions as $action) {
+            if ($action instanceof Link) $action->setButton();
+        }
 
         $params = [
             'title' => $title,
             'table' => $table,
-            // TODO allow_ to table + maybe component_path too
-            'allow_pagination' => true,
-            'allow_ordering' => true,
-            'component_path' => 'components/table.html.twig',
             'actions' => $actions,
-            'filter_form' => $filter_form
+            'filters' => $filters
         ];
 
         if ($filter_only) {
-            $response = $this->render($params['component_path'], $params);
-            return $this->pushFilterUrl($response, $request, $table->getFilter());
+            $response = $this->render($table->getComponentPath(), $params);
+            return $this->pushFilterUrl($response, $request, $table);
         }
 
         return $this->render('list.html.twig', $params);
     }
 
-    public function renderShow(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show', array $params = []) {
-        $defaults = [
+    public function renderShow(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show', array $actions = []) {
+        foreach ($actions as $action) {
+            if ($action instanceof Link) $action->setButton();
+        }
+
+        $params = [
             'entity' => $entity,
-            'fields' => $repository->getDataFields($fields)
+            'fields' => $repository->getDataFields($fields),
+            'actions' => $actions,
         ];
 
-        return $this->render('show.html.twig', array_merge($defaults, $params));
+        return $this->render('show.html.twig', $params);
     }
 
     public function renderModal(Request $request, PinakesRepository $repository, string $redirect, string $fields = 'show'): Response {
@@ -134,8 +117,8 @@ abstract class PinakesController extends AbstractController {
     protected function deleteEntityAndRedirect(Request $request, PinakesRepository $repository, string $redirect): Response {
         $entity = $this->getEntity($request, $repository);
 
-        // TODO check if delete is allowed (e.g. author still has books)
-        $repository->delete($entity);
+        // TODO check getMessageDelete
+        //$repository->delete($entity);
 
         return $this->redirectHx($redirect);
     }

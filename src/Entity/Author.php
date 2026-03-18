@@ -31,6 +31,7 @@ class Author extends PinakesEntity {
 
     public function __construct() {
         $this->books = new ArrayCollection();
+        $this->translations = new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -44,5 +45,11 @@ class Author extends PinakesEntity {
     public function getLinkOpenLibrary(): ?Link {
         if (null === $this->openlibrary) return null;
         return Link::extern($this->openlibrary, 'https://openlibrary.org/authors/' . $this->openlibrary);
+    }
+
+    public function getMessageDelete(): string {
+        if (!$this->books->isEmpty()) return 'Author still has books assigned.';
+        if (!$this->translations->isEmpty()) return 'Author still has translations assigned.';
+        return '';
     }
 }

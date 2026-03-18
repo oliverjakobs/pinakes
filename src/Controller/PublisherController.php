@@ -21,7 +21,7 @@ class PublisherController extends PinakesController {
     public function show(Request $request, PublisherRepository $repository, BookRepository $books): Response {
         $publisher = $this->getEntity($request, $repository);
 
-        $table = $books->createTable()->applyFilter([ 'publisher' => $publisher->getId() ]);
+        $table = $books->createTable()->addFilter('publisher', $publisher);
 
         return $this->renderList($request, 'Publisher: ' . (string) $publisher, $table,
             actions: [

@@ -2,6 +2,7 @@
 
 namespace App\Pinakes;
 
+use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
 
 class DataTable {
@@ -14,10 +15,16 @@ class DataTable {
     ];
 
     private array $filter = self::DEFAULT_FILTER;
+    private array $hidden = [];
 
     private ?PinakesRepository $repository;
     private array $columns;
     private ?array $data = null;
+
+    private ?string $component_path = null; 
+
+    public bool $allow_pagination = true;
+    public bool $allow_ordering = true;
 
     public function __construct(?PinakesRepository $repository, array $columns) {
         $this->repository = $repository;
@@ -34,10 +41,26 @@ class DataTable {
         return $this;
     }
 
-    public function applyFilter(array $filter): self {
+    public function addFilter(string $name, mixed $value): self {
         assert(null === $this->data, 'Table is finalized');
-        $this->filter = array_merge($this->filter, $filter);
+
+        $this->hidden[] = $name;
+
+        if (is_iterable($value)) {
+            $value = array_map(fn ($v) => ($v instanceof PinakesEntity) ? $v->getId() : $v, $value);
+        } else if ($value instanceof PinakesEntity) {
+            $value = $value->getId();
+        }
+
+        $this->filter[$name] = $value;
         return $this;
+    }
+
+    public function setQuery(array $query): bool {
+        $filter_only = $query['filter_only'] ?? false;
+        unset($query['filter_only']);
+        $this->filter = array_merge($this->filter, array_filter($query));
+        return boolval($filter_only);
     }
 
     public function getRepository(): ?PinakesRepository {
@@ -57,12 +80,46 @@ class DataTable {
         return $this->filter;
     }
 
+    public function buildQuery(): string {
+        $diff = [
+            'order_dir' => null,
+            'order_by' => null,
+            'pp' => null,
+            'filter_only' => null
+        ];
+
+        if (1 === intval($this->filter['page'])) {
+            $diff['page'] = null;
+        }
+
+        $hidden_keys = array_flip($this->hidden);
+        $query = array_diff_key($this->filter, $diff, $hidden_keys);
+        return http_build_query($query);
+    }
+    public function setComponentPath(string $path): self {
+        $this->component_path = $path;
+        return $this;
+    }
+
+    public function getComponentPath(): string {
+        if (null !== $this->component_path) return $this->component_path;
+        return 'components/table.html.twig';
+    }
+
     public function getFilterValue(string $key): mixed {
         return $this->filter[$key] ?? null;
     }
 
     public function getSearch(): ?string {
-        return $this->filter['search'] ?? null;
+        return $this->getFilterValue('search');
+    }
+
+    public function getOrderDir(): ?string {
+        return $this->getFilterValue('order_dir');
+    }
+
+    public function getOrderBy(): ?string {
+        return $this->getFilterValue('order_by');
     }
 
     public function getData(): array {

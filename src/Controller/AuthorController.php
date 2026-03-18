@@ -20,7 +20,7 @@ class AuthorController extends PinakesController {
     public function show(Request $request, AuthorRepository $repository, BookRepository $books): Response {
         $author = $this->getEntity($request, $repository);
 
-        $table = $books->createTable('list_author')->applyFilter([ 'author' => $author->getId() ]);
+        $table = $books->createTable('list_author')->addFilter('author', $author);
 
         return $this->renderList($request, 'Author: ' . (string) $author, $table,
             actions: [

@@ -123,7 +123,7 @@ class BookRepository extends PinakesRepository {
     }
 
     public function getDataFieldsListAuthor(): array {
-        return $this->composeDataFields([ 'title', 'publisher', 'first_published', 'isbn', 'series', 'series_volume' ]);
+        return $this->composeDataFields([ 'title', 'publisher', 'first_published', 'published', 'isbn', 'series', 'series_volume' ]);
     }
     public function getDataFieldsListPublisher(): array {
         return $this->composeDataFields([ 'title', 'authors_inline', 'published', 'isbn', 'series', 'series_volume' ]);

@@ -20,7 +20,7 @@ class BoardgameController extends PinakesController {
             actions: [
                 Link::post('New Game', 'boardgame_create'),
             ],
-            filter_form: $repository->getFilters()
+            filters: $repository->getDataFieldsFilter()
         );
     }
 
@@ -40,14 +40,14 @@ class BoardgameController extends PinakesController {
     public function show(Request $request, BoardgameRepository $repository): Response {
         $boardgame = $this->getEntity($request, $repository);
 
-        return $this->renderShow($repository, $boardgame, 'show', [
-            'actions' => [
+        return $this->renderShow($repository, $boardgame, 'show', 
+            actions: [
                 Link::post('Add Extension', 'boardgame_create', [ 'base' => $boardgame->getId() ]),
                 ViewElement::separator(),
                 $boardgame->getLinkEdit(),
                 $boardgame->getLinkDelete(),
             ]
-        ]);
+        );
     }
 
     #[Route('/boardgame/modal/{id}', name: 'boardgame_modal', methods: ['GET', 'POST'])]
@@ -70,15 +70,17 @@ class BoardgameController extends PinakesController {
     }
 
     #[Route('/boardgame/publisher/{id}', name: 'boardgamepublisher_show', methods: ['GET'])]
-    public function showPublisher(Request $request, BoardgamePublisherRepository $repository): Response {
+    public function showPublisher(Request $request, BoardgamePublisherRepository $repository, BoardgameRepository $boardgames): Response {
         $publisher = $this->getEntity($request, $repository);
 
-        return $this->renderShow($repository, $publisher, 'show', [
-            'actions' => [
+        $table = $boardgames->createTable()->addFilter('publisher', $publisher);
+
+        return $this->renderList($request, 'Publisher: ' . (string) $publisher, $table,
+            actions: [
                 $publisher->getLinkEdit(),
                 $publisher->getLinkDelete(),
-            ]
-        ]);
+            ],
+        );
     }
 
     #[Route('/boardgame/publisher/modal/{id?}', name: 'boardgamepublisher_modal', methods: ['GET', 'POST'])]

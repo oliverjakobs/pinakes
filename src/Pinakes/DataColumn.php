@@ -8,27 +8,26 @@ use App\Renderable\FormElement;
 use App\Renderable\ViewElement;
 use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\QueryBuilder;
 
 class DataColumn {
-
     const LINK_NONE = 0;
     const LINK_SELF = 1;
     const LINK_DATA = 2;
 
-    private string $name;
-    // TODO is this needed?
-    private PinakesRepository $repository;
+    public readonly string $name;
+    public readonly ?string $property;
 
-    private ?string $property;
     private ?DataType $data_type;
     private string|Closure $data;
 
-    private string $caption;
+    public string $caption;
 
     private int $link;
 
     private bool $edit;
     private ?Closure $edit_cb = null;
+    private ?Closure $filter_cb = null;
 
     private ?string $visibility = null;
 
@@ -54,7 +53,6 @@ class DataColumn {
         // assert(null !== $data_type, 'Failed to determine data type');
 
         $this->name = $name;
-        $this->repository = $repository;
         $this->property = $property;
         $this->data = $data;
         $this->data_type = $data_type;
@@ -64,6 +62,7 @@ class DataColumn {
         $this->visibility = $options['visibility'] ?? null;
         $this->edit = is_string($edit) || $edit;
         $this->edit_cb = $options['edit_callback'] ?? null;
+        $this->filter_cb = $options['filter'] ?? null;
     }
 
     public function isVisible(): bool {
@@ -72,29 +71,21 @@ class DataColumn {
 
     public function canOrderBy(): bool {
         return null !== $this->property;
-    } 
-
-    public function getName(): string {
-        return $this->name;
     }
 
-    public function getCaption(): string {
-        return $this->caption;
-    }
-
-    public function getProperty(): string {
-        return $this->property ?? '';
+    public function filter(QueryBuilder $qb, mixed $value): QueryBuilder {
+        if (null === $this->filter_cb) return $qb;
+        assert(is_callable($this->filter_cb));
+        return call_user_func($this->filter_cb, $qb, $value);
     }
 
     public function getData(PinakesEntity $entity): mixed {
         if (is_callable($this->data)) return call_user_func($this->data, $entity);
-
         return $entity->getValue($this->data);
     }
 
     public function renderValue(PinakesEntity $entity): string {
         // Step 1: Get data
-        /** @var DataType data_type */
         $data = $this->getData($entity);
 
         // Step 2: Apply link
@@ -132,7 +123,7 @@ class DataColumn {
         return $form->render();
     }
 
-    // // TODO test
+    // TODO test
     public function renderExport(PinakesEntity $entity): string {
         // Step 1: Get data
         $data = $this->getData($entity);
@@ -145,7 +136,6 @@ class DataColumn {
         return $this->data_type->getForm($this->name, $this->data_type->parse($value));
     }
 
-    // TODO implement
     public function updateEntity(PinakesEntity $entity, string|array|null $value): void {
         if (!$this->edit) return;
 

@@ -14,7 +14,7 @@
   {% endfor %}
 </div>
 
-{% if allow_pagination ?? true %}
+{% if table.allow_pagination %}
   {% include 'elements/pagination.html.twig' with {
     'table': table
   } only %}
