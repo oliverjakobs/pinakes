@@ -6,7 +6,6 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use App\Pinakes\DataType;
 use App\Renderable\Icon;
-use App\Renderable\ViewElement;
 
 class TransactionRepository extends PinakesRepository {
 
@@ -32,15 +31,18 @@ class TransactionRepository extends PinakesRepository {
             'reason' => [
                 'caption' => 'Reason',
                 'data' => 'reason',
+                'edit' => true
             ],
             'amount' => [
                 'caption' => 'Amount',
                 'data' => 'amount',
                 'data_type' => DataType::currency(),
+                'edit' => true
             ],
             'timestamp' => [
                 'caption' => 'Timestamp',
                 'data' => 'timestamp',
+                'edit' => true
             ],
             'edit' => [
                 'caption' => '',
@@ -62,6 +64,10 @@ class TransactionRepository extends PinakesRepository {
     }
 
     public function getDataFieldsShow(): array {
+        return $this->composeDataFields([ 'reason', 'amount', 'timestamp' ]);
+    }
+
+    public function getDataFieldsExport(): array {
         return $this->composeDataFields([ 'reason', 'amount', 'timestamp' ]);
     }
 }

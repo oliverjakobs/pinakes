@@ -17,11 +17,9 @@ class SeriesController extends PinakesController {
 
     #[Route('/series', name: 'series', methods: ['GET'])]
     public function list(Request $request, SeriesRepository $repository): Response {
-        return $this->renderList($request, 'Series', $repository->createTable(),
-            actions: [
-                Link::modal('New Series', 'series_modal'),
-            ]
-        );
+        return $this->renderList($request, 'Series', $repository->createTable(), [
+            Link::modal('New Series', 'series_modal'),
+        ]);
     }
 
     #[Route('/series/show/{id}', name: 'series_show', methods: ['GET'])]
@@ -29,28 +27,27 @@ class SeriesController extends PinakesController {
         $series = $this->getEntity($request, $repository);
 
         $table = $books->createTable('list_series')->addFilter('series', $series);
-
-        return $this->renderList($request, 'Series: ' . (string) $series, $table,
-            actions: [
-                Link::post('Add Volume', 'book_create', [ 'series' => $series->getId() ]),
-                Link::modal('Add Tag', 'series_add_tag', [ 'id' => $series->getId() ]),
-                ViewElement::separator(),
-                $series->getLinkEdit(),
-                $series->getLinkDelete(),
-            ]
-        );
+        return $this->renderList($request, 'Series: ' . (string) $series, $table, [
+            Link::modal('Add Volume', 'book_modal', [ 'series' => $series->getId() ]),
+            Link::modal('Add Tag', 'series_add_tag', [ 'id' => $series->getId() ]),
+            ViewElement::separator(),
+            $series->getLinkEdit(),
+            $series->getLinkDelete(),
+        ]);
     }
 
     #[Route('/series/modal/{id?}', name: 'series_modal', methods: ['GET', 'POST'])]
     public function modal(Request $request, SeriesRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        return $this->renderModal($request, $repository, 'series_show');
+        $entity = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        return $this->renderModal($request, $repository, $entity, 'series_show');
     }
 
     #[Route('/series/delete/{id}', name: 'series_delete', methods: ['DELETE'])]
     public function delete(Request $request, SeriesRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        return $this->deleteEntityAndRedirect($request, $repository, 'series');
+        $entity = $this->getEntity($request, $repository);
+        return $this->deleteEntityAndRedirect($request, $repository, $entity, 'series');
     }
 
     #[Route('/series/add-tag/{id}', name: 'series_add_tag', methods: ['GET', 'POST'])]
@@ -64,9 +61,9 @@ class SeriesController extends PinakesController {
             $tag = $tags->getOrCreate($request->request->get('tag'));
             foreach ($series->volumes as $vol) {
                 $vol->addTag($tag);
-                $this->em->persist($vol);
+                $repository->save($vol, false);
             }
-            $this->em->flush();
+            $repository->flush();
             return $this->redirectToRoute('series_show', [ 'id' => $series->getId() ]);
         }
 

@@ -1,9 +1,9 @@
-{% for key, field in fields %}
+{% for field in table.dataFields %}
 {{- field.caption -}}{% if not loop.last %},{% endif %}
 {% endfor %}
-{% for entity in data %}
+{% for entity in table.data %}
 
-{% for field in fields %}
-"{{- export(field, entity) -}}"{% if not loop.last %},{% endif %}
+{% for field in table.dataFields %}
+"{{- export(entity, field) | raw -}}"{% if not loop.last %},{% endif %}
 {% endfor %}
 {% endfor %}

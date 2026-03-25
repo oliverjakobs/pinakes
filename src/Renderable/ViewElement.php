@@ -51,6 +51,10 @@ class ViewElement implements Renderable {
         $this->attributes[$key] = $value;
         return $this;
     }
+
+    public function isSeparator(): bool {
+        return in_array('separator', $this->classes);
+    }
     
     public function render(): string {       
         $attr = array_map(fn ($k, $v) => sprintf('%s="%s"', $k, $v), array_keys($this->attributes), $this->attributes);

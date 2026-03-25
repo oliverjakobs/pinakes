@@ -21,7 +21,6 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     const INPUT_TIME = 'time';
 
     private array $data_fields;
-    private array $filters;
 
     public function __construct(ManagerRegistry $registry) {
         parent::__construct($registry, static::getEntityClass());
@@ -30,7 +29,6 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         foreach ($this->defineDataFields() as $name => $def) {
             $this->data_fields[$name] = new DataColumn($this, $name, $def);
         }
-        $this->filters = $this->getFilters();
     }
     
     abstract static protected function getEntityClass(): string;
@@ -63,10 +61,6 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         return array_filter($result, fn ($col) => $col->isVisible());
     }
 
-    public function getFilters(): array {
-        return [];
-    }
-
     public function getDataType(string $property): DataType {
         $meta = $this->getClassMetadata();
         if ($meta->hasField($property)) {
@@ -93,6 +87,10 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if ($flush) $em->flush();
     }
 
+    public function flush() {
+        $this->getEntityManager()->flush();
+    }
+
     public function delete(PinakesEntity $entity, bool $flush = true) {
         $em = $this->getEntityManager();
         $em->remove($entity);
@@ -110,7 +108,6 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         if (null === $result) {
             $result = $this->getTemplate();
             $result->{$this->getSearchKey()} = $key;
-            $this->save($result, $flush);
         }
 
         return $result;

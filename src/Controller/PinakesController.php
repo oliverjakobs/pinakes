@@ -6,19 +6,13 @@ use App\Entity\PinakesEntity;
 use App\Pinakes\DataTable;
 use App\Pinakes\Helper;
 use App\Renderable\Link;
+use App\Renderable\ViewElement;
 use App\Repository\PinakesRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 abstract class PinakesController extends AbstractController {
-
-    protected EntityManagerInterface $em;
-
-    public function __construct(EntityManagerInterface $em) {
-        $this->em = $em;
-    }
 
     protected function getEntity(Request $request, PinakesRepository $repository): ?PinakesEntity {
         $id = $request->attributes->get('id');
@@ -46,48 +40,44 @@ abstract class PinakesController extends AbstractController {
         return $response;
     }
 
-    public function renderList(Request $request, string $title, DataTable $table, array $actions = [], array $filters = []): Response {
-        $filter_only = $table->setQuery($request->query->all());
+    private function process_actions(array $actions): array {
+        $actions = array_filter($actions);
+
+        $first = array_first($actions);
+        if ($first instanceof ViewElement && $first->isSeparator()) array_shift($actions);
+
+        $last = array_last($actions);
+        if ($last instanceof ViewElement && $last->isSeparator()) array_pop($actions);
 
         foreach ($actions as $action) {
             if ($action instanceof Link) $action->setButton();
         }
+        return $actions;
+    }
 
-        $params = [
-            'title' => $title,
-            'table' => $table,
-            'actions' => $actions,
-            'filters' => $filters
-        ];
-
-        if ($filter_only) {
-            $response = $this->render($table->getComponentPath(), $params);
+    public function renderList(Request $request, string $title, DataTable $table, array $actions = [], array $filters = []): Response {
+        if ($table->setQuery($request->query->all())) {
+            $response = $this->render($table->getComponentPath(), [ 'table' => $table ]);
             return $this->pushFilterUrl($response, $request, $table);
         }
 
-        return $this->render('list.html.twig', $params);
+        return $this->render('list.html.twig', [
+            'title' => $title,
+            'table' => $table,
+            'actions' => $this->process_actions($actions),
+            'filters' => $filters
+        ]);
     }
 
     public function renderShow(PinakesRepository $repository, PinakesEntity $entity, string $fields = 'show', array $actions = []) {
-        foreach ($actions as $action) {
-            if ($action instanceof Link) $action->setButton();
-        }
-
-        $params = [
+        return $this->render('show.html.twig', [
             'entity' => $entity,
             'fields' => $repository->getDataFields($fields),
-            'actions' => $actions,
-        ];
-
-        return $this->render('show.html.twig', $params);
+            'actions' => $this->process_actions($actions),
+        ]);
     }
 
-    public function renderModal(Request $request, PinakesRepository $repository, string $redirect, string $fields = 'show'): Response {
-        $entity = $this->getEntity($request, $repository);
-        if (null === $entity) {
-            $entity = $repository->getTemplate();
-        }
-
+    public function renderModal(Request $request, PinakesRepository $repository, PinakesEntity $entity, string $redirect, string $fields = 'show'): Response {
         if (Request::METHOD_POST === $request->getMethod()) {
             return $this->updateEntityAndRedirect($request, $repository, $entity, $redirect);
         }
@@ -100,7 +90,7 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    protected function updateEntityAndRedirect(Request $request, PinakesRepository $repository, PinakesEntity $entity, string $redirect): Response {
+    public function updateEntityAndRedirect(Request $request, PinakesRepository $repository, PinakesEntity $entity, string $redirect): Response {
         foreach ($request->request->all() as $name => $value) {
             if (is_array($value)) $value = Helper::filterEmpty($value);
             if (Helper::isEmpty($value)) $value = null;
@@ -114,9 +104,7 @@ abstract class PinakesController extends AbstractController {
         return $this->redirectToRoute($redirect, [ 'id' => $entity->getId() ]);
     }
 
-    protected function deleteEntityAndRedirect(Request $request, PinakesRepository $repository, string $redirect): Response {
-        $entity = $this->getEntity($request, $repository);
-
+    public function deleteEntityAndRedirect(Request $request, PinakesRepository $repository, PinakesEntity $entity, string $redirect): Response {
         // TODO check getMessageDelete
         //$repository->delete($entity);
 
@@ -127,5 +115,14 @@ abstract class PinakesController extends AbstractController {
         return new Response(headers: [
             'HX-Redirect' => $this->generateUrl($route, $parameters)
         ]);
+    }
+
+    public function exportCsv(DataTable $table, string $filename): Response {
+        $response = $this->render('export.csv.twig', [
+            'table' => $table
+        ]);
+        $response->headers->set('Content-Type', 'text/csv');
+        $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '.csv"');
+        return $response;
     }
 }

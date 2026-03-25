@@ -37,10 +37,7 @@ class DataColumn {
         $data = $options['data'];
         $edit = $options['edit'] ?? false;
 
-        // TODO check for property defined in 'edit' and 'data'
-        if (is_string($edit)) {
-            $property = $edit;
-        } else if (is_callable($data)) {
+        if (is_callable($data)) {
             $property = null;
         } else {
             $property = $data;
@@ -50,7 +47,7 @@ class DataColumn {
         if (null === $data_type && null !== $property) {
             $data_type = $repository->getDataType($property);
         }
-        // assert(null !== $data_type, 'Failed to determine data type');
+        assert(null !== $data_type, 'Failed to determine data type for ' . $name);
 
         $this->name = $name;
         $this->property = $property;
@@ -107,14 +104,13 @@ class DataColumn {
         }
 
         // Step 3: Render data
-        $value = $this->data_type?->render($data);
+        $value = $this->data_type->render($data);
         return ViewElement::create('td', $value)->addClasses($this->data_type->getStyleClasses())->render();
     }
 
     public function renderForm(PinakesEntity $entity): string {
         if (!$this->edit) return '';
         
-        // TODO assert datatype
         // Step 1: Get data
         $data = $this->getData($entity);
 
@@ -123,13 +119,12 @@ class DataColumn {
         return $form->render();
     }
 
-    // TODO test
     public function renderExport(PinakesEntity $entity): string {
         // Step 1: Get data
         $data = $this->getData($entity);
 
         // Step 2: Render
-        return $this->data_type->render($data);
+        return $this->data_type->export($data);
     }
 
     public function getFilterForm(mixed $value): FormElement {

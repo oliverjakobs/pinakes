@@ -113,14 +113,14 @@ class DataType {
                 if (null === $value) return null;
                 assert(is_string($value), 'Expected string got array');
                 $repository = Pinakes::getRepository($this->config['target']);
-                return $repository->getOrCreate($value, false);
+                return $repository->getOrCreate($value);
 
             case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
                 if (null === $value) return new ArrayCollection();
                 assert(is_array($value), 'Expected array got string');
                 $repository = Pinakes::getRepository($this->config['target']);
-                $entities = array_map(fn ($e) => $repository->getOrCreate($e, false), $value);
+                $entities = array_map(fn ($e) => $repository->getOrCreate($e), $value);
                 return new ArrayCollection($entities);
 
             case self::TYPE_DATETIME:
@@ -194,6 +194,32 @@ class DataType {
                 assert(false, 'Cannot edit type "' . $this->type . '"');
         }
         return FormElement::input($name, 'text', $value);
+    }
+
+    public function export(mixed $data): string {
+        if (null === $data) return '';
+
+        switch ($this->type) {
+            case self::TYPE_ENTITY:
+                return (string) $data;
+
+            case self::TYPE_COLLECTION:
+                case self::TYPE_TAGS:
+                if ($data instanceof Collection) $data = $data->toArray();
+
+                return implode('; ', $data);
+
+            case self::TYPE_CURRENCY:
+                return sprintf($this->config['fmt'], $data);
+            case self::TYPE_COLOR:
+                return $data;
+            case self::TYPE_DATETIME:
+                assert($data instanceof DateTime);
+                return $data->format($this->config['fmt'] ?? 'd.m.Y');
+            case self::TYPE_ACTION:
+                assert('Fields of type "' . $this->type . '" can not be exported');
+        }
+        return (string) $data;
     }
 
     public function getStyleClasses(): array {

@@ -19,7 +19,8 @@ class PublisherRepository extends PinakesRepository {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataColumn::LINK_SELF
+                'link' => DataColumn::LINK_SELF,
+                'edit' => true
             ],
             'book_count' => [
                 'caption' => 'Books',

@@ -34,12 +34,14 @@ class BoardgameRepository extends PinakesRepository {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataColumn::LINK_SELF
+                'link' => DataColumn::LINK_SELF,
+                'edit' => true
             ],
             'publisher' => [
                 'caption' => 'Publisher',
                 'data' => 'publisher',
-                'link' => DataColumn::LINK_DATA
+                'link' => DataColumn::LINK_DATA,
+                'edit' => true
             ],
             'player_count' => [
                 'caption' => 'Players',
@@ -54,15 +56,18 @@ class BoardgameRepository extends PinakesRepository {
             'min_player' => [
                 'caption' => 'Players (min)',
                 'data' => 'min_player',
+                'edit' => true
             ],
             'max_player' => [
                 'caption' => 'Players (max)',
                 'data' => 'max_player',
+                'edit' => true
             ],
             'base_game' => [
                 'caption' => 'Base game',
                 'data' => 'base_game',
-                'link' => DataColumn::LINK_DATA
+                'link' => DataColumn::LINK_DATA,
+                'edit' => true
             ],
             'extensions' => [
                 'caption' => 'Extensions',

@@ -19,12 +19,14 @@ class TagRepository extends PinakesRepository {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataColumn::LINK_SELF
+                'link' => DataColumn::LINK_SELF,
+                'edit' => true,
             ],
             'color' => [
                 'caption' => 'Color',
                 'data' => 'color',
                 'data_type' => DataType::color(),
+                'edit' => true,
             ],
             'book_count' => [
                 'caption' => 'Books',
@@ -38,6 +40,9 @@ class TagRepository extends PinakesRepository {
         return $this->composeDataFields([ 'name', 'color', 'book_count' ]);
     }
     public function getDataFieldsShow(): array {
+        return $this->composeDataFields([ 'name', 'color' ]);
+    }
+    public function getDataFieldsExport(): array {
         return $this->composeDataFields([ 'name', 'color' ]);
     }
 }

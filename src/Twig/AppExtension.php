@@ -69,7 +69,6 @@ class AppExtension extends AbstractExtension {
         return $col->renderForm($entity);
     }
 
-    // TODO test
     public function exportValue(PinakesEntity $entity, DataColumn $col): string {
         return $col->renderExport($entity);
     }

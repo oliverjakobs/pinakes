@@ -36,7 +36,8 @@ class AuthorRepository extends PinakesRepository {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataColumn::LINK_SELF
+                'link' => DataColumn::LINK_SELF,
+                'edit' => true
             ],
             'book_count' => [
                 'caption' => 'Books',
@@ -50,8 +51,8 @@ class AuthorRepository extends PinakesRepository {
             ],
             'openlibrary' => [
                 'caption' => 'OpenLibrary',
-                'data' => fn(Author $a) => $a->getLinkOpenLibrary(),
-                'edit' => 'openlibrary'
+                'data' => 'openlibrary',
+                'edit' => true
             ],
         ];
     }

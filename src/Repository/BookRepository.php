@@ -29,7 +29,7 @@ class BookRepository extends PinakesRepository {
     }
 
     protected function getQueryBuilder(array $filter = []): QueryBuilder {
-        $qb = parent::getQueryBuilder($filter)->addSelect('a')->leftJoin('e.authors', 'a');
+        $qb = parent::getQueryBuilder($filter)->addSelect('a')->leftJoin('e.authors', 'a')->addSelect('t')->leftJoin('e.tags', 't');
 
         $this->applyAnd($qb, $filter['author'] ?? [], 'MEMBER OF', 'authors');
         $this->applyAnd($qb, $filter['publisher'] ?? [], '=', 'publisher');

@@ -19,11 +19,11 @@ class Book extends PinakesEntity {
     public ?string $title = null;
 
     /** @var Collection<int, Author> */
-    #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'books')]
+    #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'books', cascade: ['persist'])]
     public Collection $authors;
 
     /** @var Collection<int, Author> */
-    #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'translations')]
+    #[ORM\ManyToMany(targetEntity: Author::class, inversedBy: 'translations', cascade: ['persist'])]
     #[ORM\JoinTable(name: 'book_translator')]
     public Collection $translators;
 
@@ -39,7 +39,7 @@ class Book extends PinakesEntity {
     #[ORM\Column(length: 13, nullable: true)]
     public ?string $isbn = null;
 
-    #[ORM\ManyToOne(targetEntity: Series::class, inversedBy: 'volumes')]
+    #[ORM\ManyToOne(targetEntity: Series::class, inversedBy: 'volumes', cascade: ['persist'])]
     public ?Series $series = null;
 
     #[ORM\Column(nullable: true)]
@@ -49,11 +49,12 @@ class Book extends PinakesEntity {
     public ?\DateTime $created_at = null;
 
     /** @var Collection<int, Tag> */
-    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'books')]
+    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'books', cascade: ['persist'])]
     public Collection $tags;
 
     public function __construct() {
         $this->authors = new ArrayCollection();
+        $this->translators = new ArrayCollection();
         $this->tags = new ArrayCollection();
     }
 

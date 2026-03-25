@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Renderable\ViewElement;
 use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,27 +19,29 @@ class AuthorController extends PinakesController {
 
     #[Route('/author/show/{id}', name: 'author_show', methods: ['GET'])]
     public function show(Request $request, AuthorRepository $repository, BookRepository $books): Response {
+        /** @var Author */
         $author = $this->getEntity($request, $repository);
 
         $table = $books->createTable('list_author')->addFilter('author', $author);
-
-        return $this->renderList($request, 'Author: ' . (string) $author, $table,
-            actions: [
-                $author->getLinkEdit(),
-                $author->getLinkDelete(),
-            ]
-        );
+        return $this->renderList($request, 'Author: ' . (string) $author, $table, [
+            $author->getLinkEdit(),
+            $author->getLinkDelete(),
+            ViewElement::separator(),
+            $author->getLinkOpenLibrary(),
+        ]);
     }
 
     #[Route('/author/modal/{id?}', name: 'author_modal', methods: ['GET', 'POST'])]
     public function modal(Request $request, AuthorRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        return $this->renderModal($request, $repository, 'author_show');
+        $entity = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        return $this->renderModal($request, $repository, $entity, 'author_show');
     }
 
     #[Route('/author/delete/{id}', name: 'author_delete', methods: ['DELETE'])]
     public function delete(Request $request, AuthorRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        return $this->deleteEntityAndRedirect($request, $repository, 'author');
+        $entity = $this->getEntity($request, $repository);
+        return $this->deleteEntityAndRedirect($request, $repository, $entity, 'author');
     }
 }
