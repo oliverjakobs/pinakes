@@ -2,11 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Transaction;
-use App\Pinakes\DataTable;
 use App\Repository\BookRepository;
 use App\Repository\TransactionRepository;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 

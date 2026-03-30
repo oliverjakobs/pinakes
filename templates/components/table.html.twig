@@ -7,14 +7,14 @@
     {# TODO order by datafield #}
       {% set can_order_by = table.allow_ordering and field.canOrderBy %}
       {% if can_order_by %}
-        {% set direction = (field.property == table.orderBy) ? table.orderDir : '' %}
+        {% set direction = (field.name == table.orderBy) ? table.orderDir : '' %}
       {% else %}
         {% set direction = '' %}
       {% endif %}
       <th
         {% if can_order_by %}
           hx-get="{{ filter_url(app.request, table, {
-            'order_by': field.property,
+            'order_by': field.name,
             'order_dir': (direction == 'asc') ? 'desc' : 'asc',
             'page': 1
           }) }}"

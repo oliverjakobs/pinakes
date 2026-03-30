@@ -20,8 +20,9 @@ class AuthorRepository extends PinakesRepository {
     
     protected function getQueryBuilder(array $filter = []): QueryBuilder {
         return parent::getQueryBuilder($filter)
-            ->addSelect('b')->leftJoin('e.books', 'b')
-            ->addSelect('t')->leftJoin('e.translations', 't');
+            ->addSelect('(SELECT COUNT(bc.id) FROM App\Entity\Book bc WHERE e MEMBER OF bc.authors) AS HIDDEN book_count')
+            ->addSelect('(SELECT COUNT(tc.id) FROM App\Entity\Book tc WHERE e MEMBER OF tc.translators) AS HIDDEN translation_count')
+            ->addSelect('b, t')->leftJoin('e.books', 'b')->leftJoin('e.translations', 't');
     }
 
     public function findBySeries(Series $series): Collection {
@@ -42,12 +43,14 @@ class AuthorRepository extends PinakesRepository {
             'book_count' => [
                 'caption' => 'Books',
                 'data' => fn(Author $a) => $a->books->count(),
-                'data_type' => DataType::integer()
+                'data_type' => DataType::integer(),
+                'order_by' => 'book_count'
             ],
             'translation_count' => [
                 'caption' => 'Translations',
                 'data' => fn(Author $a) => $a->translations->count(),
-                'data_type' => DataType::integer()
+                'data_type' => DataType::integer(),
+                'order_by' => 'translation_count'
             ],
             'openlibrary' => [
                 'caption' => 'OpenLibrary',

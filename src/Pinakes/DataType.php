@@ -8,13 +8,13 @@ use App\Renderable\Renderable;
 use App\Renderable\FormElement;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
+use App\Repository\PinakesRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\FieldMapping;
 
 class DataType {
-
     const TYPE_STRING = 'string';
     const TYPE_INTEGER = 'integer';
     const TYPE_FLOAT = 'float';
@@ -30,7 +30,7 @@ class DataType {
     const TYPE_ACTION = 'action';
 
     private function __construct(
-        private string $type,
+        public readonly string $type,
         private array $config = []
     ) {
     }
@@ -77,27 +77,24 @@ class DataType {
         return new self(self::TYPE_ACTION);
     }
 
-    private static function isValidTarget(string $target): bool {
-        return is_a($target, PinakesEntity::class, true);
+    private static function withTarget(string $type, string $target, array $config = []): self {
+        assert(is_a($target, PinakesEntity::class, true), 'Invalid target ' . $target);
+        $result = new self($type, $config);
+        $result->config['target'] = $target;
+        return $result;
     }
 
     public static function entity(string $entity): self {
-        assert(self::isValidTarget($entity), 'Invalid target ' . $entity);
-        return new self(self::TYPE_ENTITY, [ 'target' => $entity ]);
+        return self::withTarget(self::TYPE_ENTITY, $entity);
     }
 
     public static function collection(string $entity, ?string $separator = null): self {
-        $result = self::entity($entity);
-        $result->type = self::TYPE_COLLECTION;
-        $result->config['separator'] = $separator;
-        return $result;
+        return self::withTarget(self::TYPE_COLLECTION, $entity, [ 'separator' => $separator ]);
     }
 
     public static function tags(string $entity): self {
         assert(is_a($entity, TagInterface::class, true), 'Invalid tag-target ' . $entity);
-        $result = self::entity($entity);
-        $result->type = self::TYPE_TAGS;
-        return $result;
+        return self::withTarget(self::TYPE_TAGS, $entity);
     }
 
     public function __toString(): string {
@@ -107,22 +104,29 @@ class DataType {
         };
     }
 
+    public function getTargetRepository(): PinakesRepository {
+        assert(self::TYPE_COLLECTION === $this->type || self::TYPE_TAGS === $this->type || self::TYPE_ENTITY === $this->type);
+        return Pinakes::getRepository($this->config['target']);
+    }
+
+    public function isArrayType(): bool {
+        return self::TYPE_COLLECTION === $this->type || self::TYPE_TAGS === $this->type;
+    }
+
     public function parse(string|array|null $value): mixed {
         switch ($this->type) {
             case self::TYPE_ENTITY:
                 if (null === $value) return null;
-                assert(is_string($value), 'Expected string got array');
+                assert(is_string($value));
                 $repository = Pinakes::getRepository($this->config['target']);
                 return $repository->getOrCreate($value);
-
             case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
                 if (null === $value) return new ArrayCollection();
-                assert(is_array($value), 'Expected array got string');
+                assert(is_array($value));
                 $repository = Pinakes::getRepository($this->config['target']);
                 $entities = array_map(fn ($e) => $repository->getOrCreate($e), $value);
                 return new ArrayCollection($entities);
-
             case self::TYPE_DATETIME:
                 return new DateTime($value);
             case self::TYPE_CURRENCY:
@@ -135,7 +139,6 @@ class DataType {
             case self::TYPE_ACTION:
                 assert(false, 'Cannot parse for type "' . $this->type . '"');
         }
-
         return $value;
     }
 
@@ -145,21 +148,15 @@ class DataType {
         switch ($this->type) {
             case self::TYPE_ENTITY:
                 return (string) $data;
-
             case self::TYPE_COLLECTION:
                 if ($data instanceof Collection) $data = $data->toArray();
-        
                 $separator = $this->config['separator'] ?? null;
                 if (null !== $separator) return implode($separator, $data);
-        
                 return ViewElement::ul($data)->addClasses(['collection'])->render();
-
             case self::TYPE_TAGS:
                 if ($data instanceof Collection) $data = $data->toArray();
-
-                $data = array_map(fn ($tag) => $tag->getTag(), $data);
+                $data = array_map(fn ($tag) => ViewElement::tag($tag->getLinkSelf(), $tag->getColor()), $data);
                 return implode(' ', $data);
-
             case self::TYPE_CURRENCY:
                 return sprintf($this->config['fmt'], $data);
             case self::TYPE_COLOR:
@@ -202,13 +199,10 @@ class DataType {
         switch ($this->type) {
             case self::TYPE_ENTITY:
                 return (string) $data;
-
             case self::TYPE_COLLECTION:
                 case self::TYPE_TAGS:
                 if ($data instanceof Collection) $data = $data->toArray();
-
                 return implode('; ', $data);
-
             case self::TYPE_CURRENCY:
                 return sprintf($this->config['fmt'], $data);
             case self::TYPE_COLOR:
@@ -217,7 +211,7 @@ class DataType {
                 assert($data instanceof DateTime);
                 return $data->format($this->config['fmt'] ?? 'd.m.Y');
             case self::TYPE_ACTION:
-                assert('Fields of type "' . $this->type . '" can not be exported');
+                assert(false, 'Cannot export type "' . $this->type . '"');
         }
         return (string) $data;
     }
@@ -227,9 +221,9 @@ class DataType {
             case self::TYPE_DATETIME:
             case self::TYPE_CURRENCY:
             case self::TYPE_INTEGER:
+            case self::TYPE_FLOAT:
                 return [ 'align-right', 'fit-content' ];
         }
-
         return [];
     }
 }

@@ -7,8 +7,6 @@ use App\Entity\Author;
 use App\Entity\Tag;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\QueryBuilder;
 
 class BookRepository extends PinakesRepository {
@@ -27,9 +25,15 @@ class BookRepository extends PinakesRepository {
         $result->created_at = new \DateTime();
         return $result;
     }
+    
+    public function getDefaultOrder(): array {
+        return [ 'created_at' => 'DESC', 'title' => 'ASC' ];
+    }
 
     protected function getQueryBuilder(array $filter = []): QueryBuilder {
-        $qb = parent::getQueryBuilder($filter)->addSelect('a')->leftJoin('e.authors', 'a')->addSelect('t')->leftJoin('e.tags', 't');
+        $qb = parent::getQueryBuilder($filter)
+            ->addSelect('a')->leftJoin('e.authors', 'a')
+            ->addSelect('t')->leftJoin('e.tags', 't');
 
         $this->applyAnd($qb, $filter['author'] ?? [], 'MEMBER OF', 'authors');
         $this->applyAnd($qb, $filter['publisher'] ?? [], '=', 'publisher');

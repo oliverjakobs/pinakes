@@ -18,7 +18,7 @@ class DataColumn {
     public readonly string $name;
     public readonly ?string $property;
 
-    private ?DataType $data_type;
+    public readonly DataType $data_type;
     private string|Closure $data;
 
     public string $caption;
@@ -31,12 +31,12 @@ class DataColumn {
 
     private ?string $visibility = null;
 
+    public readonly ?string $order_by;
+
     public function __construct(PinakesRepository $repository, string $name, array $options) {
         assert(isset($options['data']), 'No data specified');
 
         $data = $options['data'];
-        $edit = $options['edit'] ?? false;
-
         if (is_callable($data)) {
             $property = null;
         } else {
@@ -49,17 +49,30 @@ class DataColumn {
         }
         assert(null !== $data_type, 'Failed to determine data type for ' . $name);
 
+        $this->link = $options['link'] ?? self::LINK_NONE;
+
+        if (self::LINK_DATA === $this->link) {
+            $allowed_types = [
+                DataType::TYPE_ENTITY,
+                DataType::TYPE_COLLECTION,
+                DataType::TYPE_TAGS
+            ];
+            assert(in_array($data_type->type, $allowed_types), 'Can not link to ' . (string)$data_type);
+        } else {
+            assert(self::LINK_NONE === $this->link || self::LINK_SELF === $this->link, 'Unkown link type');
+        }
+
         $this->name = $name;
         $this->property = $property;
         $this->data = $data;
         $this->data_type = $data_type;
 
         $this->caption = $options['caption'] ?? '';
-        $this->link = $options['link'] ?? self::LINK_NONE;
         $this->visibility = $options['visibility'] ?? null;
-        $this->edit = is_string($edit) || $edit;
+        $this->edit = $options['edit'] ?? false;
         $this->edit_cb = $options['edit_callback'] ?? null;
         $this->filter_cb = $options['filter'] ?? null;
+        $this->order_by = $options['order_by'] ?? null;
     }
 
     public function isVisible(): bool {
@@ -67,6 +80,9 @@ class DataColumn {
     }
 
     public function canOrderBy(): bool {
+        if (null !== $this->order_by) return true;
+        if ($this->data_type->isArrayType()) return false;
+        if (DataType::TYPE_ACTION === $this->data_type->type) return false; 
         return null !== $this->property;
     }
 
@@ -84,46 +100,35 @@ class DataColumn {
     public function renderValue(PinakesEntity $entity): string {
         // Step 1: Get data
         $data = $this->getData($entity);
+        if ($data instanceof Collection) $data = $data->toArray();
 
         // Step 2: Apply link
-        if (null !== $data) {
-            if (self::LINK_SELF === $this->link) {
-                assert(!is_iterable($data), 'Iterables can only link to data');
-                $data = $entity->getLinkSelf((string) $data);
-            } else if (self::LINK_DATA === $this->link) {
-                if (is_iterable($data)) {
-                    if ($data instanceof Collection) $data = $data->toArray();
-                    $data = array_map(fn (PinakesEntity $e) => $e->getLinkSelf(), $data);
-                } else {
-                    assert($data instanceof PinakesEntity, 'Can only link to entities');
-                    $data = $data->getLinkSelf((string) $data);
-                }
+        if (null !== $data && self::LINK_DATA === $this->link) {
+            if (is_iterable($data)) {
+                $data = array_map(fn (PinakesEntity $d) => $d->getLinkSelf(), $data);
             } else {
-                assert(self::LINK_NONE === $this->link, 'Unkown link type');
+                $data = $data->getLinkSelf((string) $data);
             }
         }
 
         // Step 3: Render data
         $value = $this->data_type->render($data);
+        if (self::LINK_SELF === $this->link) {
+            $value = $entity->getLinkSelf($value);
+        }
         return ViewElement::create('td', $value)->addClasses($this->data_type->getStyleClasses())->render();
     }
 
     public function renderForm(PinakesEntity $entity): string {
         if (!$this->edit) return '';
-        
-        // Step 1: Get data
         $data = $this->getData($entity);
 
-        // Step 2: Get form element
         $form = $this->data_type->getForm($this->name, $data);
         return $form->render();
     }
 
     public function renderExport(PinakesEntity $entity): string {
-        // Step 1: Get data
         $data = $this->getData($entity);
-
-        // Step 2: Render
         return $this->data_type->export($data);
     }
 
@@ -135,8 +140,6 @@ class DataColumn {
         if (!$this->edit) return;
 
         $value = $this->data_type->parse($value);
-
-        // callback
         if (null !== $this->edit_cb) {
             call_user_func($this->edit_cb, $entity, $value);
         } else {

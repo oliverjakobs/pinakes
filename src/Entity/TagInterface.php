@@ -2,8 +2,6 @@
 
 namespace App\Entity;
 
-use App\Renderable\ViewElement;
-
 interface TagInterface {
-    public function getTag(): ViewElement;
+    public function getColor(): string;
 }

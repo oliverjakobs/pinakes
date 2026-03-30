@@ -38,7 +38,7 @@ class Tag extends PinakesEntity implements TagInterface {
         return $this->id;
     }
 
-    public function getTag(): ViewElement {
-        return ViewElement::tag((string) $this->getLinkSelf(), $this->color);
+    public function getColor(): string {
+        return $this->color;
     }
 }

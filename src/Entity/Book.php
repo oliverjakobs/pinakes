@@ -76,8 +76,4 @@ class Book extends PinakesEntity {
             $this->tags->add($tag);
         }
     }
-
-    public function getTags(): array {
-        return $this->tags->map(fn ($tag) => $tag->getTag())->toArray();
-    }
 }

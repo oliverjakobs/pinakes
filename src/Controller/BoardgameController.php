@@ -20,7 +20,7 @@ class BoardgameController extends PinakesController {
         return $this->renderList($request, 'Boardgames', $repository->createTable(), [
                 Link::modal('New Game', 'boardgame_modal'),
             ],
-            filters: $repository->getDataFieldsFilter()
+            $repository->getDataFieldsFilter()
         );
     }
 
@@ -28,14 +28,12 @@ class BoardgameController extends PinakesController {
     public function show(Request $request, BoardgameRepository $repository): Response {
         $boardgame = $this->getEntity($request, $repository);
 
-        return $this->renderShow($repository, $boardgame, 'show', 
-            actions: [
-                $boardgame->getLinkEdit(),
-                $boardgame->getLinkDelete(),
-                ViewElement::separator(),
-                Link::modal('Add Extension', 'boardgame_modal', [ 'base' => $boardgame->getId() ]),
-            ]
-        );
+        return $this->renderShow($repository, $boardgame, 'show', [
+            $boardgame->getLinkEdit(),
+            $boardgame->getLinkDelete(),
+            ViewElement::separator(),
+            Link::modal('Add Extension', 'boardgame_modal', [ 'base' => $boardgame->getId() ]),
+        ]);
     }
 
     #[Route('/boardgame/modal/{id?}', name: 'boardgame_modal', methods: ['GET', 'POST'])]

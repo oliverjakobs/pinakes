@@ -20,6 +20,7 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     const INPUT_DATETIME = 'datetime-local';
     const INPUT_TIME = 'time';
 
+    /** @var DataColumn[] */
     private array $data_fields;
 
     public function __construct(ManagerRegistry $registry) {
@@ -103,7 +104,7 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         return new $entity_name();
     }
 
-    public function getOrCreate(string $key, bool $flush = true): PinakesEntity {
+    public function getOrCreate(string $key): PinakesEntity {
         $result = $this->findOneBy([ $this->getSearchKey() => $key ]);
         if (null === $result) {
             $result = $this->getTemplate();
@@ -151,6 +152,22 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         return $qb;
     }
 
+    private function applyOrderBy(QueryBuilder $qb, string $by, string $dir): QueryBuilder {
+        $col = $this->data_fields[$by] ?? null;
+        if (null === $col || !$col->canOrderBy()) return $qb;
+
+        if (null !== $col->order_by) {
+            return $qb->orderBy($col->order_by, $dir);
+        }
+
+        if (DataType::TYPE_ENTITY === $col->data_type->type) {
+            $target = $col->data_type->getTargetRepository();
+            return $qb->leftJoin('e.' . $col->property, $by)->addOrderBy($by . '.' . $target->getSearchKey(), $dir);
+        }
+        
+        return $qb->orderBy('e.' . $by, $dir);
+    }
+
     protected function getQueryBuilder(array $filter = []): QueryBuilder {
         $qb = $this->createQueryBuilder('e');
 
@@ -161,7 +178,7 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         }
 
         if (isset($filter['order_by'])) {
-            $qb->orderBy('e.' . $filter['order_by'], $filter['order_dir'] ?? 'asc');
+            $this->applyOrderBy($qb, $filter['order_by'], $filter['order_dir'] ?? 'asc');
         } else {
             foreach ($this->getDefaultOrder() as $by => $dir) {
                 $qb->addOrderBy('e.' . $by, $dir);

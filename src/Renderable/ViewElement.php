@@ -4,16 +4,16 @@ namespace App\Renderable;
 
 class ViewElement implements Renderable {
     public string $element;
-    public self|string $content;
+    public Renderable|string $content;
     public array $classes = [];
     public array $attributes = [];
 
-    private function __construct(string $element, self|string $content = '') {
+    private function __construct(string $element, Renderable|string $content = '') {
         $this->element = $element;
         $this->content = $content;
     }
 
-    public static function create(string $element, self|string $content = ''): self {
+    public static function create(string $element, Renderable|string $content = ''): self {
         return new self($element, $content);
     }
 
@@ -23,7 +23,7 @@ class ViewElement implements Renderable {
         return $result;
     }
 
-    public static function tag(self|string $caption, string $color): self {
+    public static function tag(Renderable|string $caption, string $color): self {
         $result = new self('div', $caption);
 
         $fg = (hexdec(ltrim($color, '#')) > 0xffffff/2) ? 'black':'white';
@@ -66,8 +66,11 @@ class ViewElement implements Renderable {
             $class = sprintf('class="%s"', $class);
         }
 
+        $content = $this->content;
+        if ($content instanceof Renderable) $content = $content->render();
+
         return <<<HTML
-            <$this->element $attr $class>$this->content</$this->element>
+            <$this->element $attr $class>$content</$this->element>
         HTML;
     }
 }

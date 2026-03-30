@@ -19,11 +19,11 @@ class Author extends PinakesEntity {
     public ?string $name = null;
 
     /** @var Collection<int, Book> */
-    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'authors')]
+    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'authors', fetch: 'EXTRA_LAZY')]
     public Collection $books;
 
     /** @var Collection<int, Book> */
-    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'translators')]
+    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'translators', fetch: 'EXTRA_LAZY')]
     public Collection $translations;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -40,6 +40,10 @@ class Author extends PinakesEntity {
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public function getBookCount(): int {
+        return $this->books->count();
     }
 
     public function getLinkOpenLibrary(): ?Link {

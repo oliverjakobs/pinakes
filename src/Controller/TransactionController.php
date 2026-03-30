@@ -28,10 +28,9 @@ class TransactionController extends PinakesController {
 
             $reason = $request->request->get('reason');
 
-            $transaction = new Transaction();
+            $transaction = $repository->getTemplate();
             $transaction->amount = $amount;
             $transaction->reason = $reason;
-            $transaction->timestamp = new \DateTime();
 
             $repository->save($transaction);
 
