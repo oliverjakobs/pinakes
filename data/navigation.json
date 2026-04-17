@@ -28,6 +28,11 @@
                 "caption": "Series",
                 "route": "series",
                 "icon": "bookmark"
+            },
+            {
+                "caption": "Collections",
+                "route": "collection",
+                "icon": "stickies"
             }
         ]
     },

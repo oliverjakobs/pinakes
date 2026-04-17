@@ -6,12 +6,19 @@ use App\Entity\Tag;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
 use App\Traits\NamedEntityTrait;
+use Doctrine\ORM\QueryBuilder;
 
 class TagRepository extends PinakesRepository {
     use NamedEntityTrait;
 
     protected static function getEntityClass(): string {
         return Tag::class;
+    }
+    
+    protected function getListQuery(): QueryBuilder {
+        return parent::getListQuery()
+            ->addSelect('(SELECT COUNT(bc.id) FROM App\Entity\Book bc JOIN bc.tags bct WHERE bct = e) AS HIDDEN book_count')
+            ->addSelect('b')->leftJoin('e.books', 'b');
     }
 
     protected function defineDataFields(): array {
@@ -31,7 +38,8 @@ class TagRepository extends PinakesRepository {
             'book_count' => [
                 'caption' => 'Books',
                 'data' => fn(Tag $t) => $t->books->count(),
-                'data_type' => DataType::integer()
+                'data_type' => DataType::integer(),
+                'order_by' => 'book_count'
             ],
         ];
     }

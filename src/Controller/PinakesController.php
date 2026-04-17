@@ -56,8 +56,11 @@ abstract class PinakesController extends AbstractController {
     }
 
     public function renderList(Request $request, string $title, DataTable $table, array $actions = [], array $filters = []): Response {
-        if ($table->setQuery($request->query->all())) {
-            $response = $this->render($table->getComponentPath(), [ 'table' => $table ]);
+        $filter_only = $table->setQuery($request->query->all());
+        $table->finalize();
+
+        if ($filter_only) {
+            $response = $this->render($table->component_path, [ 'table' => $table ]);
             return $this->pushFilterUrl($response, $request, $table);
         }
 

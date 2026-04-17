@@ -30,11 +30,17 @@ class BookRepository extends PinakesRepository {
         return [ 'created_at' => 'DESC', 'title' => 'ASC' ];
     }
 
-    protected function getQueryBuilder(array $filter = []): QueryBuilder {
-        $qb = parent::getQueryBuilder($filter)
+    protected function getListQuery(): QueryBuilder {
+        return parent::getListQuery()
             ->addSelect('a')->leftJoin('e.authors', 'a')
+            ->addSelect('p')->leftJoin('e.publisher', 'p')
+            ->addSelect('s')->leftJoin('e.series', 's')
             ->addSelect('t')->leftJoin('e.tags', 't');
+    }
 
+    public function getFilterQuery(array $filter): QueryBuilder {
+        $qb = parent::getFilterQuery($filter);
+        
         $this->applyAnd($qb, $filter['author'] ?? [], 'MEMBER OF', 'authors');
         $this->applyAnd($qb, $filter['publisher'] ?? [], '=', 'publisher');
         $this->applyAnd($qb, $filter['tag'] ?? [], 'MEMBER OF', 'tags');

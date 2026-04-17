@@ -4,25 +4,26 @@ namespace App\Pinakes;
 
 use App\Entity\PinakesEntity;
 use App\Repository\PinakesRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 
 class DataTable {
 
-    const DEFAULT_FILTER = [
+    const DEFAULT_QUERY = [
         'order_by' => null,
         'order_dir' => 'desc',
         'page' => 1,
         'pp' => 30,
     ];
 
-    private array $filter = self::DEFAULT_FILTER;
-    private array $hidden = [];
+    private array $filter = [];
+    private array $query = self::DEFAULT_QUERY;
 
     private ?PinakesRepository $repository;
-    private array $columns;
     private ?array $data = null;
+    private ?Paginator $paginator = null;
+    public readonly array $columns;
 
-    private ?string $component_path = null; 
-
+    public string $component_path = 'components/table.html.twig'; 
     public bool $allow_pagination = true;
     public bool $allow_ordering = true;
 
@@ -31,20 +32,14 @@ class DataTable {
         $this->columns = $columns;
     }
 
-    public static function fromData(array $data): self {
-        $result = new self(null, []);
-        return $result->setData($data);
-    }
-
-    public function setData(array $data): self {
-        $this->data = $data;
-        return $this;
+    public static function fromData(array $data, array $columns): self {
+        $result = new self(null, $columns);
+        $result->data = $data;
+        return $result;
     }
 
     public function addFilter(string $name, mixed $value): self {
         assert(null === $this->data, 'Table is finalized');
-
-        $this->hidden[] = $name;
 
         if (is_iterable($value)) {
             $value = array_map(fn ($v) => ($v instanceof PinakesEntity) ? $v->getId() : $v, $value);
@@ -59,16 +54,8 @@ class DataTable {
     public function setQuery(array $query): bool {
         $filter_only = $query['filter_only'] ?? false;
         unset($query['filter_only']);
-        $this->filter = array_merge($this->filter, array_filter($query));
+        $this->query = array_merge($this->query, array_filter($query));
         return boolval($filter_only);
-    }
-
-    public function getRepository(): ?PinakesRepository {
-        return $this->repository;
-    }
-
-    public function getDataFields(): array {
-        return $this->columns;
     }
 
     public function getColumn(string $name): DataColumn {
@@ -76,8 +63,13 @@ class DataTable {
         return $this->columns[$name];
     }
 
-    public function getFilter(): array {
-        return $this->filter;
+    public function getFilterUrl(string $route, array $params): string {
+        return Pinakes::getUrl($route, array_merge(
+            $this->filter,
+            $this->query,
+            $params,
+            ['filter_only' => true]
+        ));
     }
 
     public function buildQuery(): string {
@@ -88,26 +80,20 @@ class DataTable {
             'filter_only' => null
         ];
 
-        if (1 === intval($this->filter['page'])) {
+        if (1 === intval($this->query['page'])) {
             $diff['page'] = null;
         }
 
-        $hidden_keys = array_flip($this->hidden);
-        $query = array_diff_key($this->filter, $diff, $hidden_keys);
+        $query = array_diff_key($this->query, $diff, $this->filter);
         return http_build_query($query);
     }
-    public function setComponentPath(string $path): self {
-        $this->component_path = $path;
-        return $this;
+
+    public function getFilterValue(string $key, mixed $default = null): mixed {
+        return $this->query[$key] ?? $this->filter[$key] ?? $default;
     }
 
-    public function getComponentPath(): string {
-        if (null !== $this->component_path) return $this->component_path;
-        return 'components/table.html.twig';
-    }
-
-    public function getFilterValue(string $key): mixed {
-        return $this->filter[$key] ?? null;
+    public function getFilterValueInt(string $key, int $default = 0): int {
+        return intval($this->getFilterValue($key, $default));
     }
 
     public function getSearch(): ?string {
@@ -122,29 +108,47 @@ class DataTable {
         return $this->getFilterValue('order_by');
     }
 
-    public function getData(): array {
-        if (null === $this->data) {
-            $this->data = $this->repository->applyFilter($this->filter);
-        }
-        return $this->data;
-    }
-
     public function getPage(): int {
-        return intval($this->filter['page']);
+        return $this->getFilterValueInt('page', 1);
     }
 
     public function getPerPage(): int {
-        $pp = intval($this->filter['pp']);
-        return ($pp <= 0) ? 1 : $pp;
+        return $this->getFilterValueInt('pp', 1);
+    }
+
+    public function finalize(): self {
+        if (null !== $this->data || null === $this->repository) return $this;
+
+        $pp = $this->getPerPage();
+        $offset = ($this->getPage() - 1) * $pp;
+
+        $filter = array_merge($this->filter, $this->query);
+        $query = $this->repository->getFilterQuery($filter)
+            ->setMaxResults($pp)
+            ->setFirstResult($offset);
+
+        $this->paginator = new Paginator($query);
+        return $this;
+    }
+
+    public function getData(): array {
+        if (null !== $this->data) return $this->data;
+        if (null === $this->repository) return [];
+        return $this->repository->getFilterQuery($this->filter)->getQuery()->getResult();
+    }
+
+    public function getCount(): int {
+        if (null !== $this->paginator) return count($this->paginator);
+        return count($this->data);
     }
 
     public function getMaxPages(): int {
-        $max_count = count($this->getData());
-        return (int) ceil($max_count / $this->getPerPage());
+        return (int) ceil($this->getCount() / $this->getPerPage());
     }
 
-    public function getCurrentPage(): array {
+    public function getCurrentPage(): Paginator|array {
+        if (null !== $this->paginator) return $this->paginator;
         $pp = $this->getPerPage();
-        return array_slice($this->getData(), ($this->getPage() - 1) * $pp, $pp);
+        return array_slice($this->data, ($this->getPage() - 1) * $pp, $pp);
     }
 }

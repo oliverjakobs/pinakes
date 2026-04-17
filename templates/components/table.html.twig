@@ -3,7 +3,7 @@
 <table class="table">
   <thead>
     <tr>
-    {% for field in table.dataFields %}
+    {% for field in table.columns %}
     {# TODO order by datafield #}
       {% set can_order_by = table.allow_ordering and field.canOrderBy %}
       {% if can_order_by %}
@@ -34,13 +34,13 @@
   <tbody>
   {% for entity in table.currentPage %}
     <tr>
-    {% for field in table.dataFields %}
-      {{ render_value(entity, field) | raw }}
+    {% for field in table.columns %}
+      {{ render_value(field, entity) | raw }}
     {% endfor %}
     </tr>
   {% else %}
     <tr class="empty">
-      <td colspan="{{ table.dataFields|length }}">Nothing found!</td>
+      <td colspan="{{ table.columns|length }}">Nothing found!</td>
     </tr>
   {% endfor %}
   </tbody>

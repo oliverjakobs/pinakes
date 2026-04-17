@@ -32,8 +32,8 @@ class AdminController extends PinakesController {
             ];
         }, $icons);
 
-        $table = DataTable::fromData($icons)->setComponentPath('components/icons.html.twig');
-
+        $table = DataTable::fromData($icons, []);
+        $table->component_path = 'components/icons.html.twig';
         return $this->renderList($request, 'Icons', $table);
     }
 

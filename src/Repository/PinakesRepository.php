@@ -124,6 +124,58 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         return $this->findBy([], $order_by ?? $this->getDefaultOrder(), $limit, $offset);
     }
 
+    protected function getListQuery(): QueryBuilder {
+        return $this->createQueryBuilder('e');
+    }
+
+    public function getFilterQuery(array $filter): QueryBuilder {
+        $qb = $this->getListQuery($filter);
+
+        // add search
+        $search = $filter['search'] ?? [];
+        if (!empty($search)) {
+            $qb->where($qb->expr()->like('e.' . $this->getSearchKey(), ':search'));
+            $qb->setParameter('search', '%' . $search . '%');
+        }
+
+        // append predefined filters
+        foreach ($filter as $name => $value) {
+            $field = $this->data_fields[$name] ?? null;
+            if (null === $field) continue;
+            $qb = $field->filter($qb, $value);
+        }
+
+        // apply orderBy
+        if (isset($filter['order_by'])) {
+            $this->applyOrderBy($qb, $filter['order_by'], $filter['order_dir'] ?? 'asc');
+        } else {
+            foreach ($this->getDefaultOrder() as $by => $dir) {
+                $qb->addOrderBy('e.' . $by, $dir);
+            }
+        }
+
+        return $qb;
+    }
+
+    private function applyOrderBy(QueryBuilder $qb, string $by, string $dir): QueryBuilder {
+        $col = $this->data_fields[$by] ?? null;
+        if (null === $col || !$col->canOrderBy()) return $qb;
+
+        if (!empty($col->order_by)) {
+            foreach ($col->order_by as $by) {
+                $qb->addOrderBy($by, $dir);
+            }
+            return $qb;
+        }
+
+        if (DataType::TYPE_ENTITY === $col->data_type->type) {
+            $target = $col->data_type->getTargetRepository();
+            return $qb->leftJoin('e.' . $col->property, $by)->addOrderBy($by . '.' . $target->getSearchKey(), $dir);
+        }
+        
+        return $qb->orderBy('e.' . $by, $dir);
+    }
+
     protected function applyAnd(QueryBuilder $qb, mixed $filter, string $op, string $target): QueryBuilder {
         if (!is_iterable($filter)) $filter = [ $filter ];
 
@@ -150,56 +202,6 @@ abstract class PinakesRepository extends ServiceEntityRepository {
         }
 
         return $qb;
-    }
-
-    private function applyOrderBy(QueryBuilder $qb, string $by, string $dir): QueryBuilder {
-        $col = $this->data_fields[$by] ?? null;
-        if (null === $col || !$col->canOrderBy()) return $qb;
-
-        if (null !== $col->order_by) {
-            return $qb->orderBy($col->order_by, $dir);
-        }
-
-        if (DataType::TYPE_ENTITY === $col->data_type->type) {
-            $target = $col->data_type->getTargetRepository();
-            return $qb->leftJoin('e.' . $col->property, $by)->addOrderBy($by . '.' . $target->getSearchKey(), $dir);
-        }
-        
-        return $qb->orderBy('e.' . $by, $dir);
-    }
-
-    protected function getQueryBuilder(array $filter = []): QueryBuilder {
-        $qb = $this->createQueryBuilder('e');
-
-        $search = $filter['search'] ?? [];
-        if (!empty($search)) {
-            $qb->where($qb->expr()->like('e.' . $this->getSearchKey(), ':search'));
-            $qb->setParameter('search', '%' . $search . '%');
-        }
-
-        if (isset($filter['order_by'])) {
-            $this->applyOrderBy($qb, $filter['order_by'], $filter['order_dir'] ?? 'asc');
-        } else {
-            foreach ($this->getDefaultOrder() as $by => $dir) {
-                $qb->addOrderBy('e.' . $by, $dir);
-            }
-        }
-
-        return $qb;
-    }
-
-    /** @return PinakesEntity[] */
-    public function applyFilter(array $filter): array {
-        $qb = $this->getQueryBuilder($filter);
-        
-        // append predefined filters
-        foreach ($filter as $name => $value) {
-            $field = $this->data_fields[$name] ?? null;
-            if (null === $field) continue;
-            $qb = $field->filter($qb, $value);
-        }
-
-        return $qb->getQuery()->getResult();
     }
 
     public function createTable(string $fields = 'list'): DataTable {

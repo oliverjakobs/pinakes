@@ -31,7 +31,7 @@ class DataColumn {
 
     private ?string $visibility = null;
 
-    public readonly ?string $order_by;
+    public readonly array $order_by;
 
     public function __construct(PinakesRepository $repository, string $name, array $options) {
         assert(isset($options['data']), 'No data specified');
@@ -52,12 +52,7 @@ class DataColumn {
         $this->link = $options['link'] ?? self::LINK_NONE;
 
         if (self::LINK_DATA === $this->link) {
-            $allowed_types = [
-                DataType::TYPE_ENTITY,
-                DataType::TYPE_COLLECTION,
-                DataType::TYPE_TAGS
-            ];
-            assert(in_array($data_type->type, $allowed_types), 'Can not link to ' . (string)$data_type);
+            assert($data_type->isTargetType(), 'Can not link to ' . (string)$data_type);
         } else {
             assert(self::LINK_NONE === $this->link || self::LINK_SELF === $this->link, 'Unkown link type');
         }
@@ -72,7 +67,10 @@ class DataColumn {
         $this->edit = $options['edit'] ?? false;
         $this->edit_cb = $options['edit_callback'] ?? null;
         $this->filter_cb = $options['filter'] ?? null;
-        $this->order_by = $options['order_by'] ?? null;
+
+        $order_by = $options['order_by'] ?? [];
+        if (is_string($order_by)) $order_by = [ $order_by ];
+        $this->order_by = $order_by;
     }
 
     public function isVisible(): bool {
@@ -80,9 +78,8 @@ class DataColumn {
     }
 
     public function canOrderBy(): bool {
-        if (null !== $this->order_by) return true;
-        if ($this->data_type->isArrayType()) return false;
-        if (DataType::TYPE_ACTION === $this->data_type->type) return false; 
+        if (!empty($this->order_by)) return true;
+        if (!$this->data_type->isSortable()) return false;
         return null !== $this->property;
     }
 
@@ -98,11 +95,9 @@ class DataColumn {
     }
 
     public function renderValue(PinakesEntity $entity): string {
-        // Step 1: Get data
         $data = $this->getData($entity);
         if ($data instanceof Collection) $data = $data->toArray();
 
-        // Step 2: Apply link
         if (null !== $data && self::LINK_DATA === $this->link) {
             if (is_iterable($data)) {
                 $data = array_map(fn (PinakesEntity $d) => $d->getLinkSelf(), $data);
@@ -111,7 +106,6 @@ class DataColumn {
             }
         }
 
-        // Step 3: Render data
         $value = $this->data_type->render($data);
         if (self::LINK_SELF === $this->link) {
             $value = $entity->getLinkSelf($value);

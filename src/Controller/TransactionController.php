@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Transaction;
 use App\Entity\User;
 use App\Renderable\Link;
 use App\Repository\TransactionRepository;

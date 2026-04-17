@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Pinakes\DataTable;
 use App\Repository\BookRepository;
 use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,7 +12,7 @@ class IndexController extends PinakesController {
 
     #[Route('/', name: 'pinakes')]
     public function index(BookRepository $books, TransactionRepository $transactions): Response {
-        $newest = $books->createTable('newest')->setData($books->getNewest());
+        $newest = DataTable::fromData($books->getNewest(), $books->getDataFields('newest'));
         $newest->allow_ordering = false;
         $newest->allow_pagination = false;
 

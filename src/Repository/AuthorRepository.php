@@ -18,17 +18,17 @@ class AuthorRepository extends PinakesRepository {
         return Author::class;
     }
     
-    protected function getQueryBuilder(array $filter = []): QueryBuilder {
-        return parent::getQueryBuilder($filter)
-            ->addSelect('(SELECT COUNT(bc.id) FROM App\Entity\Book bc WHERE e MEMBER OF bc.authors) AS HIDDEN book_count')
-            ->addSelect('(SELECT COUNT(tc.id) FROM App\Entity\Book tc WHERE e MEMBER OF tc.translators) AS HIDDEN translation_count')
+    protected function getListQuery(): QueryBuilder {
+        return parent::getListQuery()
+            ->addSelect('(SELECT COUNT(bc.id) FROM App\Entity\Book bc JOIN bc.authors bca WHERE bca = e) AS HIDDEN book_count')
+            ->addSelect('(SELECT COUNT(tc.id) FROM App\Entity\Book tc JOIN tc.translators tct WHERE tct = e) AS HIDDEN translation_count')
             ->addSelect('b, t')->leftJoin('e.books', 'b')->leftJoin('e.translations', 't');
     }
 
     public function findBySeries(Series $series): Collection {
         if (0 === $series->volumes->count()) return new ArrayCollection();
 
-        $qb = $this->applyOr($this->getQueryBuilder(), $series->volumes, 'MEMBER OF', 'books');
+        $qb = $this->applyOr($this->createQueryBuilder('e'), $series->volumes, 'MEMBER OF', 'books');
         return new ArrayCollection($qb->getQuery()->getResult());
     }
 

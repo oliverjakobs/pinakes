@@ -27,6 +27,17 @@ class DataType {
     const TYPE_COLLECTION = 'collection';
     const TYPE_TAGS = 'tags';
 
+    const TARGET_TYPES = [
+        self::TYPE_ENTITY,
+        self::TYPE_COLLECTION,
+        self::TYPE_TAGS,
+    ];
+
+    const ARRAY_TYPES = [
+        self::TYPE_COLLECTION,
+        self::TYPE_TAGS
+    ];
+
     const TYPE_ACTION = 'action';
 
     private function __construct(
@@ -98,19 +109,27 @@ class DataType {
     }
 
     public function __toString(): string {
-        return $this->type . match($this->type) {
-            self::TYPE_ENTITY, self::TYPE_COLLECTION => '(' . $this->config['target'] . ')',
-            default => ''
-        };
+        if ($this->isTargetType()) return $this->type . '(' . $this->config['target'] . ')';
+        return $this->type;
     }
 
     public function getTargetRepository(): PinakesRepository {
-        assert(self::TYPE_COLLECTION === $this->type || self::TYPE_TAGS === $this->type || self::TYPE_ENTITY === $this->type);
+        assert($this->isTargetType());
         return Pinakes::getRepository($this->config['target']);
     }
 
+    public function isSortable(): bool {
+        if (DataType::TYPE_ACTION === $this->type) return false;
+        if ($this->isArrayType()) return false;
+        return true;
+    }
+
     public function isArrayType(): bool {
-        return self::TYPE_COLLECTION === $this->type || self::TYPE_TAGS === $this->type;
+        return in_array($this->type, self::ARRAY_TYPES);
+    }
+
+    public function isTargetType(): bool {
+        return in_array($this->type, self::TARGET_TYPES);
     }
 
     public function parse(string|array|null $value): mixed {

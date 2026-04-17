@@ -23,8 +23,8 @@ class BoardgameRepository extends PinakesRepository {
         return $result;
     }
 
-    protected function getQueryBuilder(array $filter = []): QueryBuilder {
-        $qb = parent::getQueryBuilder($filter);
+    public function getFilterQuery(array $filter = []): QueryBuilder {
+        $qb = parent::getFilterQuery($filter);
         $this->applyAnd($qb, $filter['publisher'] ?? [], '=', 'publisher');
         return $qb;
     }
@@ -51,7 +51,8 @@ class BoardgameRepository extends PinakesRepository {
                     $qb->andWhere(':player_count <= e.max_player');
                     $qb->andWhere(':player_count >= e.min_player');
                     return $qb->setParameter('player_count', $filter);
-                }
+                },
+                'order_by' => [ 'e.min_player', 'e.max_player' ]
             ],
             'min_player' => [
                 'caption' => 'Players (min)',

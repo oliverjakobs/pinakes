@@ -16,8 +16,8 @@ class SeriesRepository extends PinakesRepository {
         return Series::class;
     }
 
-    protected function getQueryBuilder(array $filter = []): QueryBuilder {
-        return parent::getQueryBuilder($filter)->addSelect('v')->leftJoin('e.volumes', 'v');
+    protected function getListQuery(): QueryBuilder {
+        return parent::getListQuery()->addSelect('v')->leftJoin('e.volumes', 'v');
     }
 
     protected function defineDataFields(): array {

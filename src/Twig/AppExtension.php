@@ -36,12 +36,8 @@ class AppExtension extends AbstractExtension {
     public function getFilterUrl(Request $request, DataTable $table, array $filter = []): string {
         $route = $request->attributes->get('_route');
         $params = $request->attributes->get('_route_params');
-        return Pinakes::getUrl($route, array_merge(
-            $params,
-            $table->getFilter(),
-            $filter,
-            ['filter_only' => true]
-        ));
+
+        return $table->getFilterUrl($route, array_merge($params, $filter));
     }
 
     public function getNavigationItems(): array {
@@ -61,20 +57,19 @@ class AppExtension extends AbstractExtension {
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
-    public function renderValue(PinakesEntity $entity, DataColumn $col): string {
+    public function renderValue(DataColumn $col, PinakesEntity $entity): string {
         return $col->renderValue($entity);
     }
 
-    public function renderForm(PinakesEntity $entity, DataColumn $col): string {
+    public function renderForm(DataColumn $col, PinakesEntity $entity): string {
         return $col->renderForm($entity);
     }
 
-    public function exportValue(PinakesEntity $entity, DataColumn $col): string {
+    public function exportValue(DataColumn $col, PinakesEntity $entity): string {
         return $col->renderExport($entity);
     }
 
     public function renderFilter(DataTable $table, DataColumn $col): string {
-        $value = $table->getFilterValue($col->name);
-        return $col->getFilterForm($value)->render();
+        return $col->getFilterForm($table->getFilterValue($col->name))->render();
     }
 }
