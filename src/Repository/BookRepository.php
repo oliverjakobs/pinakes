@@ -38,18 +38,6 @@ class BookRepository extends PinakesRepository {
             ->addSelect('t')->leftJoin('e.tags', 't');
     }
 
-    public function getFilterQuery(array $filter): QueryBuilder {
-        $qb = parent::getFilterQuery($filter);
-        
-        $this->applyAnd($qb, $filter['author'] ?? [], 'MEMBER OF', 'authors');
-        $this->applyAnd($qb, $filter['publisher'] ?? [], '=', 'publisher');
-        $this->applyAnd($qb, $filter['tag'] ?? [], 'MEMBER OF', 'tags');
-        $this->applyAnd($qb, $filter['ntag'] ?? [], 'NOT MEMBER OF', 'tags');
-        $this->applyAnd($qb, $filter['series'] ?? [], '=', 'series');
-
-        return $qb;
-    }
-
     public function getNewest(): array {
         $qb = $this->createQueryBuilder('b')->orderBy('b.created_at', 'DESC')->setMaxResults(5);
         return $qb->getQuery()->getResult();
@@ -118,6 +106,19 @@ class BookRepository extends PinakesRepository {
                 'data' => 'tags',
                 'data_type' => DataType::tags(Tag::class),
                 'edit' => true
+            ],
+            'ntags' => [
+                'caption' => 'Exclude Tags',
+                'data' => 'tags',
+                'data_type' => DataType::tags(Tag::class),
+                'filter' => function ($qb, $filter) {
+                    foreach ($filter as $idx => $value) {            
+                        $key = 'tags' . $idx;
+                        $qb->andWhere(':' . $key . ' NOT MEMBER OF e.tags');
+                        $qb->setParameter($key, $value);
+                    }
+                    return $qb;
+                }
             ],
             'created_at' => [
                 'caption' => 'Created at',

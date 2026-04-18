@@ -26,7 +26,7 @@ class SeriesController extends PinakesController {
     public function show(Request $request, SeriesRepository $repository, BookRepository $books): Response {
         $series = $this->getEntity($request, $repository);
 
-        $table = $books->createTable('list_series')->addFilter('series', $series);
+        $table = $books->createTable('list_series')->addFilter('series', $series)->setOrder('series_volume');
         return $this->renderList($request, 'Series: ' . (string) $series, $table, [
             Link::modal('Add Volume', 'book_modal', [ 'series' => $series->getId() ]),
             Link::modal('Add Tag', 'series_add_tag', [ 'id' => $series->getId() ]),

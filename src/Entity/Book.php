@@ -33,7 +33,7 @@ class Book extends PinakesEntity {
     #[ORM\Column(nullable: true)]
     public ?int $first_published = null;
 
-    #[ORM\ManyToOne(inversedBy: 'books')]
+    #[ORM\ManyToOne(targetEntity: Publisher::class, inversedBy: 'books', cascade: ['persist'])]
     public ?Publisher $publisher = null;
 
     #[ORM\Column(length: 13, nullable: true)]

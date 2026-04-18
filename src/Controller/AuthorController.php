@@ -22,7 +22,7 @@ class AuthorController extends PinakesController {
         /** @var Author */
         $author = $this->getEntity($request, $repository);
 
-        $table = $books->createTable('list_author')->addFilter('author', $author);
+        $table = $books->createTable('list_author')->addFilter('authors', $author);
         return $this->renderList($request, 'Author: ' . (string) $author, $table, [
             $author->getLinkEdit(),
             $author->getLinkDelete(),

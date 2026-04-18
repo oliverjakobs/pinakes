@@ -26,7 +26,7 @@ class TagController extends PinakesController {
     public function show(Request $request, TagRepository $repository, BookRepository $books): Response {
         $tag = $this->getEntity($request, $repository);
 
-        $table = $books->createTable()->addFilter('tag', $tag->getId());
+        $table = $books->createTable()->addFilter('tags', $tag->getId());
         return $this->renderList($request, 'Tag: ' . (string) $tag, $table, [
             $tag->getLinkEdit(),
             $tag->getLinkDelete(),

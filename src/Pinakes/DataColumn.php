@@ -84,9 +84,48 @@ class DataColumn {
     }
 
     public function filter(QueryBuilder $qb, mixed $value): QueryBuilder {
-        if (null === $this->filter_cb) return $qb;
-        assert(is_callable($this->filter_cb));
-        return call_user_func($this->filter_cb, $qb, $value);
+        if (null !== $this->filter_cb) {
+            assert(is_callable($this->filter_cb));
+            return call_user_func($this->filter_cb, $qb, $value);
+        }
+
+        assert(null !== $this->property, 'Cannot filter without property');
+        
+        if (DataType::TYPE_ENTITY == $this->data_type->type) {
+            $expr = $qb->expr()->eq(':' . $this->name, 'e.' . $this->property);
+            return $qb->andWhere($expr)->setParameter(':' . $this->name, $value);
+        }
+
+        if ($this->data_type->isArrayType()) {
+            if (!is_iterable($value)) $value = [ $value ];
+    
+            foreach ($value as $idx => $v) {    
+                $key = $this->property . $idx;
+                $expr = $qb->expr()->isMemberOf(':' . $key, 'e.' . $this->property);
+                $qb->andWhere($expr)->setParameter($key, $v);
+            }
+            return $qb;
+        }
+
+        return $qb;
+    }
+
+    public function orderBy(QueryBuilder $qb, string $dir): QueryBuilder {
+        if (!$this->canOrderBy()) return $qb;
+
+        if (!empty($this->order_by)) {
+            foreach ($this->order_by as $by) {
+                $qb->addOrderBy($by, $dir);
+            }
+            return $qb;
+        }
+
+        if (DataType::TYPE_ENTITY === $this->data_type->type) {
+            $target = $this->data_type->getTargetRepository();
+            return $qb->leftJoin('e.' . $this->property, $this->name)->addOrderBy($this->name . '.' . $target->getSearchKey(), $dir);
+        }
+        
+        return $qb->orderBy('e.' . $this->name, $dir);
     }
 
     public function getData(PinakesEntity $entity): mixed {

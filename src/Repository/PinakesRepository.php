@@ -138,67 +138,21 @@ abstract class PinakesRepository extends ServiceEntityRepository {
             $qb->setParameter('search', '%' . $search . '%');
         }
 
-        // append predefined filters
+        // filter by data fields
         foreach ($filter as $name => $value) {
             $field = $this->data_fields[$name] ?? null;
-            if (null === $field) continue;
-            $qb = $field->filter($qb, $value);
+            if (null !== $field) $qb = $field->filter($qb, $value);
         }
 
-        // apply orderBy
-        if (isset($filter['order_by'])) {
-            $this->applyOrderBy($qb, $filter['order_by'], $filter['order_dir'] ?? 'asc');
+        // apply order
+        $by = $filter['order_by'] ?? null;
+        if (null !== $by) {
+            $field = $this->data_fields[$by] ?? null;
+            if (null !== $field) $qb = $field->orderBy($qb, $filter['order_dir'] ?? 'asc');
         } else {
             foreach ($this->getDefaultOrder() as $by => $dir) {
                 $qb->addOrderBy('e.' . $by, $dir);
             }
-        }
-
-        return $qb;
-    }
-
-    private function applyOrderBy(QueryBuilder $qb, string $by, string $dir): QueryBuilder {
-        $col = $this->data_fields[$by] ?? null;
-        if (null === $col || !$col->canOrderBy()) return $qb;
-
-        if (!empty($col->order_by)) {
-            foreach ($col->order_by as $by) {
-                $qb->addOrderBy($by, $dir);
-            }
-            return $qb;
-        }
-
-        if (DataType::TYPE_ENTITY === $col->data_type->type) {
-            $target = $col->data_type->getTargetRepository();
-            return $qb->leftJoin('e.' . $col->property, $by)->addOrderBy($by . '.' . $target->getSearchKey(), $dir);
-        }
-        
-        return $qb->orderBy('e.' . $by, $dir);
-    }
-
-    protected function applyAnd(QueryBuilder $qb, mixed $filter, string $op, string $target): QueryBuilder {
-        if (!is_iterable($filter)) $filter = [ $filter ];
-
-        foreach ($filter as $idx => $value) {
-            if ($value instanceof PinakesEntity) $value = $value->getId();
-
-            $key = $target . $idx;
-            $qb->andWhere(':' . $key . ' ' . $op . ' e.' . $target);
-            $qb->setParameter($key, $value);
-        }
-
-        return $qb;
-    }
-
-    protected function applyOr(QueryBuilder $qb, mixed $filter, string $op, string $target): QueryBuilder {
-        if (!is_iterable($filter)) $filter = [ $filter ];
-
-        foreach ($filter as $idx => $value) {
-            if ($value instanceof PinakesEntity) $value = $value->getId();
-            
-            $key = $target . $idx;
-            $qb->orWhere(':' . $key . ' ' . $op . ' e.' . $target);
-            $qb->setParameter($key, $value);
         }
 
         return $qb;

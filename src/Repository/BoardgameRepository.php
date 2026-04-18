@@ -23,12 +23,6 @@ class BoardgameRepository extends PinakesRepository {
         return $result;
     }
 
-    public function getFilterQuery(array $filter = []): QueryBuilder {
-        $qb = parent::getFilterQuery($filter);
-        $this->applyAnd($qb, $filter['publisher'] ?? [], '=', 'publisher');
-        return $qb;
-    }
-
     protected function defineDataFields(): array {
         return [
             'name' => [

@@ -20,7 +20,7 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository, TagRepository $tags): Response {
-        $table = $repository->createTable()->addFilter('ntag', [
+        $table = $repository->createTable()->addFilter('ntags', [
             $tags->findOneByName('Manga'),
             $tags->findOneByName('Comic'),
         ]);

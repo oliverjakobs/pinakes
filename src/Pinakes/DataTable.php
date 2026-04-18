@@ -51,6 +51,12 @@ class DataTable {
         return $this;
     }
 
+    public function setOrder(string $by, string $dir = 'ASC'): self {
+        $this->query['order_by'] = $by;
+        $this->query['order_dir'] = $dir;
+        return $this;
+    }
+
     public function setQuery(array $query): bool {
         $filter_only = $query['filter_only'] ?? false;
         unset($query['filter_only']);
