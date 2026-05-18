@@ -9,9 +9,13 @@
 <div class="container">
 
   <h1>Bookfund</h1>
-  {% include 'elements/balance.html.twig' with {
-    'allow_edit': false,
-  } %}
+
+  <div class="balance-card">
+    <h2>Balance</h2>
+    <div class="balance">
+      {{ balance | fmt_currency }}
+    </div>
+  </div>
 
   <h1>Newest Books</h1>
   {% include 'components/table.html.twig' with {

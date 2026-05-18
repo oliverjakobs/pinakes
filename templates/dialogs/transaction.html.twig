@@ -1,0 +1,32 @@
+
+<dialog
+  id="dialog-{{ type }}"
+  closedby="any"
+  onclose="this.querySelector('form').reset()"
+  class="dialog-transaction"
+>
+  <h2>New {{ type }}</h2>
+  
+  <div class="content">
+    <form class="form-transaction" hx-post="{{ path('bookfund_' ~ type) }}">
+
+      <div class="currency-input">
+        <input
+          id="amount"
+          name="amount"
+          type="text"
+          inputmode="decimal"
+          autocomplete="off"
+          placeholder="0.00"
+          required
+        />
+        <span class="currency-symbol">€</span>
+      </div>
+
+      <label for="reason">Reason:</label>
+      <input type="text" id="reason" name="reason" placeholder="Enter reason..." required>
+      <button type="submit">Submit</button>
+    </form>
+    <button class="button-close" commandfor="dialog-{{ type }}" command="close">Cancel</button>
+  </div>
+</dialog>

@@ -4,6 +4,7 @@ namespace App\Twig;
 
 use App\Pinakes\Pinakes;
 use App\Entity\PinakesEntity;
+use App\Entity\User;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataTable;
 use App\Pinakes\DataType;
@@ -48,7 +49,7 @@ class AppExtension extends AbstractExtension {
         if (!$content) return [];
 
         $items = json_decode($content, true);
-        return array_filter($items, fn ($item) => Pinakes::isGranted($item['role'] ?? null));
+        return array_filter($items, fn ($item) => Pinakes::isGranted($item['role'] ?? User::ROLE_USER));
     }
 
     public function getIcon(string $name): ?Markup {

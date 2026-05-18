@@ -38,7 +38,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    border: 1px solid var(--color-border);
+    border: thin solid var(--color-border);
     border-radius: 4px;
     padding: 1.2rem 1.4rem;
     margin-bottom: 2rem;
@@ -114,3 +114,61 @@
     justify-self: end;
 }
 
+/* --------------------------| dialog |---------------------------- */
+dialog {
+    margin-top: 10vh;
+    border: solid 1px #999;
+    border-radius: 4px;
+    box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.3);
+    background-color: white;
+    padding: 20px;
+}
+
+dialog::backdrop {
+  background-color: rgba(0,0,0,0.5);
+}
+
+.dialog-transaction .content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dialog-transaction .button-close {
+    background: none;
+    border: none;
+}
+
+.dialog-transaction .button-close:hover {
+    background: none;
+    text-decoration: underline;
+}
+
+.form-transaction button[type=submit] {
+    align-self: center;
+    margin-top: 0.6em;
+}
+
+
+.currency-input {
+    display: inline-flex;
+    align-items: center;
+    border: thin solid var(--color-border);
+    border-radius: 4px;
+    padding: 0.4em 0.2em;
+    font-size: 1.8em;
+    width: 240px;
+}
+
+.currency-symbol {
+    margin-right: 0.1em;
+    margin-left: 0.2em;
+}
+
+.currency-input input {
+    direction: rtl;
+    border: none;
+    outline: none;
+    font-size: inherit;
+    width: 100%;
+}

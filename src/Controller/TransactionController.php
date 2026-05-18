@@ -19,26 +19,32 @@ class TransactionController extends PinakesController {
         ]);
     }
 
-    #[Route('/bookfund/modal/{type}', name: 'bookfund_modal', methods: ['GET', 'POST'])]
-    public function modal(Request $request, string $type, TransactionRepository $repository): Response {
-        if (Request::METHOD_POST === $request->getMethod()) {
-            $amount = floatval($request->request->get('amount'));
-            if ($type === 'withdrawal') $amount *= -1.0;
+    private function create_transaction(TransactionRepository $repository, float $amount, string $reason) {
+        // TODO validate transaction
 
-            $reason = $request->request->get('reason');
+        $transaction = $repository->getTemplate();
+        $transaction->amount = $amount;
+        $transaction->reason = $reason;
 
-            $transaction = $repository->getTemplate();
-            $transaction->amount = $amount;
-            $transaction->reason = $reason;
+        $repository->save($transaction);
+    }
 
-            $repository->save($transaction);
+    #[Route('/bookfund/deposit', name: 'bookfund_deposit', methods: ['POST'])]
+    public function deposit(Request $request, TransactionRepository $repository): Response {
+        $amount = floatval($request->request->get('amount'));
+        $reason = $request->request->get('reason');
+        
+        $this->create_transaction($repository, $amount, $reason);
+        return $this->redirectHx('bookfund');
+    }
 
-            return $this->redirectHx('bookfund');
-        }
-
-        return $this->render('modals/transaction.html.twig', [
-            'type' => $type
-        ]);
+    #[Route('/bookfund/withdrawal', name: 'bookfund_withdrawal', methods: ['POST'])]
+    public function withdrawal(Request $request, TransactionRepository $repository): Response {
+        $amount = floatval($request->request->get('amount'));
+        $reason = $request->request->get('reason');
+        
+        $this->create_transaction($repository, $amount * -1.0, $reason);
+        return $this->redirectHx('bookfund');
     }
 
     #[Route('/transaction', name: 'transaction', methods: ['GET'])]

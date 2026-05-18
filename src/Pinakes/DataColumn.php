@@ -4,6 +4,7 @@ namespace App\Pinakes;
 
 use Closure;
 use App\Entity\PinakesEntity;
+use App\Entity\User;
 use App\Renderable\FormElement;
 use App\Renderable\ViewElement;
 use App\Repository\PinakesRepository;
@@ -26,10 +27,10 @@ class DataColumn {
     private int $link;
 
     private bool $edit;
-    private ?Closure $edit_cb = null;
-    private ?Closure $filter_cb = null;
+    private ?Closure $edit_cb;
+    private ?Closure $filter_cb;
 
-    private ?string $visibility = null;
+    private readonly string $visibility;
 
     public readonly array $order_by;
 
@@ -63,7 +64,7 @@ class DataColumn {
         $this->data_type = $data_type;
 
         $this->caption = $options['caption'] ?? '';
-        $this->visibility = $options['visibility'] ?? null;
+        $this->visibility = $options['visibility'] ?? User::ROLE_USER;
         $this->edit = $options['edit'] ?? false;
         $this->edit_cb = $options['edit_callback'] ?? null;
         $this->filter_cb = $options['filter'] ?? null;

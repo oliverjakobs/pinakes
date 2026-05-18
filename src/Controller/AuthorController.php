@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Author;
 use App\Entity\User;
 use App\Renderable\ViewElement;
 use App\Repository\AuthorRepository;

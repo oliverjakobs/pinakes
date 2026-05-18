@@ -1,7 +1,7 @@
 {% extends "_base.html.twig" %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href={{ asset('styles/bookfund.css') }}>
+  <link rel="stylesheet" href={{ asset('styles/bookfund.css') }}>
 {% endblock %}
 
 {% block title %}
@@ -10,17 +10,32 @@
 
 {% block content %}
 <div class="bookfund-container">
-    {% include 'elements/balance.html.twig' with { 'allow_edit': true } %}
 
-    <ul class="transactions">
-        {% for transaction in transactions %}
-            <li class="{% if transaction.amount < 0.0 %}withdrawal{% else %}deposit{% endif %}">
-                <div class="amount">{{ transaction.amount | abs | fmt_currency }}</div>
-                <div>{{ transaction.reason }}</div>
-                <div class="timestamp">{{ transaction.timestamp|date("d.m.Y") }}</div>
-            </li>
-        {% endfor %}
-    </ul>
-    <a class="fancy-link" href="{{ path('transaction') }}">View All</a>
+  <div class="balance-card">
+    <h2>Balance</h2>
+    <div class="balance">
+      {{ balance | fmt_currency }}
+    </div>
+    <div>
+      <button class="button deposit" command="show-modal" commandfor="dialog-deposit">+</button>
+      {% include 'dialogs/transaction.html.twig' with { type: 'deposit' } only %}
+
+      <button class="button withdrawal" command="show-modal" commandfor="dialog-withdrawal">-</button>
+      {% include 'dialogs/transaction.html.twig' with { type: 'withdrawal' } only %}
+   </div>
+  </div>
+
+  <ul class="transactions">
+    {% for transaction in transactions %}
+      <li class="{% if transaction.amount < 0.0 %}withdrawal{% else %}deposit{% endif %}">
+        <div class="amount">{{ transaction.amount | abs | fmt_currency }}</div>
+        <div>{{ transaction.reason }}</div>
+        <div class="timestamp">{{ transaction.timestamp|date("d.m.Y") }}</div>
+      </li>
+    {% endfor %}
+  </ul>
+  <a class="fancy-link" href="{{ path('transaction') }}">View All</a>
 </div>
+
+<script src="{{ asset('js/bookfund.js') }}"></script>
 {% endblock %}

@@ -57,8 +57,7 @@ class Pinakes {
         return self::getInstance()->twig->render($path, $params);
     }
 
-    public static function isGranted(?string $role): bool {
-        if (null === $role) return true;
+    public static function isGranted(string $role): bool {
         return self::getInstance()->auth->isGranted($role);
     }
 }

@@ -80,6 +80,31 @@ a.link-extern::after {
   width: 40%;
 }
 
+/* --------------------------| form |----------------------------- */
+form {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+
+  gap: 0.6em;
+  padding: 1em 1.2em;
+}
+
+.form-row {
+  justify-content: space-between;
+  display: flex;
+  gap: 1.2em;
+}
+
+.form-login {
+  border: thin solid var(--table-border);
+}
+
+.form-login button[type=submit] {
+  align-self: flex-end;
+  margin-top: 0.6em;
+}
+
 /* --------------------------| autocomplete |--------------------- */
 .autocomplete > ul {
   list-style: none;
