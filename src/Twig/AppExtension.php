@@ -11,31 +11,18 @@ use App\Pinakes\DataType;
 use App\Renderable\FormElement;
 use App\Renderable\Renderable;
 use Symfony\Component\HttpFoundation\Request;
-use Twig\Extension\AbstractExtension;
-use Twig\TwigFunction;
-use Twig\TwigFilter;
+use Twig\Attribute\AsTwigFilter;
+use Twig\Attribute\AsTwigFunction;
 use Twig\Markup;
 
-class AppExtension extends AbstractExtension {
+class AppExtension {
 
-    public function getFunctions(): array {
-        return [
-            new TwigFunction('render_value', [$this, 'renderValue']),
-            new TwigFunction('render_form', [$this, 'renderForm']),
-            new TwigFunction('render_filter', [$this, 'renderFilter']),
-            new TwigFunction('export', [$this, 'exportValue']),
-            new TwigFunction('filter_url', [$this, 'getFilterUrl']),
-            new TwigFunction('navigation_items', [$this, 'getNavigationItems']),
-            new TwigFunction('icon', [$this, 'getIcon'])
-        ];
+    #[AsTwigFilter('fmt_currency')]
+    public function formatCurrency(float $value): string {
+        return DataType::currency()->render($value);
     }
 
-    public function getFilters(): array {
-        return [
-            new TwigFilter('fmt_currency', fn(float $value) => DataType::currency()->render($value)),
-        ];
-    }
-
+    #[AsTwigFunction('filter_url')]
     public function getFilterUrl(Request $request, DataTable $table, array $filter = []): string {
         $route = $request->attributes->get('_route');
         $params = $request->attributes->get('_route_params');
@@ -43,6 +30,7 @@ class AppExtension extends AbstractExtension {
         return $table->getFilterUrl($route, array_merge($params, $filter));
     }
 
+    #[AsTwigFunction('navigation_items')]
     public function getNavigationItems(): array {
         $filename = Pinakes::getAbsolutePath('/data/navigation.json');
         assert(file_exists($filename));
@@ -54,25 +42,31 @@ class AppExtension extends AbstractExtension {
         return array_filter($items, fn ($item) => Pinakes::isGranted($item['role'] ?? User::ROLE_USER));
     }
 
-    public function getIcon(string $name): ?Markup {
+    #[AsTwigFunction('icon', isSafe: ['html'])]
+    public function getIcon(string $name): ?string {
         $filename = Pinakes::getAbsolutePath('/public/icons/bootstrap/' . $name . '.svg');
         if (!file_exists($filename)) return null;
+        return file_get_contents($filename);
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
+    #[AsTwigFunction('render_value')]
     public function renderValue(DataColumn $col, PinakesEntity $entity): Renderable {
         return $col->renderCell($entity);
     }
 
+    #[AsTwigFunction('render_form')]
     public function renderForm(DataColumn $col, PinakesEntity $entity): FormElement {
         return $col->data_type->getForm($col->name, $col->getData($entity));
     }
 
+    #[AsTwigFunction('render_filter')]
     public function renderFilter(DataTable $table, DataColumn $col): FormElement {
         $value = $table->getFilterValue($col->name);
         return $col->data_type->getForm($col->name, $col->data_type->parse($value));
     }
 
+    #[AsTwigFunction('export')]
     public function exportValue(DataColumn $col, PinakesEntity $entity): string {
         return $col->data_type->export($col->getData($entity));
     }

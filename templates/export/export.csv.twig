@@ -4,6 +4,6 @@
 {% for entity in table.data %}
 
 {% for field in table.columns %}
-"{{- export(field, entity) | raw -}}"{% if not loop.last %},{% endif %}
+"{{- export(field, entity) -}}"{% if not loop.last %},{% endif %}
 {% endfor %}
 {% endfor %}
