@@ -6,11 +6,10 @@
   <table class="table">
     <tbody>
     {% for field in fields %}
-      {% set form = render_form(field, entity) %}
-      {% if form is not empty %}
+      {% if field.edit %}
         <tr>
           <td><label for="{{ field.name }}">{{ field.caption }}:</label></td>
-          <td>{{ form | raw }}</td>
+          <td>{{ render_form(field, entity) | raw }}</td>
         </tr>
       {% endif %}
     {% endfor %}

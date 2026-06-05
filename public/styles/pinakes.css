@@ -3,12 +3,6 @@
 @import './table.css';
 @import './modal.css';
 
-
-.bi {
-  width: 1em;
-  height: 1em;
-}
-
 button, .button {
   padding: 0.3rem 0.8rem;
   text-decoration: none;
@@ -40,11 +34,6 @@ button:disabled, .button.disabled {
 a.link-extern::after {
   content: url('../icons/bootstrap/box-arrow-up-right.svg');
   padding-left: 0.4em;
-}
-
-.collection {
-  margin: 0;
-  padding-left: 1em;
 }
 
 .tag {
@@ -103,6 +92,11 @@ form {
 .form-login button[type=submit] {
   align-self: flex-end;
   margin-top: 0.6em;
+}
+
+/* --------------------------| formelements |--------------------- */
+select {
+  width: 100%;
 }
 
 /* --------------------------| autocomplete |--------------------- */

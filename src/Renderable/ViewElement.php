@@ -2,10 +2,12 @@
 
 namespace App\Renderable;
 
+use App\Pinakes\Pinakes;
+
 class ViewElement implements Renderable {
     public string $element;
     public Renderable|string $content;
-    public array $classes = [];
+    public array $style_classes = [];
     public array $attributes = [];
 
     private function __construct(string $element, Renderable|string $content = '') {
@@ -19,7 +21,7 @@ class ViewElement implements Renderable {
 
     public static function separator(): self {
         $result = new self('div', '');
-        $result->classes[] = 'separator';
+        $result->style_classes[] = 'separator';
         return $result;
     }
 
@@ -28,7 +30,7 @@ class ViewElement implements Renderable {
 
         $fg = (hexdec(ltrim($color, '#')) > 0xffffff/2) ? 'black':'white';
         $result->attributes['style'] = sprintf('background-color:%s;color:%s;', $color, $fg);
-        $result->classes[] = 'tag';
+        $result->style_classes[] = 'tag';
 
         return $result;
     }
@@ -42,8 +44,8 @@ class ViewElement implements Renderable {
         return $this->render();
     }
 
-    public function addClasses(array $classes): self {
-        $this->classes = array_merge($this->classes, $classes);
+    public function addStyleClasses(string ...$classes): self {
+        $this->style_classes = array_merge($this->style_classes, $classes);
         return $this;
     }
 
@@ -53,24 +55,15 @@ class ViewElement implements Renderable {
     }
 
     public function isSeparator(): bool {
-        return in_array('separator', $this->classes);
+        return in_array('separator', $this->style_classes);
     }
     
-    public function render(): string {       
-        $attr = array_map(fn ($k, $v) => sprintf('%s="%s"', $k, $v), array_keys($this->attributes), $this->attributes);
-        $attr = implode(' ', $attr);
-
-        $class = '';
-        if (!empty($this->classes)) {
-            $class = implode(' ', $this->classes);
-            $class = sprintf('class="%s"', $class);
-        }
-
-        $content = $this->content;
-        if ($content instanceof Renderable) $content = $content->render();
-
-        return <<<HTML
-            <$this->element $attr $class>$content</$this->element>
-        HTML;
+    public function render(): string {
+        return Pinakes::renderTemplate('/elements/element.html.twig', [
+            'element' => $this->element,
+            'content' => $this->content,
+            'attributes' => $this->attributes,
+            'style_classes' => $this->style_classes
+        ]);
     }
 }

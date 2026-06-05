@@ -14,6 +14,7 @@ class Link implements Renderable {
 
     private string $url;
     private Renderable|string $caption;
+    private array $style_classes = [];
 
     private bool $is_extern = false;
     private bool $is_button = false;
@@ -70,13 +71,18 @@ class Link implements Renderable {
         return $this;
     }
 
+    public function addStyleClasses(string ...$classes): self {
+        $this->style_classes = array_merge($this->style_classes, $classes);
+        return $this;
+    }
+
     public function __toString(): string {
         return $this->render();
     }
     
     public function render(): string {
         $attributes = [];
-        $style_classes = [];
+        $style_classes = $this->style_classes;
         $element = 'span';
 
         if (null !== $this->disabled_message && !Helper::strEmpty($this->disabled_message)) {
@@ -105,19 +111,12 @@ class Link implements Renderable {
         if ($this->is_button) {
             $style_classes[] = 'button';
         }
-
-        $attr = implode(' ', array_map(fn ($k, $v) => sprintf('%s="%s"', $k, $v), array_keys($attributes), $attributes));
-
-        $class = '';
-        if (!empty($style_classes)) {
-            $class = sprintf('class="%s"', implode(' ', $style_classes));
-        }
-
-        $caption = $this->caption;
-        if ($caption instanceof Renderable) $caption = $caption->render();
-
-        return <<<HTML
-            <$element $attr $class>$caption</$element>
-        HTML;
+        
+        return Pinakes::renderTemplate('/elements/element.html.twig', [
+            'element' => $element,
+            'content' => $this->caption,
+            'attributes' => $attributes,
+            'style_classes' => $style_classes
+        ]);
     }
 }

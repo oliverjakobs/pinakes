@@ -1,0 +1,8 @@
+<{{ element }}
+{% for name, value in attributes %}
+    {{ name }}="{{ value }}"
+{% endfor %}
+    {% if style_classes is not empty %}class="{{ style_classes|join(' ') }}"{% endif %}
+>
+    {{- content | raw -}}
+</{{ element }}>

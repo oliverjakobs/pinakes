@@ -22,10 +22,10 @@ class Boardgame extends PinakesEntity {
     #[ORM\OneToMany(targetEntity: Boardgame::class, mappedBy: 'base_game')]
     public Collection $extensions;
 
-    #[ORM\ManyToOne(inversedBy: 'extensions')]
+    #[ORM\ManyToOne(inversedBy: 'extensions', cascade: ['persist'])]
     public ?Boardgame $base_game = null;
 
-    #[ORM\ManyToOne(inversedBy: 'boardgames')]
+    #[ORM\ManyToOne(inversedBy: 'boardgames', cascade: ['persist'])]
     public ?BoardgamePublisher $publisher = null;
 
     #[ORM\Column()]
@@ -42,7 +42,7 @@ class Boardgame extends PinakesEntity {
     }
 
     public function __toString(): string {
-        return $this->name ?? 'Untiteld boardgame';
+        return $this->name ?? 'Untitled boardgame';
     }
 
     public function getId(): ?int {

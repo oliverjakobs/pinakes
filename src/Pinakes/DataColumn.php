@@ -6,6 +6,7 @@ use Closure;
 use App\Entity\PinakesEntity;
 use App\Entity\User;
 use App\Renderable\FormElement;
+use App\Renderable\Renderable;
 use App\Renderable\ViewElement;
 use App\Repository\PinakesRepository;
 use Doctrine\Common\Collections\Collection;
@@ -26,7 +27,7 @@ class DataColumn {
 
     private int $link;
 
-    private bool $edit;
+    public readonly bool $edit;
     private ?Closure $edit_cb;
     private ?Closure $filter_cb;
 
@@ -91,11 +92,6 @@ class DataColumn {
         }
 
         assert(null !== $this->property, 'Cannot filter without property');
-        
-        if (DataType::TYPE_ENTITY == $this->data_type->type) {
-            $expr = $qb->expr()->eq(':' . $this->name, 'e.' . $this->property);
-            return $qb->andWhere($expr)->setParameter(':' . $this->name, $value);
-        }
 
         if ($this->data_type->isArrayType()) {
             if (!is_iterable($value)) $value = [ $value ];
@@ -108,7 +104,8 @@ class DataColumn {
             return $qb;
         }
 
-        return $qb;
+        $expr = $qb->expr()->eq(':' . $this->name, 'e.' . $this->property);
+        return $qb->andWhere($expr)->setParameter(':' . $this->name, $value);
     }
 
     public function orderBy(QueryBuilder $qb, string $dir): QueryBuilder {
@@ -131,15 +128,26 @@ class DataColumn {
 
     public function getData(PinakesEntity $entity): mixed {
         if (is_callable($this->data)) return call_user_func($this->data, $entity);
-        return $entity->getValue($this->data);
+        return $entity->{$this->data};
     }
 
-    public function renderValue(PinakesEntity $entity): string {
+    public function updateEntity(PinakesEntity $entity, string|array|null $value): void {
+        if (!$this->edit) return;
+
+        $value = $this->data_type->parse($value);
+        if (null !== $this->edit_cb) {
+            call_user_func($this->edit_cb, $entity, $value);
+        } else {
+            $entity->{$this->property} = $value;
+        } 
+    }
+
+    public function renderCell(PinakesEntity $entity): Renderable {
         $data = $this->getData($entity);
-        if ($data instanceof Collection) $data = $data->toArray();
 
         if (null !== $data && self::LINK_DATA === $this->link) {
             if (is_iterable($data)) {
+                if ($data instanceof Collection) $data = $data->toArray();
                 $data = array_map(fn (PinakesEntity $d) => $d->getLinkSelf(), $data);
             } else {
                 $data = $data->getLinkSelf((string) $data);
@@ -150,34 +158,6 @@ class DataColumn {
         if (self::LINK_SELF === $this->link) {
             $value = $entity->getLinkSelf($value);
         }
-        return ViewElement::create('td', $value)->addClasses($this->data_type->getStyleClasses())->render();
-    }
-
-    public function renderForm(PinakesEntity $entity): string {
-        if (!$this->edit) return '';
-        $data = $this->getData($entity);
-
-        $form = $this->data_type->getForm($this->name, $data);
-        return $form->render();
-    }
-
-    public function renderExport(PinakesEntity $entity): string {
-        $data = $this->getData($entity);
-        return $this->data_type->export($data);
-    }
-
-    public function getFilterForm(mixed $value): FormElement {
-        return $this->data_type->getForm($this->name, $this->data_type->parse($value));
-    }
-
-    public function updateEntity(PinakesEntity $entity, string|array|null $value): void {
-        if (!$this->edit) return;
-
-        $value = $this->data_type->parse($value);
-        if (null !== $this->edit_cb) {
-            call_user_func($this->edit_cb, $entity, $value);
-        } else {
-            $entity->setValue($this->property, $value);
-        } 
+        return ViewElement::create('td', $value)->addStyleClasses(...$this->data_type->getStyleClasses());
     }
 }

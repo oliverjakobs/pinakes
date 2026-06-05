@@ -2,9 +2,9 @@
 
 namespace App\Pinakes;
 
-use App\Repository\PinakesRepository;
 use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Twig\Environment;
 
@@ -41,7 +41,7 @@ class Pinakes {
         return self::getInstance()->em;
     }
 
-    public static function getRepository(string $entity): PinakesRepository {
+    public static function getRepository(string $entity): EntityRepository {
         return self::getEntityManager()->getRepository($entity);
     }
 

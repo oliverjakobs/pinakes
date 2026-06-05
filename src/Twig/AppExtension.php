@@ -8,6 +8,8 @@ use App\Entity\User;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataTable;
 use App\Pinakes\DataType;
+use App\Renderable\FormElement;
+use App\Renderable\Renderable;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -58,19 +60,20 @@ class AppExtension extends AbstractExtension {
         return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
-    public function renderValue(DataColumn $col, PinakesEntity $entity): string {
-        return $col->renderValue($entity);
+    public function renderValue(DataColumn $col, PinakesEntity $entity): Renderable {
+        return $col->renderCell($entity);
     }
 
-    public function renderForm(DataColumn $col, PinakesEntity $entity): string {
-        return $col->renderForm($entity);
+    public function renderForm(DataColumn $col, PinakesEntity $entity): FormElement {
+        return $col->data_type->getForm($col->name, $col->getData($entity));
+    }
+
+    public function renderFilter(DataTable $table, DataColumn $col): FormElement {
+        $value = $table->getFilterValue($col->name);
+        return $col->data_type->getForm($col->name, $col->data_type->parse($value));
     }
 
     public function exportValue(DataColumn $col, PinakesEntity $entity): string {
-        return $col->renderExport($entity);
-    }
-
-    public function renderFilter(DataTable $table, DataColumn $col): string {
-        return $col->getFilterForm($table->getFilterValue($col->name))->render();
+        return $col->data_type->export($col->getData($entity));
     }
 }

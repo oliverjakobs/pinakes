@@ -16,6 +16,8 @@ use Doctrine\ORM\Mapping\FieldMapping;
 
 class DataType {
     const TYPE_STRING = 'string';
+    const TYPE_ENUM = 'enum';
+
     const TYPE_INTEGER = 'integer';
     const TYPE_FLOAT = 'float';
 
@@ -47,11 +49,19 @@ class DataType {
     }
 
     public static function fromFieldMapping(FieldMapping $mapping): self {
+        if (null !== $mapping->enumType) return self::enum($mapping->enumType);
+
         return new self($mapping->type);
     }
 
     public static function string(): self {
         return new self(self::TYPE_STRING);
+    }
+
+    public static function enum(string $enum_class): self {
+        return new self(self::TYPE_ENUM, [
+            'enum_class' => $enum_class
+        ]);
     }
 
     public static function integer(?int $min = null, ?int $max = null): self {
@@ -137,16 +147,16 @@ class DataType {
             case self::TYPE_ENTITY:
                 if (null === $value) return null;
                 assert(is_string($value));
-                $repository = Pinakes::getRepository($this->config['target']);
-                return $repository->getOrCreate($value);
+                return $this->getTargetRepository()->getOrCreate($value);
             case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
                 if (null === $value) return new ArrayCollection();
                 assert(is_array($value));
-                $repository = Pinakes::getRepository($this->config['target']);
+                $repository = $this->getTargetRepository();
                 $entities = array_map(fn ($e) => $repository->getOrCreate($e), $value);
                 return new ArrayCollection($entities);
             case self::TYPE_DATETIME:
+                if (null === $value) return null;
                 return new DateTime($value);
             case self::TYPE_CURRENCY:
             case self::TYPE_FLOAT:
@@ -155,13 +165,16 @@ class DataType {
             case self::TYPE_INTEGER:
                 if (null === $value) return null;
                 return intval($value);
+            case self::TYPE_ENUM:
+                if (null === $value) return null;
+                return $this->config['enum_class']::from($value);
             case self::TYPE_ACTION:
                 assert(false, 'Cannot parse for type "' . $this->type . '"');
         }
         return $value;
     }
 
-    public function render(mixed $data): string {
+    public function render(mixed $data): Renderable|string {
         if (null === $data) return '-';
 
         switch ($this->type) {
@@ -171,7 +184,7 @@ class DataType {
                 if ($data instanceof Collection) $data = $data->toArray();
                 $separator = $this->config['separator'] ?? null;
                 if (null !== $separator) return implode($separator, $data);
-                return ViewElement::ul($data)->addClasses(['collection'])->render();
+                return ViewElement::ul($data)->addStyleClasses('collection');
             case self::TYPE_TAGS:
                 if ($data instanceof Collection) $data = $data->toArray();
                 $data = array_map(fn ($tag) => ViewElement::tag($tag->getLinkSelf(), $tag->getColor()), $data);
@@ -179,33 +192,49 @@ class DataType {
             case self::TYPE_CURRENCY:
                 return sprintf($this->config['fmt'], $data);
             case self::TYPE_COLOR:
-                return ViewElement::tag($data, $data)->addClasses(['monospace'])->render();
+                return ViewElement::tag($data, $data)->addStyleClasses('monospace');
             case self::TYPE_DATETIME:
-                assert($data instanceof DateTime);
+                assert($data instanceof DateTime, 'Got ' . get_debug_type($data) . ' instead');
                 return $data->format($this->config['fmt'] ?? 'd.m.Y');
+            case self::TYPE_ENUM:
+                assert($data instanceof \BackedEnum, 'Got ' . get_debug_type($data) . ' instead');
+                return $data->name;
             case self::TYPE_ACTION:
                 assert($data instanceof Link);
-                return $data->render();
+                return $data->addStyleClasses('button');
         }
         return (string) $data;
     }
 
-    public function getForm(string $name, mixed $value): Renderable {
+    public function getOptions(): array {
+        if ($this->isTargetType()) return $this->getTargetRepository()->getOptions();
+
+        if (self::TYPE_ENUM === $this->type) {
+            $result = [];
+            foreach ($this->config['enum_class']::cases() as $case) {
+                $result[$case->name] = $case->value;
+            }
+            return $result;
+        }
+        assert(false, 'Cannot get options for type "' . $this->type . '"');
+    }
+
+    public function getForm(string $name, mixed $value): FormElement {
         switch ($this->type) {
             case self::TYPE_ENTITY:
             case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
-                $repository = Pinakes::getRepository($this->config['target']);
-                return FormElement::autocomplete($name, $repository->getOptions(), $value);
+                return FormElement::autocomplete($name, $this->getOptions(), $value);
             case self::TYPE_COLOR:
                 return FormElement::input($name, 'color', $value);
             case self::TYPE_DATETIME:
-                assert($value instanceof DateTime);
-                return FormElement::input($name, 'date', $value->format('Y-m-d'));
+                return FormElement::input($name, 'date', $value?->format('Y-m-d'));
             case self::TYPE_INTEGER:
                 $min = $this->config['min'] ?? null;
                 $max = $this->config['max'] ?? null;
                 return FormElement::number($name, $value, $min, $max);
+            case self::TYPE_ENUM:
+                return FormElement::select($name, $this->getOptions(), $value?->value);
             case self::TYPE_ACTION:
                 assert(false, 'Cannot edit type "' . $this->type . '"');
         }

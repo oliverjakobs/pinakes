@@ -129,7 +129,7 @@ abstract class PinakesRepository extends ServiceEntityRepository {
     }
 
     public function getFilterQuery(array $filter): QueryBuilder {
-        $qb = $this->getListQuery($filter);
+        $qb = $this->getListQuery();
 
         // add search
         $search = $filter['search'] ?? [];

@@ -21,7 +21,6 @@ class TransactionController extends PinakesController {
 
     private function create_transaction(TransactionRepository $repository, float $amount, string $reason) {
         // TODO validate transaction
-
         $transaction = $repository->getTemplate();
         $transaction->amount = $amount;
         $transaction->reason = $reason;

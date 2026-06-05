@@ -36,24 +36,4 @@ abstract class PinakesEntity {
     public function getMessageDelete(): string {
         return '';
     }
-
-    public function setValue(string $key, mixed $value) {
-        if (property_exists($this, $key)) {
-            $this->$key = $value;
-            return;
-        }
-
-        $setter = 'set' . str_replace('_', '', ucwords($key, '_'));
-        if (method_exists($this, $setter)) {
-            $this->{$setter}($value);
-            return;
-        }
-
-        assert(false, 'Cant set ' . $key);
-    }
-
-    public function getValue(string $property): mixed {
-        assert(property_exists($this, $property), 'Unknown property ' . $property);
-        return $this->$property;
-    }
 }

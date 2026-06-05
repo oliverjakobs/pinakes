@@ -46,16 +46,16 @@
     {
         "caption": "Music",
         "icon": "music-note-beamed",
-        "route": "music",
+        "route": "record",
         "items": [
             {
                 "caption": "CDs",
-                "route": "music_cd",
+                "route": "record_cd",
                 "icon": "record-circle"
             },
             {
                 "caption": "Vinyls",
-                "route": "music_vinyl",
+                "route": "record_vinyl",
                 "icon": "vinyl-fill"
             }
         ]

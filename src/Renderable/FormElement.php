@@ -35,6 +35,13 @@ class FormElement implements Renderable {
         ]);
     }
 
+    public static function select(string $name, array $options, mixed $value): self {
+        return new self($name, '/elements/form/select.html.twig', [
+            'options' => $options,
+            'value' => $value,
+        ]);
+    }
+
     public function __toString(): string {
         return $this->render();
     }
