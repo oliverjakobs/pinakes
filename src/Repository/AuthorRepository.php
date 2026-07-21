@@ -6,16 +6,18 @@ use App\Entity\Author;
 use App\Entity\Series;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
-use App\Traits\NamedEntityTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\QueryBuilder;
 
 class AuthorRepository extends PinakesRepository {
-    use NamedEntityTrait;
 
     protected static function getEntityClass(): string {
         return Author::class;
+    }
+
+    public function getSearchKey(): string {
+        return 'name';
     }
     
     protected function getListQuery(): QueryBuilder {

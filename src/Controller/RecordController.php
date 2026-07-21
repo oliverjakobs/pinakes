@@ -57,7 +57,7 @@ class RecordController extends PinakesController {
     public function modal(Request $request, RecordRepository $repository, #[MapQueryParameter] ?string $medium = null): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
         /** @var Record */
-        $record = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        $record = $this->getEntity($request, $repository) ?? $repository->create();
 
         if (null !== $medium) {
             $record->setMedium($medium);

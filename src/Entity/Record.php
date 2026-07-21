@@ -35,6 +35,10 @@ class Record extends PinakesEntity {
     #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
     public ?\DateTime $created_at = null;
 
+    public function __construct() {
+        $this->created_at = new \DateTime();
+    }
+
     public function __toString(): string {
         return $this->title ?? 'Untitled record';
     }

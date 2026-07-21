@@ -40,7 +40,7 @@ class BoardgameController extends PinakesController {
     public function modal(Request $request, BoardgameRepository $repository, #[MapQueryParameter] ?int $base = null): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
         /** @var Boardgame */
-        $boardgame = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        $boardgame = $this->getEntity($request, $repository) ?? $repository->create();
 
         if (null !== $base) {
             $boardgame->base_game = $repository->find($base);
@@ -76,7 +76,7 @@ class BoardgameController extends PinakesController {
     #[Route('/boardgame/publisher/modal/{id?}', name: 'boardgamepublisher_modal', methods: ['GET', 'POST'])]
     public function modalPublisher(Request $request, BoardgamePublisherRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        $entity = $this->getEntity($request, $repository) ?? $repository->create();
         return $this->renderModal($request, $repository, $entity, 'boardgamepublisher_show');
     }
 

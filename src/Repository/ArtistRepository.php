@@ -5,14 +5,16 @@ namespace App\Repository;
 use App\Entity\Artist;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
-use App\Traits\NamedEntityTrait;
 use Doctrine\ORM\QueryBuilder;
 
 class ArtistRepository extends PinakesRepository {
-    use NamedEntityTrait;
 
     protected static function getEntityClass(): string {
         return Artist::class;
+    }
+
+    public function getSearchKey(): string {
+        return 'name';
     }
 
     protected function getListQuery(): QueryBuilder {

@@ -5,11 +5,9 @@ namespace App\Pinakes;
 use Closure;
 use App\Entity\PinakesEntity;
 use App\Entity\User;
-use App\Renderable\FormElement;
 use App\Renderable\Renderable;
 use App\Renderable\ViewElement;
 use App\Repository\PinakesRepository;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\QueryBuilder;
 
 class DataColumn {
@@ -18,65 +16,62 @@ class DataColumn {
     const LINK_DATA = 2;
 
     public readonly string $name;
+    public readonly string $caption;
     public readonly ?string $property;
-
     public readonly DataType $data_type;
-    private string|Closure $data;
 
-    public string $caption;
+    private ?Closure $data_cb;
+    private ?Closure $edit_cb;
+    private ?Closure $filter_cb;
 
     private int $link;
 
     public readonly bool $edit;
-    private ?Closure $edit_cb;
-    private ?Closure $filter_cb;
-
-    private readonly string $visibility;
-
+    public readonly string $visibility;
     public readonly array $order_by;
 
-    public function __construct(PinakesRepository $repository, string $name, array $options) {
-        assert(isset($options['data']), 'No data specified');
-
-        $data = $options['data'];
-        if (is_callable($data)) {
-            $property = null;
-        } else {
-            $property = $data;
-        }
-
-        $data_type = $options['data_type'] ?? null;
-        if (null === $data_type && null !== $property) {
-            $data_type = $repository->getDataType($property);
-        }
-        assert(null !== $data_type, 'Failed to determine data type for ' . $name);
-
-        $this->link = $options['link'] ?? self::LINK_NONE;
-
-        if (self::LINK_DATA === $this->link) {
-            assert($data_type->isTargetType(), 'Can not link to ' . (string)$data_type);
-        } else {
-            assert(self::LINK_NONE === $this->link || self::LINK_SELF === $this->link, 'Unkown link type');
-        }
-
+    public function __construct(
+        PinakesRepository $repository,
+        string $name,
+        string|Closure $data,
+        ?DataType $data_type = null,
+        array|string $order_by = [],
+        string $caption = '',
+        int $link = self::LINK_NONE,
+        bool $edit = false,
+        ?Closure $edit_callback = null,
+        ?Closure $filter = null,
+        string $visibility = User::ROLE_USER,
+    ) {        
         $this->name = $name;
-        $this->property = $property;
-        $this->data = $data;
+
+        if (is_callable($data)) {
+            $this->property = null;
+            $this->data_cb = $data;
+        } else {
+            $this->property = $data;
+            $this->data_cb = null;
+
+            if (null === $data_type) {
+                $data_type = $repository->getDataType($this->property);
+            }
+        }
+
+        Assert::notNull($data_type, 'Failed to determine data type for ' . $name);
         $this->data_type = $data_type;
+        
+        Assert::inArray($link, [ self::LINK_NONE, self::LINK_SELF, self::LINK_DATA ], 'Unkown link type');
+        Assert::isTrue(self::LINK_DATA !== $link || $data_type->isTargetType(), 'Can not link to ' . (string) $data_type);
+        $this->link = $link;
 
-        $this->caption = $options['caption'] ?? '';
-        $this->visibility = $options['visibility'] ?? User::ROLE_USER;
-        $this->edit = $options['edit'] ?? false;
-        $this->edit_cb = $options['edit_callback'] ?? null;
-        $this->filter_cb = $options['filter'] ?? null;
+        $this->caption = $caption;
+        $this->visibility = $visibility;
+        $this->edit = $edit;
+        $this->edit_cb = $edit_callback;
+        $this->filter_cb = $filter;
 
-        $order_by = $options['order_by'] ?? [];
         if (is_string($order_by)) $order_by = [ $order_by ];
         $this->order_by = $order_by;
-    }
-
-    public function isVisible(): bool {
-        return Pinakes::isGranted($this->visibility);
     }
 
     public function canOrderBy(): bool {
@@ -87,11 +82,10 @@ class DataColumn {
 
     public function filter(QueryBuilder $qb, mixed $value): QueryBuilder {
         if (null !== $this->filter_cb) {
-            assert(is_callable($this->filter_cb));
             return call_user_func($this->filter_cb, $qb, $value);
         }
 
-        assert(null !== $this->property, 'Cannot filter without property');
+        Assert::notNull($this->property, 'Cannot filter without property');
 
         if ($this->data_type->isArrayType()) {
             if (!is_iterable($value)) $value = [ $value ];
@@ -127,8 +121,8 @@ class DataColumn {
     }
 
     public function getData(PinakesEntity $entity): mixed {
-        if (is_callable($this->data)) return call_user_func($this->data, $entity);
-        return $entity->{$this->data};
+        if (null !== $this->data_cb) return call_user_func($this->data_cb, $entity);
+        return $entity->{$this->property};
     }
 
     public function updateEntity(PinakesEntity $entity, string|array|null $value): void {
@@ -145,16 +139,7 @@ class DataColumn {
     public function renderCell(PinakesEntity $entity): Renderable {
         $data = $this->getData($entity);
 
-        if (null !== $data && self::LINK_DATA === $this->link) {
-            if (is_iterable($data)) {
-                if ($data instanceof Collection) $data = $data->toArray();
-                $data = array_map(fn (PinakesEntity $d) => $d->getLinkSelf(), $data);
-            } else {
-                $data = $data->getLinkSelf((string) $data);
-            }
-        }
-
-        $value = $this->data_type->render($data);
+        $value = $this->data_type->render($data, self::LINK_DATA === $this->link);
         if (self::LINK_SELF === $this->link) {
             $value = $entity->getLinkSelf($value);
         }

@@ -5,13 +5,15 @@ namespace App\Repository;
 use App\Entity\BoardgamePublisher;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
-use App\Traits\NamedEntityTrait;
 
 class BoardgamePublisherRepository extends PinakesRepository {
-    use NamedEntityTrait;
 
     protected static function getEntityClass(): string {
         return BoardgamePublisher::class;
+    }
+
+    public function getSearchKey(): string {
+        return 'name';
     }
 
     protected function defineDataFields(): array {

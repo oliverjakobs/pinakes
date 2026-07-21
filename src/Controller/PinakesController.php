@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\PinakesEntity;
+use App\Pinakes\Assert;
 use App\Pinakes\DataTable;
 use App\Pinakes\Helper;
 use App\Renderable\Link;
@@ -50,7 +51,7 @@ abstract class PinakesController extends AbstractController {
         if ($last instanceof ViewElement && $last->isSeparator()) array_pop($actions);
 
         foreach ($actions as $action) {
-            if ($action instanceof Link) $action->setButton();
+            if ($action instanceof Link) $action->addStyleClasses('button');
         }
         return $actions;
     }
@@ -99,7 +100,8 @@ abstract class PinakesController extends AbstractController {
             if (Helper::isEmpty($value)) $value = null;
 
             $col = $repository->getColumn($name);
-            assert(null !== $col, 'Unknown column ' . $name);
+            Assert::notNull($col, 'Unknown column ' . $name);
+
             $col->updateEntity($entity, $value);
         }
         $repository->save($entity);
@@ -108,8 +110,8 @@ abstract class PinakesController extends AbstractController {
     }
 
     public function deleteEntityAndRedirect(Request $request, PinakesRepository $repository, PinakesEntity $entity, string $redirect): Response {
-        // TODO check getMessageDelete
-        //$repository->delete($entity);
+        assert(Helper::strEmpty($entity->getMessageDelete()), 'Cannot delete ' . $entity . ': ' . $entity->getMessageDelete());
+        // $repository->delete($entity);
 
         return $this->redirectHx($redirect);
     }
@@ -121,7 +123,7 @@ abstract class PinakesController extends AbstractController {
     }
 
     public function exportCsv(DataTable $table, string $filename): Response {
-        $response = $this->render('export.csv.twig', [
+        $response = $this->render('export/export.csv.twig', [
             'table' => $table
         ]);
         $response->headers->set('Content-Type', 'text/csv');

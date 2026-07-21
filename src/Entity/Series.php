@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\AuthorRepository;
+use App\Pinakes\Pinakes;
 use App\Repository\SeriesRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -35,6 +35,6 @@ class Series extends PinakesEntity {
     }
 
     public function getAuthors(): Collection {
-        return AuthorRepository::getInstance()->findBySeries($this);
+        return Author::getRepository()->findBySeries($this);
     }
 }

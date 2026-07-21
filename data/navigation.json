@@ -5,11 +5,6 @@
         "route": "book",
         "items": [
             {
-                "caption": "Show all",
-                "route": "book_all",
-                "icon": "list-ul"
-            },
-            {
                 "caption": "Tags",
                 "route": "tag",
                 "icon": "tag"

@@ -5,8 +5,10 @@ namespace App\Repository;
 use App\Entity\Book;
 use App\Entity\Author;
 use App\Entity\Tag;
+use App\Pinakes\Database;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
+use App\Pinakes\Pinakes;
 use Doctrine\ORM\QueryBuilder;
 
 class BookRepository extends PinakesRepository {
@@ -15,15 +17,8 @@ class BookRepository extends PinakesRepository {
         return Book::class;
     }
 
-    public function getSearchKey(): string{
+    public function getSearchKey(): string {
         return 'title';
-    }
-
-    public function getTemplate(): Book {
-        $result = new Book();
-        $result->title = 'New Book';
-        $result->created_at = new \DateTime();
-        return $result;
     }
     
     public function getDefaultOrder(): array {
@@ -39,7 +34,27 @@ class BookRepository extends PinakesRepository {
     }
 
     public function getNewest(): array {
-        $qb = $this->createQueryBuilder('b')->orderBy('b.created_at', 'DESC')->setMaxResults(5);
+        $db = new Database(Pinakes::getParameter('app.db_url'));
+
+        $authors_select = $db->get_select('authors', [ 'id', 'name' ]);
+
+        $rows = $db->query(<<<SQL
+            SELECT book.*, $authors_select FROM book 
+                LEFT JOIN book_author ON book.id = book_author.book_id LEFT JOIN author authors ON authors.id = book_author.author_id
+                ORDER BY book.created_at DESC 
+                LIMIT 30;
+        SQL);
+
+        $entities = [];
+        foreach ($rows as $row) {
+            $book = new Book();
+
+            $entities[] = $db->hydrate($book, $row);
+        }
+
+        return $entities;
+
+        $qb = $this->createQueryBuilder('b')->orderBy('b.created_at', 'DESC')->setMaxResults(30);
         return $qb->getQuery()->getResult();
     }
 
@@ -50,12 +65,6 @@ class BookRepository extends PinakesRepository {
                 'data' => 'title',
                 'link' => DataColumn::LINK_SELF,
                 'edit' => true
-            ],
-            'authors_inline' => [
-                'caption' => 'Author(s)',
-                'data' => 'authors',
-                'data_type' => DataType::collection(Author::class, '; '),
-                'link' => DataColumn::LINK_DATA
             ],
             'authors' => [
                 'caption' => 'Author(s)',
@@ -129,7 +138,7 @@ class BookRepository extends PinakesRepository {
 
     public function getDataFieldsList(): array {
         return $this->composeDataFields([
-            'title', 'authors_inline', 'publisher', 'tags', 'published', 'first_published', 'isbn', 'series', 'series_volume'
+            'title', 'authors', 'publisher', 'tags', 'published', 'first_published', 'isbn', 'series', 'series_volume'
         ]);
     }
 
@@ -137,14 +146,14 @@ class BookRepository extends PinakesRepository {
         return $this->composeDataFields([ 'title', 'publisher', 'first_published', 'published', 'isbn', 'series', 'series_volume' ]);
     }
     public function getDataFieldsListPublisher(): array {
-        return $this->composeDataFields([ 'title', 'authors_inline', 'published', 'isbn', 'series', 'series_volume' ]);
+        return $this->composeDataFields([ 'title', 'authors', 'published', 'isbn', 'series', 'series_volume' ]);
     }
     public function getDataFieldsListSeries(): array {
-        return $this->composeDataFields([ 'series_volume', 'title', 'authors_inline', 'first_published', 'tags', 'isbn'  ]);
+        return $this->composeDataFields([ 'series_volume', 'title', 'authors', 'first_published', 'tags', 'isbn'  ]);
     }
 
     public function getDataFieldsNewest(): array {
-        return $this->composeDataFields([ 'title', 'authors_inline' ]);
+        return $this->composeDataFields([ 'title', 'authors' ]);
     }
 
     public function getDataFieldsShow(): array {
@@ -155,7 +164,7 @@ class BookRepository extends PinakesRepository {
 
     public function getDataFieldsExport(): array {
         return $this->composeDataFields([
-            'created_at', 'title', 'authors_inline', 'publisher', 'tags', 'published', 'first_published', 'isbn', 'series', 'series_volume'
+            'created_at', 'title', 'authors', 'publisher', 'tags', 'published', 'first_published', 'isbn', 'series', 'series_volume'
         ]);
     }
 }

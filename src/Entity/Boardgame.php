@@ -39,6 +39,8 @@ class Boardgame extends PinakesEntity {
 
     public function __construct() {
         $this->extensions = new ArrayCollection();
+        $this->created_at = new \DateTime();
+        $this->min_player = 1;
     }
 
     public function __toString(): string {

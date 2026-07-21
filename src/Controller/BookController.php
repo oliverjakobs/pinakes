@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Repository\BookRepository;
-use App\Repository\TagRepository;
 use App\Entity\Book;
 use App\Entity\Series;
 use App\Entity\User;
@@ -19,26 +18,13 @@ use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
-    public function list(Request $request, BookRepository $repository, TagRepository $tags): Response {
-        $table = $repository->createTable()->addFilter('ntags', [
-            $tags->findOneByName('Manga'),
-            $tags->findOneByName('Comic'),
-        ]);
-
+    public function list(Request $request, BookRepository $repository): Response {
+        $table = $repository->createTable();
         return $this->renderList($request, 'Books', $table, [
             Link::modal('New Book', 'book_modal'),
             Link::modal('From ISBN', 'book_modal_isbn'),
             ViewElement::separator(),
             Link::create('Export Books', 'book_export')
-        ]);
-    }
-
-    #[Route('/book/all', name: 'book_all', methods: ['GET'])]
-    public function listAll(Request $request, BookRepository $repository): Response {
-        $table = $repository->createTable();
-        return $this->renderList($request, 'Books', $table, [
-            Link::modal('New Book', 'book_modal'),
-            Link::modal('From ISBN', 'book_modal_isbn'),
         ]);
     }
 
@@ -59,7 +45,7 @@ class BookController extends PinakesController {
     public function modal(Request $request, BookRepository $repository, #[MapQueryParameter] ?int $series = null): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
         /** @var Book */
-        $book = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        $book = $this->getEntity($request, $repository) ?? $repository->create();
 
         if (null !== $series) {
             $book->series = Pinakes::getRepository(Series::class)->find($series);

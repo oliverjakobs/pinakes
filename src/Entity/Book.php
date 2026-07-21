@@ -2,12 +2,17 @@
 
 namespace App\Entity;
 
+use App\Pinakes\Assert;
+use App\Pinakes\Helper;
+use App\Pinakes\Meta;
 use App\Repository\BookRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Renderable\Link;
+use ReflectionClass;
 
+#[Meta('book')]
 #[ORM\Entity(repositoryClass: BookRepository::class)]
 class Book extends PinakesEntity {
     #[ORM\Id]
@@ -46,13 +51,14 @@ class Book extends PinakesEntity {
     public ?int $series_volume = null;
 
     #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
-    public ?\DateTime $created_at = null;
+    public \DateTime $created_at;
 
     /** @var Collection<int, Tag> */
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'books', cascade: ['persist'])]
     public Collection $tags;
 
     public function __construct() {
+        $this->created_at = new \DateTime();
         $this->authors = new ArrayCollection();
         $this->translators = new ArrayCollection();
         $this->tags = new ArrayCollection();
@@ -67,13 +73,20 @@ class Book extends PinakesEntity {
     }
 
     public function getLinkOpenLibrary(): ?Link {
-        if (empty($this->isbn)) return null;
-        return Link::extern('OpenLibrary', 'https://openlibrary.org/isbn/' . $this->isbn)->setButton();
+        if (Helper::isEmpty($this->isbn)) return null;
+        return Link::extern('OpenLibrary', 'https://openlibrary.org/isbn/' . $this->isbn);
     }
 
     public function addTag(Tag $tag): void {
         if (!$this->tags->contains($tag)) {
             $this->tags->add($tag);
         }
+    }
+
+    public function getModelName(): string {
+        $reflection = new ReflectionClass($this);
+        $attr = $reflection->getAttributes(Meta::class)[0];
+        Assert::notEmpty($attr, 'Meta missing');
+        return $attr->newInstance()->entity_name;
     }
 }

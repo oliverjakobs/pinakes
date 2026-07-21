@@ -2,54 +2,87 @@
     width: fit-content;
 }
 
-.table {
+table {
     margin-bottom: 1rem;
     border-collapse: collapse;
     width: 100%;
 }
 
-.table :is(th, td) {
+table :is(th, td) {
     padding: 0.5rem 0.5rem;
     border: thin solid var(--table-border);
 }
 
-.table th {
+table tbody tr:not(.empty):hover {
+    background-color: var(--color-hover);
+}
+
+
+/* --------------------------| cell |------------------------------- */
+table td.align-right {
+    text-align: right;
+}
+
+table td.fit-content {
+    width: 0;
+    min-width: fit-content;
+}
+
+/* --------------------------| list |------------------------------- */
+table.list th {
     text-align: left;
     background-color: var(--table-header);
 }
 
-.table th.can-order {
+table.list th.can-order {
     cursor: pointer;
 }
 
-.table th .caption {
+table.list th .caption {
     margin-right: 1.2em;
 }
 
-.table th .caption::after {
+table.list th .caption::after {
     padding-left: 0.2em;
     font-size: 1.6em;
     line-height: 1em;
     position: absolute;
 }
 
-.table th .caption.asc::after {
+table.list th .caption.asc::after {
     content: '\1F839';
 }
 
-.table th .caption.desc::after {
+table.list th .caption.desc::after {
     content: '\1F83B';
 }
 
-.table tbody tr:not(.empty):hover {
-    background-color: var(--color-hover);
-}
-
-.table tr.empty {
+table.list tr.empty {
     text-align: center;
 }
 
-.table td input {
+table.list td ul.collection {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+table.list td ul.collection li {
+    display: inline;
+}
+
+table.list td ul.collection li:not(:last-child)::after {
+    content: '; ';
+}
+
+/* --------------------------| show |------------------------------- */
+.show > table ul {
+    padding-left: 1.2em;
+    margin: 0;
+}
+
+/* --------------------------| input |------------------------------ */
+table td input {
     width: 100%;
     box-sizing: border-box;
 }
@@ -149,16 +182,6 @@
 .table-pagination li a:not(.active):hover {
     border: 1px solid var(--color-secondary);
     background-color: var(--color-hover);
-}
-
-/* --------------------------| util |------------------------------- */
-.table td.align-right {
-    text-align: right;
-}
-
-.table td.fit-content {
-    width: 0;
-    min-width: fit-content;
 }
 
 /* --------------------------| control |---------------------------- */

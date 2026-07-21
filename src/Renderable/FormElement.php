@@ -28,7 +28,7 @@ class FormElement implements Renderable {
         ]);    
     }
 
-    public static function autocomplete(string $name, array $options, Collection|PinakesEntity|null $values): self {
+    public static function autocomplete(string $name, array $options, mixed $values): self {
         return new self($name, '/elements/form/autocomplete.html.twig', [
             'options' => $options,
             'values' => $values,

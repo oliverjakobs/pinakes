@@ -13,7 +13,6 @@ use App\Renderable\Renderable;
 use Symfony\Component\HttpFoundation\Request;
 use Twig\Attribute\AsTwigFilter;
 use Twig\Attribute\AsTwigFunction;
-use Twig\Markup;
 
 class AppExtension {
 
@@ -33,7 +32,7 @@ class AppExtension {
     #[AsTwigFunction('navigation_items')]
     public function getNavigationItems(): array {
         $filename = Pinakes::getAbsolutePath('/data/navigation.json');
-        assert(file_exists($filename));
+        assert(file_exists($filename), 'File "' . $filename . '" does not exist');
 
         $content = file_get_contents($filename);
         if (!$content) return [];
@@ -47,7 +46,6 @@ class AppExtension {
         $filename = Pinakes::getAbsolutePath('/public/icons/bootstrap/' . $name . '.svg');
         if (!file_exists($filename)) return null;
         return file_get_contents($filename);
-        return new Markup(file_get_contents($filename), 'UTF-8');
     }
 
     #[AsTwigFunction('render_value')]

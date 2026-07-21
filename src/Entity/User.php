@@ -14,6 +14,12 @@ class User extends PinakesEntity implements UserInterface, PasswordAuthenticated
     const ROLE_LIBRARIAN = 'ROLE_LIBRARIAN';
     const ROLE_USER = 'ROLE_USER';
 
+    const ROLES = [
+        self::ROLE_ADMIN,
+        self::ROLE_LIBRARIAN,
+        self::ROLE_USER
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

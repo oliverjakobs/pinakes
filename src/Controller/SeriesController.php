@@ -39,7 +39,7 @@ class SeriesController extends PinakesController {
     #[Route('/series/modal/{id?}', name: 'series_modal', methods: ['GET', 'POST'])]
     public function modal(Request $request, SeriesRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        $entity = $this->getEntity($request, $repository) ?? $repository->create();
         return $this->renderModal($request, $repository, $entity, 'series_show');
     }
 

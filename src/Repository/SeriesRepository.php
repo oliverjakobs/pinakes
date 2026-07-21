@@ -6,14 +6,16 @@ use App\Entity\Series;
 use App\Entity\Author;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
-use App\Traits\NamedEntityTrait;
 use Doctrine\ORM\QueryBuilder;
 
 class SeriesRepository extends PinakesRepository {
-    use NamedEntityTrait;
 
     protected static function getEntityClass(): string {
         return Series::class;
+    }
+
+    public function getSearchKey(): string {
+        return 'name';
     }
 
     protected function getListQuery(): QueryBuilder {
@@ -34,12 +36,6 @@ class SeriesRepository extends PinakesRepository {
                 'data_type' => DataType::collection(Author::class),
                 'link' => DataColumn::LINK_DATA
             ],
-            'authors_inline' => [
-                'caption' => 'Author(s)',
-                'data' => fn (Series $s) => $s->getAuthors(),
-                'data_type' => DataType::collection(Author::class, '; '),
-                'link' => DataColumn::LINK_DATA
-            ],
             'volume_count' => [
                 'caption' => 'Volumes',
                 'data' => fn(Series $s) => $s->volumes->count(),
@@ -49,7 +45,7 @@ class SeriesRepository extends PinakesRepository {
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields([ 'name', 'authors_inline', 'volume_count' ]);
+        return $this->composeDataFields([ 'name', 'authors', 'volume_count' ]);
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields([ 'name', 'authors' ]);

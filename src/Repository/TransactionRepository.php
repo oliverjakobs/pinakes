@@ -13,18 +13,12 @@ class TransactionRepository extends PinakesRepository {
         return Transaction::class;
     }
 
-    public function getSearchKey(): string{
+    public function getSearchKey(): string {
         return 'reason';
     }
 
     public function getDefaultOrder(): array {
         return [ 'timestamp' => 'DESC' ];
-    }
-    
-    public function getTemplate(): Transaction {
-        $result = new Transaction();
-        $result->timestamp = new \DateTime();
-        return $result;
     }
 
     public function getBalance(): float {

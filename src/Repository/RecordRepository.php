@@ -11,15 +11,8 @@ class RecordRepository extends PinakesRepository {
         return Record::class;
     }
 
-    public function getSearchKey(): string{
+    public function getSearchKey(): string {
         return 'title';
-    }
-
-    public function getTemplate(): Record {
-        $result = new Record();
-        $result->title = 'New Record';
-        $result->created_at = new \DateTime();
-        return $result;
     }
 
     protected function defineDataFields(): array {

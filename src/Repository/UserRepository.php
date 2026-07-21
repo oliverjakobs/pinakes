@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\User;
-use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
+use App\Renderable\Icon;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
@@ -15,7 +15,7 @@ class UserRepository extends PinakesRepository implements PasswordUpgraderInterf
         return User::class;
     }
 
-    public function getSearchKey(): string{
+    public function getSearchKey(): string {
         return 'username';
     }
 
@@ -36,12 +36,26 @@ class UserRepository extends PinakesRepository implements PasswordUpgraderInterf
         return [
             'username' => [
                 'caption' => 'Username',
-                'data' => 'username'
+                'data' => 'username',
+                'edit' => true
             ],
             'roles' => [
                 'caption' => 'Roles',
-                'data' => fn(User $u) => implode('; ', $u->getRoles()),
-                'data_type' => DataType::string()
+                'data' => fn(User $u) => $u->getRoles(),
+                'data_type' => DataType::array()->setOptions(User::ROLES),
+                'edit' => true
+            ],
+            'edit' => [
+                'caption' => '',
+                'data' => fn(User $u) => $u->getLinkEdit(Icon::create('pencil-square')),
+                'data_type' => DataType::action(),
+                'visibility' => User::ROLE_ADMIN
+            ],
+            'delete' => [
+                'caption' => '',
+                'data' => fn(User $u) => $u->getLinkDelete(Icon::create('trash3')),
+                'data_type' => DataType::action(),
+                'visibility' => User::ROLE_ADMIN
             ],
 
             // TODO impersonation
@@ -49,6 +63,10 @@ class UserRepository extends PinakesRepository implements PasswordUpgraderInterf
     }
 
     public function getDataFieldsList(): array {
+        return $this->composeDataFields([ 'username', 'roles', 'edit', 'delete' ]);
+    }
+
+    public function getDataFieldsShow(): array {
         return $this->composeDataFields([ 'username', 'roles' ]);
     }
 }

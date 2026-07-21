@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Transaction;
 use App\Entity\User;
 use App\Renderable\Link;
 use App\Repository\TransactionRepository;
@@ -21,7 +22,8 @@ class TransactionController extends PinakesController {
 
     private function create_transaction(TransactionRepository $repository, float $amount, string $reason) {
         // TODO validate transaction
-        $transaction = $repository->getTemplate();
+        /** @var Transaction */
+        $transaction = $repository->create();
         $transaction->amount = $amount;
         $transaction->reason = $reason;
 
@@ -56,7 +58,7 @@ class TransactionController extends PinakesController {
     #[Route('/transaction/modal/{id}', name: 'transaction_modal', methods: ['GET', 'POST'])]
     public function modalTransaction(Request $request, TransactionRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        $entity = $this->getEntity($request, $repository) ?? $repository->create();
         return $this->renderModal($request, $repository, $entity, 'transaction');
     }
 

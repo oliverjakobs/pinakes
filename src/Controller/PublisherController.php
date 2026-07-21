@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Publisher;
 use App\Entity\User;
 use App\Repository\PublisherRepository;
 use App\Repository\BookRepository;
@@ -31,7 +30,7 @@ class PublisherController extends PinakesController {
     #[Route('/publisher/modal/{id?}', name: 'publisher_modal', methods: ['GET', 'POST'])]
     public function modal(Request $request, PublisherRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        $entity = $this->getEntity($request, $repository) ?? $repository->create();
         return $this->renderModal($request, $repository, $entity, 'publisher_show');
     }
 

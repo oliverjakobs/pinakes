@@ -5,22 +5,16 @@ namespace App\Repository;
 use App\Entity\Boardgame;
 use App\Pinakes\DataColumn;
 use App\Pinakes\DataType;
-use App\Traits\NamedEntityTrait;
 use Doctrine\ORM\QueryBuilder;
 
 class BoardgameRepository extends PinakesRepository {
-    use NamedEntityTrait;
     
     protected static function getEntityClass(): string {
         return Boardgame::class;
     }
 
-    public function getTemplate(): Boardgame {
-        $result = new Boardgame();
-        $result->name = 'New Boardgame';
-        $result->created_at = new \DateTime();
-        $result->min_player = 1;
-        return $result;
+    public function getSearchKey(): string {
+        return 'name';
     }
 
     protected function defineDataFields(): array {

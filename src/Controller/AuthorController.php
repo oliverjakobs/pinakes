@@ -35,7 +35,7 @@ class AuthorController extends PinakesController {
     #[Route('/author/modal/{id?}', name: 'author_modal', methods: ['GET', 'POST'])]
     public function modal(Request $request, AuthorRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->getTemplate();
+        $entity = $this->getEntity($request, $repository) ?? $repository->create();
         return $this->renderModal($request, $repository, $entity, 'author_show');
     }
 

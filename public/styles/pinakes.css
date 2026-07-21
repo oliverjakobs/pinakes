@@ -75,6 +75,7 @@ form {
   flex-direction: column;
   width: fit-content;
 
+  border-radius: 4px;
   gap: 0.6em;
   padding: 1em 1.2em;
 }

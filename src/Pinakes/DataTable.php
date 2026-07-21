@@ -39,7 +39,7 @@ class DataTable {
     }
 
     public function addFilter(string $name, mixed $value): self {
-        assert(null === $this->data, 'Table is finalized');
+        Assert::isTrue(null === $this->data, 'Table is finalized');
 
         if (is_iterable($value)) {
             $value = array_map(fn ($v) => ($v instanceof PinakesEntity) ? $v->getId() : $v, $value);
@@ -65,7 +65,7 @@ class DataTable {
     }
 
     public function getColumn(string $name): DataColumn {
-        assert(array_key_exists($name, $this->columns), 'Unkown column ' . $name);
+        Assert::isTrue(array_key_exists($name, $this->columns), 'Unkown column ' . $name);
         return $this->columns[$name];
     }
 
@@ -139,7 +139,7 @@ class DataTable {
 
     public function getData(): array {
         if (null !== $this->data) return $this->data;
-        if (null === $this->repository) return [];
+        Assert::notNull($this->repository, 'No data specified');
         return $this->repository->getFilterQuery($this->filter)->getQuery()->getResult();
     }
 

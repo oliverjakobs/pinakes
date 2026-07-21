@@ -2,28 +2,30 @@
 
 namespace App\Pinakes;
 
-use Symfony\Component\Routing\RouterInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Twig\Environment;
 
 class Pinakes {
     private static ?self $_instance = null;
+    private static ?EntityManagerInterface $em = null;
+    private static ?RouterInterface $router = null;
+    private static ?AuthorizationCheckerInterface $auth = null;
+    private static ?Environment $twig = null;
 
     public function __construct(
-        private EntityManagerInterface $em,
-        private RouterInterface $router,
-        private AuthorizationCheckerInterface $auth,
-        private Environment $twig,
-        private string $app_dir
+        private string $app_dir,
+        private ContainerInterface $container,
     ) {
     }
 
-    public static function init(EntityManagerInterface $em, RouterInterface $router, AuthorizationCheckerInterface $auth, Environment $twig, string $app_dir): void {
+    public static function init(string $app_dir, ContainerInterface $container): void {
         if (self::isInitialized()) return;
 
-        self::$_instance = new self($em, $router, $auth, $twig, $app_dir);
+        self::$_instance = new self($app_dir, $container);
     }
 
     public static function getInstance(): self {
@@ -37,8 +39,13 @@ class Pinakes {
         return null !== self::$_instance;
     }
 
+    public static function getParameter(string $name): mixed {
+        return self::getInstance()->container->getParameter($name);
+    }
+
     public static function getEntityManager(): EntityManagerInterface {
-        return self::getInstance()->em;
+        if (null === self::$em) self::$em = self::getInstance()->container->get('doctrine.orm.entity_manager');
+        return self::$em;
     }
 
     public static function getRepository(string $entity): EntityRepository {
@@ -50,14 +57,17 @@ class Pinakes {
     }
 
     public static function getUrl(string $route, array $params = []): string {
-        return self::getInstance()->router->generate($route, $params);
+        if (null === self::$router) self::$router = self::getInstance()->container->get('app.router');
+        return self::$router->generate($route, $params);
     }
 
     public static function renderTemplate(string $path, array $params): string {
-        return self::getInstance()->twig->render($path, $params);
+        if (null === self::$twig) self::$twig = self::getInstance()->container->get('app.twig');
+        return self::$twig->render($path, $params);
     }
 
     public static function isGranted(string $role): bool {
-        return self::getInstance()->auth->isGranted($role);
+        if (null === self::$auth) self::$auth = self::getInstance()->container->get('app.auth_checker');
+        return self::$auth->isGranted($role);
     }
 }

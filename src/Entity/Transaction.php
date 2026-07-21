@@ -22,6 +22,10 @@ class Transaction extends PinakesEntity {
     #[ORM\Column]
     public ?\DateTime $timestamp = null;
 
+    public function __construct() {
+        $this->timestamp = new \DateTime();
+    }
+
     public function __toString(): string {
         return $this->reason;
     }

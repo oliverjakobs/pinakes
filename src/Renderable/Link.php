@@ -17,7 +17,6 @@ class Link implements Renderable {
     private array $style_classes = [];
 
     private bool $is_extern = false;
-    private bool $is_button = false;
 
     private ?string $disabled_message = null;
 
@@ -61,11 +60,6 @@ class Link implements Renderable {
         return $result;
     }
 
-    public function setButton(bool $b = true): self {
-        $this->is_button = $b;
-        return $this;
-    }
-
     public function setDisabledMessage(string $msg): self {
         $this->disabled_message = $msg;
         return $this;
@@ -95,7 +89,6 @@ class Link implements Renderable {
 
             if (null !== $this->target) $attributes['hx-target'] = $this->target;
             if (null !== $this->swap) $attributes['hx-swap'] = $this->swap;
-            $style_classes[] = 'link-hx'; // TODO apply styling
         } else {
             $element = 'a';
             $attributes['href'] = $this->url;
@@ -106,10 +99,6 @@ class Link implements Renderable {
             $attributes['rel'] = 'noopener noreferrer';
             
             $style_classes[] = 'link-extern';
-        }
-
-        if ($this->is_button) {
-            $style_classes[] = 'button';
         }
         
         return Pinakes::renderTemplate('/elements/element.html.twig', [
