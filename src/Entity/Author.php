@@ -6,6 +6,7 @@ use App\Repository\AuthorRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Database\Mapping;
 use App\Renderable\Link;
 
 #[ORM\Entity(repositoryClass: AuthorRepository::class)]
@@ -13,9 +14,11 @@ class Author extends PinakesEntity {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Mapping\Column]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Mapping\Column]
     public ?string $name = null;
 
     /** @var Collection<int, Book> */

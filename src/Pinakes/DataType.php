@@ -2,10 +2,12 @@
 
 namespace App\Pinakes;
 
+use App\Database\MappedProperty;
 use DateTime;
 use BackedEnum;
 use App\Entity\PinakesEntity;
 use App\Entity\TagInterface;
+use App\Mapper\PinakesMapper;
 use App\Renderable\Renderable;
 use App\Renderable\FormElement;
 use App\Renderable\Link;
@@ -16,7 +18,7 @@ use Doctrine\Common\Collections\Collection;
 
 class DataType {
     const TYPE_STRING = 'string';
-    const TYPE_INTEGER = 'integer';
+    const TYPE_INTEGER = 'int';
     const TYPE_FLOAT = 'float';
     const TYPE_ARRAY = 'array';
 
@@ -57,12 +59,24 @@ class DataType {
         $this->type = $type;
     }
 
+    public static function fromMapping(MappedProperty $mapping): self {
+        if (null !== $mapping->target) {
+            if ($mapping->isArrayType()) {
+                return DataType::collection($mapping->target);
+            }
+            return DataType::entity($mapping->target);
+        }
+
+        return new self($mapping->type);
+    }
+
     public function setOptions(array $options): self {
         $this->options = $options;
         return $this;
     }
 
     public static function create(string $type): self {
+        if ('integer' === $type) $type = self::TYPE_INTEGER;
         return new self($type);
     }
 
@@ -144,6 +158,11 @@ class DataType {
         return Pinakes::getRepository($this->target_class);
     }
 
+    public function getTargetMapper(): PinakesMapper {
+        Assert::isTrue($this->isTargetType(), 'Not a target type');
+        return PinakesMapper::getMapper($this->target_class);
+    }
+
     public function isSortable(): bool {
         if (DataType::TYPE_ACTION === $this->type) return false;
         if ($this->isArrayType()) return false;
@@ -166,10 +185,10 @@ class DataType {
                 return $this->getTargetRepository()->getOrCreate($value);
             case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
-                if (null === $value) return new ArrayCollection();
+                if (null === $value) return [];
                 Assert::isTrue(is_array($value), 'Expected array, got ' . get_debug_type($value) . ' instead');
                 $repository = $this->getTargetRepository();
-                $entities = array_map(fn ($e) => $repository->getOrCreate($e), $value);
+                return array_map(fn ($e) => $repository->getOrCreate($e), $value);
                 return new ArrayCollection($entities);
             case self::TYPE_DATETIME:
                 if (null === $value) return null;

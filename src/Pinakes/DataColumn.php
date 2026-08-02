@@ -120,6 +120,10 @@ class DataColumn {
         return $qb->orderBy('e.' . $this->name, $dir);
     }
 
+    public function getSelect(): string {
+        return $this->property . ' AS ' . $this->name;
+    }
+
     public function getData(PinakesEntity $entity): mixed {
         if (null !== $this->data_cb) return call_user_func($this->data_cb, $entity);
         return $entity->{$this->property};

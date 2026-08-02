@@ -7,15 +7,18 @@ use App\Repository\SeriesRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use App\Database\Mapping;
 
 #[ORM\Entity(repositoryClass: SeriesRepository::class)]
 class Series extends PinakesEntity {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Mapping\Column]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Mapping\Column]
     public ?string $name = null;
 
     /** @var Collection<int, Book> */
@@ -27,7 +30,7 @@ class Series extends PinakesEntity {
     }
 
     public function __toString(): string {
-        return $this->name;
+        return $this->name ?? 'Untitled Series';
     }
 
     public function getId(): ?int {

@@ -34,27 +34,7 @@ class BookRepository extends PinakesRepository {
     }
 
     public function getNewest(): array {
-        $db = new Database(Pinakes::getParameter('app.db_url'));
-
-        $authors_select = $db->get_select('authors', [ 'id', 'name' ]);
-
-        $rows = $db->query(<<<SQL
-            SELECT book.*, $authors_select FROM book 
-                LEFT JOIN book_author ON book.id = book_author.book_id LEFT JOIN author authors ON authors.id = book_author.author_id
-                ORDER BY book.created_at DESC 
-                LIMIT 30;
-        SQL);
-
-        $entities = [];
-        foreach ($rows as $row) {
-            $book = new Book();
-
-            $entities[] = $db->hydrate($book, $row);
-        }
-
-        return $entities;
-
-        $qb = $this->createQueryBuilder('b')->orderBy('b.created_at', 'DESC')->setMaxResults(30);
+        $qb = $this->createQueryBuilder('b')->orderBy('b.created_at', 'DESC')->setMaxResults(5);
         return $qb->getQuery()->getResult();
     }
 

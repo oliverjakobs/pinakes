@@ -6,6 +6,7 @@ use App\Repository\BookRepository;
 use App\Entity\Book;
 use App\Entity\Series;
 use App\Entity\User;
+use App\Mapper\BookMapper;
 use App\Pinakes\OpenLibrary;
 use App\Pinakes\Pinakes;
 use App\Renderable\Link;
@@ -19,8 +20,12 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request, BookRepository $repository): Response {
-        $table = $repository->createTable();
-        return $this->renderList($request, 'Books', $table, [
+
+        $mapper = new BookMapper();
+        $table = $mapper->createTable('list');
+
+        // $table = $repository->createTable();
+        return $this->renderList2($request, 'Books', $table, [
             Link::modal('New Book', 'book_modal'),
             Link::modal('From ISBN', 'book_modal_isbn'),
             ViewElement::separator(),
@@ -30,28 +35,43 @@ class BookController extends PinakesController {
 
     #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
     public function show(Request $request, BookRepository $repository): Response {
-        /** @var Book */
-        $book = $this->getEntity($request, $repository);
+        // /** @var Book */
+        // $book = $this->getEntity($request, $repository);
 
-        return $this->renderShow($repository, $book, 'show', [
-            $book->getLinkEdit(),
-            $book->getLinkDelete(),
-            ViewElement::separator(),
-            $book->getLinkOpenLibrary(),
+        // return $this->renderShow($repository, $book, 'show', [
+        //     $book->getLinkEdit(),
+        //     $book->getLinkDelete(),
+        //     ViewElement::separator(),
+        //     $book->getLinkOpenLibrary(),
+        // ]);
+
+        $mapper = new BookMapper();
+        $fields = $mapper->getDataFieldsShow();
+        /** @var Book */
+        $book = $this->getEntityNew($request, $mapper, $fields);
+
+        return $this->renderShow2($book, $fields, [
+                $book->getLinkEdit(),
+                $book->getLinkDelete(),
+                ViewElement::separator(),
+                $book->getLinkOpenLibrary(),
         ]);
     }
 
     #[Route('/book/modal/{id?}', name: 'book_modal', methods: ['GET', 'POST'])]
     public function modal(Request $request, BookRepository $repository, #[MapQueryParameter] ?int $series = null): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+
+        $mapper = new BookMapper();
+        $fields = $mapper->getDataFieldsShow();
         /** @var Book */
-        $book = $this->getEntity($request, $repository) ?? $repository->create();
+        $book = $this->getEntityNew($request, $mapper, $fields) ?? new Book();
 
-        if (null !== $series) {
-            $book->series = Pinakes::getRepository(Series::class)->find($series);
-        }
+        // if (null !== $series) {
+        //     $book->series = Pinakes::getRepository(Series::class)->find($series);
+        // }
 
-        return $this->renderModal($request, $repository, $book, 'book_show');
+        return $this->renderModal2($request, $mapper, $book, 'book_show', $fields);
     }
 
     #[Route('/book/delete/{id}', name: 'book_delete', methods: ['DELETE'])]

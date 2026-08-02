@@ -1,31 +1,55 @@
 <?php declare(strict_types=1);
 require(dirname(__DIR__).'/vendor/autoload.php');
 
-use App\Entity\Author;
 use App\Entity\Book;
 use Symfony\Component\Dotenv\Dotenv;
-use App\Pinakes\Database;
+use App\Database\Database;
 
 $dotenv = new Dotenv();
-$dotenv->load(dirname(__DIR__).'/.env');
+$dotenv->load(dirname(__DIR__).'/.env.dev');
 
-$db = new Database($_ENV['DB_URL']);
+Database::connect($_ENV['DB_URL']);
+$db = Database::getInstance();
 
-function get_select(string $name, array $fields): string {
-    return implode(', ', array_map(fn($field) => $name . '.' . $field . ' as "' . $name . ':' . $field . '"', $fields));
-}
+$sql = <<<SQL
+CREATE UNIQUE INDEX idx_tag_name 
+    ON tag (name);
+SQL;
 
-$authors_select = get_select('authors', [ 'id', 'name' ]);
-$publisher_select = get_select('publisher', [ 'id', 'name' ]);
-$tags_select = get_select('tags', [ 'id', 'name' ]);
+$db->execute($sql);
 
-$rows = $db->query(<<<SQL
-    SELECT book.*, $authors_select, $publisher_select, $tags_select FROM book 
-        LEFT JOIN book_author ON book.id = book_author.book_id LEFT JOIN author authors ON authors.id = book_author.author_id
-        LEFT JOIN publisher ON book.publisher_id = publisher.id 
-        LEFT JOIN book_tag ON book.id = book_tag.book_id LEFT JOIN tag tags ON tags.id = book_tag.tag_id
-        ORDER BY book.created_at DESC 
-        LIMIT 6;
+
+exit;
+
+/*
+
+authors.id AS 
+
+$col->getSelect()
+ - normal column -> $col->property AS $col->name
+ - target column -> authors.id AS "authors:id", authors.name AS "authors:name"
+
+
+$col->getJoin()
+ - normal column -> ''
+ - ManyToMany column -> LEFT JOIN book_author ON book.id = book_author.book_id LEFT JOIN author $col->name ON authors.id = book_author.author_id
+ - ManyToOne column -> LEFT JOIN publisher ON book.publisher_id = publisher.id 
+
+*/
+
+// $rows = $db->query(<<<SQL
+// SELECT book.id, book.title, authors.id AS "authors:id", authors.name AS "authors:name", series.id AS "series:id", series.name AS "series:name" FROM book 
+//     LEFT JOIN book_author ON book.id = book_author.book_id LEFT JOIN author authors ON authors.id = book_author.author_id 
+//     LEFT JOIN series series ON series.id = book.series_id 
+//     ORDER BY book.created_at DESC 
+//     LIMIT 10 OFFSET 5;
+// SQL);
+
+$rows = $db->fetch(<<<SQL
+SELECT book.id, book.title, book.isbn, authors.id AS "authors:id", authors.name AS "authors:name", series.id AS "series:id", series.name AS "series:name" FROM book 
+    LEFT JOIN book_author ON book.id = book_author.book_id LEFT JOIN author authors ON authors.id = book_author.author_id 
+    LEFT JOIN series series ON series.id = book.series_id 
+    WHERE book.id = 633;
 SQL);
 
 
@@ -38,6 +62,10 @@ SQL);
 //         ORDER BY b0_.created_at DESC 
 //         LIMIT 5;
 // SQL);
+
+var_dump($rows);
+
+exit;
 
 $entities = [];
 foreach ($rows as $row) {

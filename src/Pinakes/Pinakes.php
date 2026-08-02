@@ -2,6 +2,7 @@
 
 namespace App\Pinakes;
 
+use App\Database\Database;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Routing\RouterInterface;
@@ -20,6 +21,7 @@ class Pinakes {
         private string $app_dir,
         private ContainerInterface $container,
     ) {
+        Database::connect($container->getParameter('app.db_url'));
     }
 
     public static function init(string $app_dir, ContainerInterface $container): void {
@@ -37,10 +39,6 @@ class Pinakes {
 
     public static function isInitialized(): bool {
         return null !== self::$_instance;
-    }
-
-    public static function getParameter(string $name): mixed {
-        return self::getInstance()->container->getParameter($name);
     }
 
     public static function getEntityManager(): EntityManagerInterface {

@@ -1,0 +1,72 @@
+<?php declare(strict_types=1);
+
+namespace App\Database;
+
+use App\Database\Mapping\MappingAttribute;
+use App\Database\Mapping\ManyToMany;
+use App\Database\Mapping\ManyToOne;
+use App\Database\Mapping\OneToMany;
+use ArrayAccess;
+use ReflectionAttribute;
+use ReflectionProperty;
+
+class MappedProperty {
+
+    public readonly string $name;
+    public readonly string $type;
+    public readonly string $mapping_type;
+
+    public readonly bool $is_owning;
+    public readonly ?string $target;
+    public readonly ?string $join_table;
+    
+    public function __construct(string $property, string $type, string $mapping_type, array $options) {
+        $this->name = $property;
+        $this->type = $type;
+        $this->mapping_type = $mapping_type;
+
+        $this->is_owning = array_key_exists('inversed_by', $options);
+        $this->target = $options['target'] ?? null;
+        $this->join_table = $options['join_table'] ?? null;
+    }
+
+    public static function create(object|string $entity, string $property): ?self {
+        return self::fromReflection(new ReflectionProperty($entity, $property));
+    }
+
+    public static function fromReflection(ReflectionProperty $property): ?self {
+        $mapping = array_first($property->getAttributes(MappingAttribute::class, ReflectionAttribute::IS_INSTANCEOF));
+        if (null === $mapping) return null;
+
+        return new self(
+            $property->getName(), 
+            $property->getType()->getName(),
+            $mapping->getName(),
+            $mapping->getArguments()
+        );
+    }
+
+    public function isOwningSide(): bool {
+        return $this->is_owning;
+    }
+
+    public function isAssociative(): bool {
+        return null !== $this->target;
+    }
+
+    public function isManyToMany(): bool {
+        return ManyToMany::class === $this->mapping_type;
+    }
+
+    public function isManyToOne(): bool {
+        return ManyToOne::class === $this->mapping_type;
+    }
+
+    public function isOneToMany(): bool {
+        return OneToMany::class === $this->mapping_type;
+    }
+
+    public function isArrayType(): bool {
+        return 'array' === $this->type || is_a($this->type, ArrayAccess::class, true);
+    }
+}
