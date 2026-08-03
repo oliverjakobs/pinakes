@@ -4,12 +4,155 @@ require(dirname(__DIR__).'/vendor/autoload.php');
 use App\Entity\Book;
 use Symfony\Component\Dotenv\Dotenv;
 use App\Database\Database;
+use App\Database\SQL\Query;
+use App\Entity\Author;
+use App\Mapper\AuthorMapper;
 
 $dotenv = new Dotenv();
 $dotenv->load(dirname(__DIR__).'/.env.dev');
 
 Database::connect($_ENV['DB_URL']);
 $db = Database::getInstance();
+
+
+$sql = <<<SQL
+SELECT
+    author.id,
+    author.name,
+    author.book_count
+FROM (SELECT *, (SELECT COUNT(*) FROM book_author WHERE author_id = author.id) AS book_count FROM author ORDER BY book_count asc LIMIT 30 OFFSET 0) AS author
+ORDER BY book_count asc;
+SQL;
+
+$stmt = $db->execute($sql);
+// $rows = $db->fetch($stmt);
+$rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+var_dump($rows);
+exit;
+
+$target = new AuthorMapper();
+
+$table_name = 'book';
+$target_name = $target->getTableName();
+
+$property = 'authors';
+$join_table = 'book_author';
+
+$subquery = new Query($join_table);
+$subquery->addSelect(".{$table_name}_id");
+foreach ($target->getDefaultSelect() as $select) {
+    $subquery->addSelect("GROUP_CONCAT({$target_name}.{$select}, ';') AS {$property}_{$select}");
+}
+$subquery->addJoin("JOIN {$target_name} ON {$target_name}.id = {$join_table}.{$target_name}_id");
+$subquery->addGroupBy(".{$table_name}_id");
+
+var_dump($subquery->build());
+
+exit;
+
+
+$sql = <<<SQL
+SELECT
+    author.id,
+    author.name,
+    COUNT(book_author.id) AS book_count
+FROM author
+LEFT JOIN book_author ON book_author.author_id = author.id
+GROUP BY author.id
+ORDER BY author.name
+LIMIT 5 OFFSET 0;
+SQL;
+
+/*
+
+SELECT
+    book.id,
+    book.title,
+    GROUP_CONCAT(authors.id, ';') AS "authors:id",
+    GROUP_CONCAT(authors.name, ';') AS "authors:name"
+FROM book
+LEFT JOIN book_author ON book.id = book_author.book_id
+LEFT JOIN author authors ON authors.id = book_author.author_id
+GROUP BY book.id, book.title
+ORDER BY book.created_at DESC, book.title ASC
+LIMIT 30 OFFSET 0;
+
+*/
+
+$from_query = "SELECT * FROM book ORDER BY created_at DESC, title ASC LIMIT 30 OFFSET 0";
+
+$author_join_table = <<<SQL
+SELECT
+    book_author.book_id,
+    GROUP_CONCAT(author.id, ';')   AS authors_id,
+    GROUP_CONCAT(author.name, ';') AS authors_name
+FROM book_author
+JOIN author ON author.id = book_author.author_id
+GROUP BY book_author.book_id
+SQL;
+
+$tags_join_table = <<<SQL
+SELECT
+    book_tag.book_id,
+    GROUP_CONCAT(tag.id, ';')    AS tags_id,
+    GROUP_CONCAT(tag.name, ';')  AS tags_name,
+    GROUP_CONCAT(tag.color, ';') AS tags_color
+FROM book_tag
+JOIN tag ON tag.id = book_tag.tag_id
+GROUP BY book_tag.book_id
+SQL;
+
+$sql2 = <<<SQL
+SELECT
+    _book.id,
+    _book.title,
+    authors.authors_id     AS "authors:id",
+    authors.authors_name   AS "authors:name",
+
+    publisher.id            AS "publisher:id",
+    publisher.name          AS "publisher:name",
+
+    tags.tags_id           AS "tags:id",
+    tags.tags_name         AS "tags:name",
+    tags.tags_color        AS "tags:color",
+
+    _book.published,
+    _book.first_published,
+    _book.isbn,
+
+    series.id                   AS "series:id",
+    series.name                 AS "series:name",
+
+    _book.series_volume
+
+FROM ($from_query) AS _book
+LEFT JOIN publisher ON publisher.id = _book.publisher_id
+LEFT JOIN series ON series.id = _book.series_id
+
+LEFT JOIN ($author_join_table) AS authors ON authors.book_id = _book.id
+
+LEFT JOIN ($tags_join_table) AS tags ON tags.book_id = b.id
+
+ORDER BY _book.created_at DESC, _book.title ASC;
+SQL;
+
+
+$stmt = $db->execute($tags_join_table);
+// $rows = $db->fetch($stmt);
+$rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+var_dump($rows);
+exit;
+
+$entities = [];
+foreach ($rows as $row) {
+    $entity = Database::hydrate(new Book(), $row);
+    $entities[] = $entity;
+}
+
+// var_dump(Database::hydrate(new Book(), $rows[614]));
+exit;
 
 $sql = <<<SQL
 CREATE UNIQUE INDEX idx_tag_name 

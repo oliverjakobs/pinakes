@@ -36,29 +36,7 @@ class Database {
 
     public function query(Query $query): array {
         $stmt = $this->execute($query->build() .  ';', $query->parameters);
-
-        $result = [];
-        while ($fetch = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $id = $fetch['id'];
-            $result[$id] = $this->processFetch($fetch, $result[$id] ?? []);
-        }
-
-        return $result;
-    }
-
-    public function queryPaginated(Query $query, int $limit, int $offset): array {
-        $subquery = new Query($query->table_name);
-        $subquery->wheres = $query->wheres;
-        $subquery->order_by = $query->order_by;
-        $subquery->setLimit($limit, $offset);
-
-        $paginated_query = new Query($query->table_name);
-        $paginated_query->selects = $query->selects;
-        $paginated_query->joins = $query->joins;
-        $paginated_query->wheres = [ "book.id IN ({$subquery->build()})" ];
-        $paginated_query->order_by = $query->order_by;
-        $paginated_query->parameters = $query->parameters;
-        return $this->query($paginated_query);
+        return $this->fetch($stmt);
     }
 
     public function insert(Insert $insert) {
@@ -99,6 +77,7 @@ class Database {
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute($params);
         } catch (\PDOException $ex) {
+            var_dump($ex->getMessage());
             var_dump($sql); die();
         }
         return $stmt;
@@ -118,57 +97,76 @@ class Database {
         $this->pdo->commit();
     }
 
+    public function fetch(\PDOStatement $stmt): array {
+        $result = [];
+        while ($fetch = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $id = $fetch['id'];
+            $result[$id] = $this->processFetch($fetch, $result[$id] ?? []);
+        }
+
+        return $result;
+    }
+
+    /*
+  array(15) {
+    ["id"]=>
+    int(633)
+    ["title"]=>
+    string(35) "Manifest der Kommunistischen Partei"
+    ["authors:id"]=>
+    string(7) "109;252"
+    ["authors:name"]=>
+    string(26) "Karl Marx;Friedrich Engels"
+    ["publisher:id"]=>
+    int(137)
+    ["publisher:name"]=>
+    string(12) "Dietz Verlag"
+    ["tags:id"]=>
+    string(5) "30;31"
+    ["tags:name"]=>
+    string(18) "Philosophy;Marxism"
+    ["tags:color"]=>
+    string(15) "#adb9e2;#ff0000"
+    ["published"]=>
+    int(1982)
+    ["first_published"]=>
+    int(1890)
+    ["isbn"]=>
+    NULL
+    ["series:id"]=>
+    NULL
+    ["series:name"]=>
+    NULL
+    ["series_volume"]=>
+    NULL
+  }
+
+    */
+
     private function processFetch(array $fetch, array $row): array {
-        $packed = [];
+        $result = [];
         foreach ($fetch as $key => $value) {
             // ':' in key means association
             if (str_contains($key, ':')) {
-                list($key, $assoc_key) = explode(':', $key);
-                $value = array_merge($packed[$key] ?? [], [ $assoc_key => $value ]);
-            } 
-            $packed[$key] = $value;        
-        }
+                list($key, $assoc_key) = explode(':', $key, 2);
 
-        foreach ($packed as $name => $value) {
-            // skip empty associations
-            if (is_array($value) && !isset($value['id'])) continue;
+                if (null !== $value) {
+                    $assoc_values = $result[$key] ?? [];
+                    foreach (explode(';', (string) $value) as $idx => $v) {
+                        $assoc_values[$idx] = array_merge($assoc_values[$idx] ?? [], [ $assoc_key => $v ]);
+                    }
 
-            $row_value = $row[$name] ?? null;
-            if (null === $row_value) {
-                $row[$name] = $value;
-                continue;
-            }
-
-            // association
-            if (is_array($row_value)) {
-                // $row_value is either:
-                // A: [ 'id' => 1, ... ]
-                // or
-                // B: [ 3 => [ 'id' => 3, ... ], 5 => [ 'id' => 5, ... ] ]
-                // $value is always A
-                assert(array_key_exists('id', $value));
-
-                $v_id = $value['id'];
-                $id = $row[$name]['id'] ?? null;
-
-                // already there
-                if ($v_id === $id) continue;
-
-                if (null !== $id) {
-                    // switch from A to B to make space for next one
-                    $row[$name] = [
-                        $id => $row[$name],
-                    ];
+                    $value = $assoc_values;
                 }
-                $row[$name][$v_id] = $value;
             }
+
+            $result[$key] = $value;
         }
 
-        return $row;
+        return $result;
     }
 
     public static function hydrate(PinakesEntity $entity, array $data): PinakesEntity {
-
         foreach ($data as $key => $value) {
             try {
                 $property = new ReflectionProperty($entity, $key);
@@ -180,11 +178,12 @@ class Database {
             $mapping = MappedProperty::fromReflection($property);
             if (null === $mapping) continue;
 
+
             if ($mapping->isAssociative()) {
                 $class_name = $mapping->target;
 
                 if ($mapping->isArrayType()) {
-                    if (array_key_exists('id', $value)) $value = [ $value ];
+                    if (null === $value) $value = [];
 
                     $entities = [];
                     foreach ($value as $v) {
@@ -192,7 +191,7 @@ class Database {
                     }
                     $value = new ArrayCollection($entities);
                 } else {
-                    $value = self::hydrate(new $class_name(), $value);
+                    if (null !== $value) $value = self::hydrate(new $class_name(), $value[0]);
                 }
             } else if ('DateTime' === $mapping->type) {
                 $value = new \DateTime($value);

@@ -121,6 +121,9 @@ class DataTable2 {
             }
         }
 
+        $pp = $this->getPerPage();
+        $query->setLimit($pp, ($this->getPage() - 1) * $pp);
+
         $this->_select = $query;
         return $query;
     }
@@ -130,7 +133,7 @@ class DataTable2 {
         if (null !== $this->_data) return $this->_data;
 
         $db = Database::getInstance();
-        $rows = $db->queryPaginated($this->getSelect(), 30, 0);
+        $rows = $db->query($this->getSelect());
 
         $entities = [];
         foreach ($rows as $row) {
@@ -142,10 +145,9 @@ class DataTable2 {
     }
 
     public function currentPage(): array {
-        $pp = $this->getPerPage();
 
         $db = Database::getInstance();
-        $rows = $db->queryPaginated($this->getSelect(), $pp, ($this->getPage() - 1) * $pp);
+        $rows = $db->query($this->getSelect());
 
         $entities = [];
         foreach ($rows as $row) {

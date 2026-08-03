@@ -23,14 +23,23 @@ class Author extends PinakesEntity {
 
     /** @var Collection<int, Book> */
     #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'authors', fetch: 'EXTRA_LAZY')]
+    #[Mapping\ManyToMany(target: Book::class, mappedBy: 'authors')]
     public Collection $books;
 
     /** @var Collection<int, Book> */
     #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'translators', fetch: 'EXTRA_LAZY')]
+    #[Mapping\ManyToMany(target: Book::class, mappedBy: 'translators', join_table: 'book_translator')]
     public Collection $translations;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Mapping\Column]
     public ?string $openlibrary = null;
+
+    #[Mapping\Count(property: 'books')]
+    public ?int $book_count = null;
+
+    #[Mapping\Count(property: 'translations')]
+    public ?int $translation_count = null;
 
     public function __construct() {
         $this->books = new ArrayCollection();

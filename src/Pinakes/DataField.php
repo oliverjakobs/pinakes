@@ -86,6 +86,10 @@ class DataField {
         //     return $qb;
         // }
 
+        if ($this->mapping->isVirtual()) {
+            return $this->property;
+        }
+
         if (DataType::TYPE_ENTITY === $this->data_type->type) {
             $target = $this->data_type->getTargetMapper();
             return "\"{$target->getTableName()}:{$target->getSearchKey()}\"";

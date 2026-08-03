@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Author;
 use App\Entity\User;
+use App\Mapper\AuthorMapper;
 use App\Renderable\ViewElement;
 use App\Repository\AuthorRepository;
 use App\Repository\BookRepository;
@@ -15,6 +16,10 @@ class AuthorController extends PinakesController {
 
     #[Route('/author', name: 'author', methods: ['GET'])]
     public function list(Request $request, AuthorRepository $repository): Response {
+        $mapper = new AuthorMapper();
+        $table = $mapper->createTable('list');
+
+        return $this->renderList2($request, 'Authors', $table);
         return $this->renderList($request, 'Authors', $repository->createTable());
     }
 

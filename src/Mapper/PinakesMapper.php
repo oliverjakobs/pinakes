@@ -3,6 +3,7 @@
 namespace App\Mapper;
 
 use App\Database\Database;
+use App\Database\Mapping\Count;
 use App\Database\SQL\Delete;
 use App\Database\SQL\Insert;
 use App\Database\SQL\Query;
@@ -18,7 +19,6 @@ use App\Pinakes\Assert;
 use App\Pinakes\DataField;
 use App\Pinakes\DataTable2;
 use App\Pinakes\Helper;
-use Symfony\Component\VarDumper\Cloner\Data;
 
 abstract class PinakesMapper {
 
@@ -52,8 +52,6 @@ abstract class PinakesMapper {
     }
 
     private function getJoinTable(DataField $field): string {
-        Assert::isTrue($field->mapping->isManyToMany(), 'Join table only available for ManyToMany');
-
         $table_name = $this->getTableName();
         $target_name = $field->data_type->getTargetMapper()->getTableName();
 
@@ -73,15 +71,23 @@ abstract class PinakesMapper {
         //                      LEFT JOIN $on_table $field->name ON authors.id = book_author.author_id
         // ManyToOne column ->  LEFT JOIN publisher $field->name ON publisher.id = book.publisher_id
 
+        $target = $field->data_type->getTargetMapper();
+
         $table_name = $this->getTableName();
-        $target_name = $field->data_type->getTargetMapper()->getTableName();
+        $target_name = $target->getTableName();
 
         if ($field->mapping->isManyToMany()) {
-            $join_table = $this->getJoinTable($field);
-            return <<<SQL
-                LEFT JOIN {$join_table} ON {$table_name}.id = {$join_table}.{$table_name}_id
-                LEFT JOIN {$target_name} {$field->property} ON {$field->property}.id = {$join_table}.{$target_name}_id
-            SQL;
+            $join_table = $field->mapping->getJoinTable();
+
+            $subquery = new Query($join_table);
+            $subquery->addSelect(".{$table_name}_id");
+            foreach ($target->getDefaultSelect() as $select) {
+                $subquery->addSelect("GROUP_CONCAT({$target_name}.{$select}, ';')", "{$select}");
+            }
+            $subquery->addJoin("JOIN {$target_name} ON {$target_name}.id = {$join_table}.{$target_name}_id");
+            $subquery->addGroupBy(".{$table_name}_id");
+
+            return "LEFT JOIN ({$subquery->build()}) AS {$field->property} ON {$field->property}.{$table_name}_id = {$table_name}.id";
         }
 
         return "LEFT JOIN {$target_name} {$field->property} ON {$field->property}.id = {$table_name}.{$target_name}_id";
@@ -89,13 +95,20 @@ abstract class PinakesMapper {
 
     public function createQuery(array $fields): Query {
         $result = new Query($this->getTableName());
+        $result->addSelect('.id');
 
         /** @var DataField $field */
         foreach ($fields as $field) {
             if (null === $field->mapping) continue;
-            
-            if ($field->mapping->isAssociative()) {
+
+            if ($field->mapping->isVirtual()) {
+                $target = $field->mapping->target_property;
+                $target_name = PinakesMapper::getMapper($target->entity)->getTableName();
+
+                $result->addVirtualSelect("(SELECT COUNT(*) FROM {$target->getJoinTable()} WHERE {$target_name}_id = {$target_name}.id)", $field->property);
+            } else if ($field->mapping->isAssociative()) {
                 $target_mapper = $field->data_type->getTargetMapper();
+
                 foreach ($target_mapper->getDefaultSelect() as $select) {
                     $result->addSelect("{$field->property}.{$select}", "{$field->name}:{$select}");
                 }
@@ -155,9 +168,9 @@ abstract class PinakesMapper {
                 $update->add($field->property . '_id', $upsert_id);
                 continue;
             }
+
             $update->add($field->property, $field->data_type->parse($value));
         }
-
         Database::getInstance()->update($update);
     }
 

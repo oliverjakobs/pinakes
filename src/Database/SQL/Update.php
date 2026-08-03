@@ -26,6 +26,8 @@ class Update {
     }
 
     public function add(string $name, mixed $value): self {
+        if (is_string($value)) $value = "'{$value}'";
+        if (is_null($value)) $value = 'NULL';
         $this->values[$name] = $value;
         return $this;
     }
@@ -33,7 +35,7 @@ class Update {
     public function build(): string {
         $sql = "UPDATE {$this->table_name}";
 
-        $set = array_map(fn($v, $k) => "{$k} = '{$v}'", $this->values, array_keys($this->values));
+        $set = array_map(fn($v, $k) => "{$k} = {$v}", $this->values, array_keys($this->values));
         $sql .= ' SET ' . implode(', ', $set);
 
         $sql .= " WHERE id = :id";

@@ -31,15 +31,13 @@ class AuthorMapper extends PinakesMapper {
             ],
             'book_count' => [
                 'caption' => 'Books',
-                'data' => fn(Author $a) => $a->books->count(),
+                'data' => 'book_count',
                 'data_type' => DataType::integer(),
-                // 'order_by' => 'book_count'
             ],
             'translation_count' => [
                 'caption' => 'Translations',
-                'data' => fn(Author $a) => $a->translations->count(),
+                'data' => 'translation_count',
                 'data_type' => DataType::integer(),
-                // 'order_by' => 'translation_count'
             ],
             'openlibrary' => [
                 'caption' => 'OpenLibrary',
