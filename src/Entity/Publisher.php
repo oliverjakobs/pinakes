@@ -22,6 +22,7 @@ class Publisher extends PinakesEntity {
 
     /** @var Collection<int, Book> */
     #[ORM\OneToMany(targetEntity: Book::class, mappedBy: 'publisher')]
+    #[Mapping\OneToMany(target: Book::class, mappedBy: 'publisher')]
     public Collection $books;
 
     public function __construct() {

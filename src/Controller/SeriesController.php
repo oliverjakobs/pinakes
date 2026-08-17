@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Series;
 use App\Entity\User;
+use App\Mapper\SeriesMapper;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
 use App\Repository\SeriesRepository;
@@ -17,6 +18,12 @@ class SeriesController extends PinakesController {
 
     #[Route('/series', name: 'series', methods: ['GET'])]
     public function list(Request $request, SeriesRepository $repository): Response {
+        $mapper = new SeriesMapper();
+        $table = $mapper->createTable('list');
+
+        return $this->renderList2($request, 'Series', $table, [
+            Link::modal('New Series', 'series_modal'),
+        ]);
         return $this->renderList($request, 'Series', $repository->createTable(), [
             Link::modal('New Series', 'series_modal'),
         ]);

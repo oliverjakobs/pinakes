@@ -4,7 +4,11 @@ namespace App\Mapper;
 
 use App\Database\Database;
 use App\Database\Mapping\Count;
+use App\Database\Mapping\ManyToMany;
+use App\Database\Mapping\ManyToOne;
+use App\Database\Mapping\OneToMany;
 use App\Database\SQL\Delete;
+use App\Database\SQL\Expr;
 use App\Database\SQL\Insert;
 use App\Database\SQL\Query;
 use App\Database\SQL\Update;
@@ -46,51 +50,24 @@ abstract class PinakesMapper {
 
     abstract protected function defineDataFields(): array;
 
+    public function fetchAll(Query $query): array {
+        $db = Database::getInstance();
+
+        $entities = [];
+        foreach ($db->fetchAll($query) as $row) {
+            $entity_class = $this->getEntityClass();
+            $entities[] = Database::hydrate(new $entity_class(), $row);
+        }
+        return $entities;
+    }
+
+    public function fetchOne(Query $query): ?PinakesEntity {
+        return array_first($this->fetchAll($query));
+    }
+
     public function createTable(string $fields): DataTable2 {
         $columns = $this->getDataFields($fields);
         return new DataTable2($this, $columns);
-    }
-
-    private function getJoinTable(DataField $field): string {
-        $table_name = $this->getTableName();
-        $target_name = $field->data_type->getTargetMapper()->getTableName();
-
-        if (null !== $field->mapping->join_table) {
-            return $field->mapping->join_table;
-        }
-
-        if ($field->mapping->isOwningSide()) {
-            return "{$table_name}_{$target_name}";
-        } 
-        
-        return "{$target_name}_{$table_name}";
-    }
-
-    private function getJoin(DataField $field): string {
-        // ManyToMany column -> LEFT JOIN book_author ON book.id = book_author.book_id 
-        //                      LEFT JOIN $on_table $field->name ON authors.id = book_author.author_id
-        // ManyToOne column ->  LEFT JOIN publisher $field->name ON publisher.id = book.publisher_id
-
-        $target = $field->data_type->getTargetMapper();
-
-        $table_name = $this->getTableName();
-        $target_name = $target->getTableName();
-
-        if ($field->mapping->isManyToMany()) {
-            $join_table = $field->mapping->getJoinTable();
-
-            $subquery = new Query($join_table);
-            $subquery->addSelect(".{$table_name}_id");
-            foreach ($target->getDefaultSelect() as $select) {
-                $subquery->addSelect("GROUP_CONCAT({$target_name}.{$select}, ';')", "{$select}");
-            }
-            $subquery->addJoin("JOIN {$target_name} ON {$target_name}.id = {$join_table}.{$target_name}_id");
-            $subquery->addGroupBy(".{$table_name}_id");
-
-            return "LEFT JOIN ({$subquery->build()}) AS {$field->property} ON {$field->property}.{$table_name}_id = {$table_name}.id";
-        }
-
-        return "LEFT JOIN {$target_name} {$field->property} ON {$field->property}.id = {$table_name}.{$target_name}_id";
     }
 
     public function createQuery(array $fields): Query {
@@ -101,25 +78,112 @@ abstract class PinakesMapper {
         foreach ($fields as $field) {
             if (null === $field->mapping) continue;
 
-            if ($field->mapping->isVirtual()) {
-                $target = $field->mapping->target_property;
-                $target_name = PinakesMapper::getMapper($target->entity)->getTableName();
+            switch ($field->mapping->mapping_type) {
+                case Count::class:
+                    $target = $field->mapping->target_property;
+                    $target_name = PinakesMapper::getMapper($target->entity)->getTableName();
 
-                $result->addVirtualSelect("(SELECT COUNT(*) FROM {$target->getJoinTable()} WHERE {$target_name}_id = {$target_name}.id)", $field->property);
-            } else if ($field->mapping->isAssociative()) {
-                $target_mapper = $field->data_type->getTargetMapper();
+                    if ($target->isManyToMany()) {
+                        $from = $target->getJoinTable();
+                    } else {
+                        $from = PinakesMapper::getMapper($target->target)->getTableName();
+                    }
 
-                foreach ($target_mapper->getDefaultSelect() as $select) {
-                    $result->addSelect("{$field->property}.{$select}", "{$field->name}:{$select}");
-                }
+                    $result->addVirtualSelect("(SELECT COUNT(*) FROM {$from} WHERE {$target_name}_id = {$target_name}.id)", $field->property);
+                    break;
+                case ManyToMany::class:
+                    $target = $field->data_type->getTargetMapper();
 
-                $result->addJoin($this->getJoin($field));
-            } else {
-                $result->addSelect('.' . $field->property);
+                    $table_name = $this->getTableName();
+                    $target_name = $target->getTableName();
+
+                    $result->addSelect("{$field->property}.{$field->property}", $field->property);
+
+                    $join_table = $field->mapping->getJoinTable();
+
+                    $subquery = new Query($join_table);
+                    $subquery->addSelect(".{$table_name}_id");
+                    $subquery->addSelect(Expr::json_group($target_name, $target->getDefaultSelect()), $field->property);
+                    $subquery->addJoin("JOIN {$target_name} ON {$target_name}.id = {$join_table}.{$target_name}_id");
+                    $subquery->addGroupBy(".{$table_name}_id");
+
+                    $result->addJoin("LEFT JOIN ({$subquery->build()}) AS {$field->property} ON {$field->property}.{$table_name}_id = {$table_name}.id");
+                    break;
+
+                case ManyToOne::class:
+                case OneToMany::class:
+                    $target = $field->data_type->getTargetMapper();
+
+                    $table_name = $this->getTableName();
+                    $target_name = $target->getTableName();
+
+                    $result->addSelect(Expr::json_object($target_name, $target->getDefaultSelect()), $field->property);
+                    $result->addJoin("LEFT JOIN {$target_name} {$field->property} ON {$field->property}.id = {$table_name}.{$target_name}_id");
+                    break;
+
+                default:
+                    $result->addSelect('.' . $field->property);
             }
         }
 
         return $result;
+    }
+
+    private function insert(array $data): int {
+        $insert = new Insert($this->getTableName(), 'id');
+
+        $many_to_manys = [];
+
+        foreach ($data as $name => $value) {
+            if (is_array($value)) $value = Helper::filterEmpty($value);
+            if (Helper::isEmpty($value)) $value = null;
+
+            $field = $this->getDataField($name);
+            Assert::notNull($field, "Field {$name} not found");
+            switch ($field->mapping->mapping_type) {
+                case OneToMany::class:
+                    // not used for now
+                    Assert::error('Unused');
+                case ManyToMany::class:
+                    $many_to_manys[$name] = $value;
+                    break;
+                case ManyToOne::class:
+                    if (null !== $value) {
+                        $target = $field->data_type->getTargetMapper();
+                        $upsert = new Upsert($target->getTableName(), $target->getSearchKey(), $value);
+                        $upsert_id = Database::getInstance()->upsert($upsert);
+                    } else {
+                        $upsert_id = null;
+                    }
+
+                    $insert->add($field->property . '_id', $upsert_id);
+                    break;
+
+                default:
+                    $insert->add($field->property, $field->data_type->parse($value));
+            }
+        }
+        $id = Database::getInstance()->insert($insert);
+
+        foreach ($many_to_manys as $name => $value) {
+            $field = $this->getDataField($name);
+
+            $target = $field->data_type->getTargetMapper();
+            $join_table = $field->mapping->getJoinTable();
+
+            foreach ($value ?? [] as $v) {
+                $upsert = new Upsert($target->getTableName(), $target->getSearchKey(), $v);
+                $upsert_id = Database::getInstance()->upsert($upsert);
+
+                $assoc_insert = new Insert($join_table, $this->getTableName() . '_id');
+                $assoc_insert->add($this->getTableName() . '_id', $id);
+                $assoc_insert->add($target->getTableName() . '_id', $upsert_id);
+
+                Database::getInstance()->insert($assoc_insert);
+            }
+        }
+
+        return $id;
     }
 
     private function update(PinakesEntity $entity, array $data) {
@@ -128,58 +192,57 @@ abstract class PinakesMapper {
         foreach ($data as $name => $value) {
             if (is_array($value)) $value = Helper::filterEmpty($value);
             if (Helper::isEmpty($value)) $value = null;
-            
+
             $field = $this->getDataField($name);
-            // not used for now
-            if ($field->mapping->isOneToMany()) {
-                Assert::error('Unused');   
+            Assert::notNull($field, "Field {$name} not found");
+            switch ($field->mapping->mapping_type) {
+                case OneToMany::class:
+                    // not used for now
+                    Assert::error('Unused');
+                case ManyToMany::class:
+                    $target = $field->data_type->getTargetMapper();
+                    $join_table = $field->mapping->getJoinTable();
+
+                    $delete = new Delete($join_table, "{$this->getTableName()}_id = :id");
+                    $delete->setParameter(':id', $entity->getId());
+                    Database::getInstance()->delete($delete);
+
+                    foreach ($value ?? [] as $v) {
+                        $upsert = new Upsert($target->getTableName(), $target->getSearchKey(), $v);
+                        $upsert_id = Database::getInstance()->upsert($upsert);
+
+                        $insert = new Insert($join_table, $this->getTableName() . '_id');
+                        $insert->add($this->getTableName() . '_id', $entity->getId());
+                        $insert->add($target->getTableName() . '_id', $upsert_id);
+
+                        Database::getInstance()->insert($insert);
+                    }
+                    break;
+                case ManyToOne::class:
+                    if (null !== $value) {
+                        $target = $field->data_type->getTargetMapper();
+                        $upsert = new Upsert($target->getTableName(), $target->getSearchKey(), $value);
+                        $upsert_id = Database::getInstance()->upsert($upsert);
+                    } else {
+                        $upsert_id = null;
+                    }
+
+                    $update->add($field->property . '_id', $upsert_id);
+                    break;
+
+                default:
+                    $update->add($field->property, $field->data_type->parse($value));
             }
-
-            if ($field->mapping->isManyToMany()) {
-                $target_mapper = $field->data_type->getTargetMapper();
-                $join_table = $this->getJoinTable($field);
-
-                $delete = new Delete($join_table, "{$this->getTableName()}_id = :id");
-                $delete->setParameter(':id', $entity->getId());
-                Database::getInstance()->delete($delete);
-
-                foreach ($value ?? [] as $v) {
-                    $upsert = new Upsert($target_mapper->getTableName());
-                    $upsert->add($target_mapper->getSearchKey(), $v);
-
-                    $upsert_id = Database::getInstance()->upsert($upsert);
-
-                    $insert = new Insert($join_table);
-                    $insert->add($this->getTableName() . '_id', $entity->getId());
-                    $insert->add($target_mapper->getTableName() . '_id', $upsert_id);
-
-                    Database::getInstance()->insert($insert);
-                }
-                
-                continue;
-            }
-
-            if ($field->mapping->isManyToOne()) {
-                $target_mapper = $field->data_type->getTargetMapper();
-                $upsert = new Upsert($target_mapper->getTableName());
-                $upsert->add($target_mapper->getSearchKey(), $value);
-                $upsert_id = Database::getInstance()->upsert($upsert);
-
-                $update->add($field->property . '_id', $upsert_id);
-                continue;
-            }
-
-            $update->add($field->property, $field->data_type->parse($value));
         }
         Database::getInstance()->update($update);
     }
 
-    public function updateEntity(PinakesEntity $entity, array $data) {
-
+    public function updateEntity(PinakesEntity $entity, array $data): int {
         if (null !== $entity->getId()) {
             Database::getInstance()->asTransaction(fn() => $this->update($entity, $data));
+            return $entity->getId();
         } else {
-            var_dump('insert'); die();
+            return Database::getInstance()->asTransaction(fn() => $this->insert($data));
         }
     }
 

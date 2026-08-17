@@ -26,23 +26,19 @@ class AuthorMapper extends PinakesMapper {
                 'caption' => 'Name',
                 'data' => 'name',
                 'link' => DataColumn::LINK_SELF,
-                'data_type' => DataType::string(),
                 'edit' => true
             ],
             'book_count' => [
                 'caption' => 'Books',
                 'data' => 'book_count',
-                'data_type' => DataType::integer(),
             ],
             'translation_count' => [
                 'caption' => 'Translations',
                 'data' => 'translation_count',
-                'data_type' => DataType::integer(),
             ],
             'openlibrary' => [
                 'caption' => 'OpenLibrary',
                 'data' => 'openlibrary',
-                'data_type' => DataType::string(),
                 'edit' => true
             ],
         ];

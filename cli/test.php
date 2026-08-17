@@ -5,6 +5,7 @@ use App\Entity\Book;
 use Symfony\Component\Dotenv\Dotenv;
 use App\Database\Database;
 use App\Database\SQL\Query;
+use App\Database\SQL\Update;
 use App\Entity\Author;
 use App\Mapper\AuthorMapper;
 
@@ -13,6 +14,78 @@ $dotenv->load(dirname(__DIR__).'/.env.dev');
 
 Database::connect($_ENV['DB_URL']);
 $db = Database::getInstance();
+
+$update = new Update('author', 23);
+$update->add('name', 'George Orwell');
+
+var_dump($update->build());
+
+
+exit;
+
+$sql = <<<SQL
+SELECT
+    book.id,
+    book.title,
+    authors.authors as authors,
+    json_object( 'id', publisher.id, 'name', publisher.name ) AS "publisher",
+    book.published,
+    book.first_published,
+    book.isbn,
+    tags.tags as tags,
+    json_object( 'id', series.id, 'name', series.name ) AS "series",
+    book.series_volume
+FROM (
+    SELECT * 
+    FROM book 
+    ORDER BY book.created_at DESC, book.title ASC
+    LIMIT 5 OFFSET 0
+) AS book
+LEFT JOIN (
+    SELECT
+        book_author.book_id,
+        json_group_array( json_object( 'id', author.id, 'name', author.name )) AS "authors"
+    FROM book_author
+    JOIN author ON author.id = book_author.author_id
+    GROUP BY book_author.book_id
+) AS authors ON authors.book_id = book.id 
+LEFT JOIN publisher publisher ON publisher.id = book.publisher_id 
+LEFT JOIN (
+    SELECT
+        book_tag.book_id,
+        json_group_array( json_object( 'id', tag.id, 'name', tag.name, 'color', tag.color )) AS "tags"
+    FROM book_tag
+    JOIN tag ON tag.id = book_tag.tag_id
+    GROUP BY book_tag.book_id
+) AS tags ON tags.book_id = book.id
+LEFT JOIN series series ON series.id = book.series_id
+ORDER BY book.created_at DESC, book.title ASC
+SQL;
+
+$sql = <<<SQL
+SELECT
+    book.id,
+    book.title,
+    json_object('id', series.id, 'name', series.name ) AS series,
+    book.series_volume
+FROM (
+    SELECT * 
+    FROM book 
+    ORDER BY book.created_at DESC, book.title ASC
+    LIMIT 5 OFFSET 0
+) AS book
+LEFT JOIN series series ON series.id = book.series_id
+ORDER BY book.created_at DESC, book.title ASC
+SQL;
+
+$stmt = $db->execute($sql);
+// $rows = $db->fetch($stmt);
+$rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+// $book = Database::hydrate(new Book(), $rows[0]);
+var_dump($rows[0]);
+
+exit;
 
 
 $sql = <<<SQL
@@ -65,6 +138,30 @@ LIMIT 5 OFFSET 0;
 SQL;
 
 /*
+SELECT a.id, a.name
+FROM authors a
+WHERE EXISTS (
+    SELECT 1
+    FROM book_authors ba
+    JOIN books b ON b.id = ba.book_id
+    WHERE ba.author_id = a.id
+      AND b.series_id = :series_id
+);
+
+SELECT json_group_array(
+    json_object(
+        'id', author.id,
+        'name', author.name
+    )
+)
+FROM (
+    SELECT DISTINCT a.id, a.name
+    FROM book b
+    JOIN book_authors ba ON ba.book_id = b.id
+    JOIN authors a ON a.id = ba.author_id
+    WHERE b.series_id = s.id
+    ORDER BY a.name
+) AS author
 
 SELECT
     book.id,
@@ -138,7 +235,7 @@ ORDER BY _book.created_at DESC, _book.title ASC;
 SQL;
 
 
-$stmt = $db->execute($tags_join_table);
+$stmt = $db->execute($author_join_table);
 // $rows = $db->fetch($stmt);
 $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 

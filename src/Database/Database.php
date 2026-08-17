@@ -5,9 +5,11 @@ namespace App\Database;
 use App\Database\SQL\Delete;
 use App\Database\SQL\Insert;
 use App\Database\SQL\Query;
+use App\Database\SQL\Statement;
 use App\Database\SQL\Update;
 use App\Database\SQL\Upsert;
 use App\Entity\PinakesEntity;
+use App\Pinakes\Helper;
 use Closure;
 use Doctrine\Common\Collections\ArrayCollection;
 use ReflectionException;
@@ -34,48 +36,44 @@ class Database {
         $this->pdo = new \PDO($dsn);
     }
 
-    public function query(Query $query): array {
-        $stmt = $this->execute($query->build() .  ';', $query->parameters);
-        return $this->fetch($stmt);
+    public function fetchAll(Query $query): array {
+        $stmt = $this->execute($query);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function insert(Insert $insert) {
-        $stmt = $this->pdo->prepare($insert->build() . ';');
-        $stmt->execute();
+    public function insert(Insert $insert): int {
+        $stmt = $this->execute($insert);
+        return $stmt->fetchColumn();
     }
 
     public function update(Update $update) {
-        $stmt = $this->pdo->prepare($update->build() . ';');
-        $stmt->execute([ ':id' => $update->id ]);
+        $stmt = $this->execute($update);
     }
 
     public function upsert(Upsert $upsert): int {
-        $stmt = $this->pdo->prepare($upsert->build() . ';');
-        $stmt->execute();
-
+        $stmt = $this->execute($upsert);
         return $stmt->fetchColumn();
     }
 
     public function delete(Delete $delete) {
-        $stmt = $this->pdo->prepare($delete->build() . ';');
-        $stmt->execute($delete->parameters);
+        $this->execute($delete);
     }
 
     public function count(Query $query): int {
         $count_query = new Query($query->table_name);
         $count_query->selects = [ "COUNT(DISTINCT {$query->table_name}.id)" ];
         $count_query->wheres = $query->wheres;
+        $count_query->parameters = $query->parameters;
 
-        $stmt = $this->pdo->prepare($count_query->build() . ';');
-        $stmt->execute($query->parameters);
-
+        $stmt = $this->execute($count_query);
         return $stmt->fetchColumn();
     }
 
-    public function execute(string $sql, array $params = []): \PDOStatement {
+    public function execute(Statement $statement): \PDOStatement {
+        $sql = $statement->build() . ';';
         try {
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute($params);
+            $stmt->execute($statement->getParameters());
         } catch (\PDOException $ex) {
             var_dump($ex->getMessage());
             var_dump($sql); die();
@@ -87,83 +85,16 @@ class Database {
         $this->pdo->beginTransaction();
 
         try {
-            $func();
+            $result = $func();
+
+            $this->pdo->commit();
+            return $result;
         } catch (\PDOException $ex) {
             $this->pdo->rollBack();
             var_dump('Rollback: ' . $ex); die();
             return;
         }
 
-        $this->pdo->commit();
-    }
-
-    public function fetch(\PDOStatement $stmt): array {
-        $result = [];
-        while ($fetch = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $id = $fetch['id'];
-            $result[$id] = $this->processFetch($fetch, $result[$id] ?? []);
-        }
-
-        return $result;
-    }
-
-    /*
-  array(15) {
-    ["id"]=>
-    int(633)
-    ["title"]=>
-    string(35) "Manifest der Kommunistischen Partei"
-    ["authors:id"]=>
-    string(7) "109;252"
-    ["authors:name"]=>
-    string(26) "Karl Marx;Friedrich Engels"
-    ["publisher:id"]=>
-    int(137)
-    ["publisher:name"]=>
-    string(12) "Dietz Verlag"
-    ["tags:id"]=>
-    string(5) "30;31"
-    ["tags:name"]=>
-    string(18) "Philosophy;Marxism"
-    ["tags:color"]=>
-    string(15) "#adb9e2;#ff0000"
-    ["published"]=>
-    int(1982)
-    ["first_published"]=>
-    int(1890)
-    ["isbn"]=>
-    NULL
-    ["series:id"]=>
-    NULL
-    ["series:name"]=>
-    NULL
-    ["series_volume"]=>
-    NULL
-  }
-
-    */
-
-    private function processFetch(array $fetch, array $row): array {
-        $result = [];
-        foreach ($fetch as $key => $value) {
-            // ':' in key means association
-            if (str_contains($key, ':')) {
-                list($key, $assoc_key) = explode(':', $key, 2);
-
-                if (null !== $value) {
-                    $assoc_values = $result[$key] ?? [];
-                    foreach (explode(';', (string) $value) as $idx => $v) {
-                        $assoc_values[$idx] = array_merge($assoc_values[$idx] ?? [], [ $assoc_key => $v ]);
-                    }
-
-                    $value = $assoc_values;
-                }
-            }
-
-            $result[$key] = $value;
-        }
-
-        return $result;
     }
 
     public static function hydrate(PinakesEntity $entity, array $data): PinakesEntity {
@@ -178,20 +109,23 @@ class Database {
             $mapping = MappedProperty::fromReflection($property);
             if (null === $mapping) continue;
 
-
             if ($mapping->isAssociative()) {
                 $class_name = $mapping->target;
 
                 if ($mapping->isArrayType()) {
-                    if (null === $value) $value = [];
-
+                    if (null !== $value) {
+                        $value = json_decode($value, true);
+                    }
                     $entities = [];
-                    foreach ($value as $v) {
+                    foreach ($value ?? [] as $v) {
                         $entities[] = self::hydrate(new $class_name(), $v);
                     }
                     $value = new ArrayCollection($entities);
                 } else {
-                    if (null !== $value) $value = self::hydrate(new $class_name(), $value[0]);
+                    if (null !== $value) {
+                        $value = json_decode($value, true);
+                        $value = self::hydrate(new $class_name(), $value);
+                    }
                 }
             } else if ('DateTime' === $mapping->type) {
                 $value = new \DateTime($value);

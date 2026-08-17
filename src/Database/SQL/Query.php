@@ -4,7 +4,7 @@ namespace App\Database\SQL;
 
 use App\Pinakes\Helper;
 
-class Query {
+class Query implements Statement {
     public readonly string $table_name;
     public array $selects = [];
     public array $joins = [];
@@ -28,7 +28,7 @@ class Query {
 
     public function addSelect(string $select, ?string $alias = null): self {
         if ('.' === $select[0]) $select = $this->table_name . $select;
-        if (null !== $alias) $select = sprintf('%s AS "%s"', $select, $alias);
+        if (null !== $alias) $select = sprintf('%s AS %s', $select, $alias);
         $this->selects[] = $select;
         return $this;
     }
@@ -109,5 +109,9 @@ class Query {
         }
 
         return "SELECT {$select} {$virtual_select} FROM {$from} {$join} {$where} {$group_by} {$order_by}";
+    }
+
+    public function getParameters(): array {
+        return $this->parameters;
     }
 }

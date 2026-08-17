@@ -4,55 +4,46 @@ namespace App\Database\SQL;
 
 /*
 INSERT INTO
-  contacts (name, email, phone, effective_date)
+  author (name)
 VALUES
   (
-    'Jane Smith',
-    'jane@test.com',
-    '(408)-111-3333',
-    '2024-05-05'
+    'Jane Smith'
   )
-ON CONFLICT (email) DO
+ON CONFLICT (name) DO
 UPDATE
 SET
-  name = excluded.name,
-  phone = excluded.phone,
-  effective_date = excluded.effective_date
-WHERE
-  excluded.effective_date > contacts.effective_date;
+  name = excluded.name
+RETURNING id;
 */
-class Upsert {
+class Upsert implements Statement {
     public readonly string $table_name;
+    public readonly string $property;
+    public readonly string $value;
 
-    public array $values = [];
-
-    public function __construct(string $table_name) {
+    public function __construct(string $table_name, string $property, string $value) {
         $this->table_name = $table_name;
+        $this->property = $property;
+        $this->value = $value;
     }
 
     public function __toString() {
         return $this->build();
     }
 
-    public function add(string $name, mixed $value): self {
-        $this->values[$name] = $value;
-        return $this;
+    public function build(): string {
+        return <<<SQL
+            INSERT INTO {$this->table_name}
+                ({$this->property})
+            VALUES
+                (:value)
+            ON CONFLICT ({$this->property}) DO UPDATE
+            SET
+                {$this->property} = excluded.{$this->property}
+            RETURNING id
+        SQL;
     }
 
-    public function build(): string {
-        $names = '(' . implode(', ', array_keys($this->values)) . ')';
-
-        $sql = "INSERT INTO {$this->table_name} {$names}";
-
-        $values = array_map(fn ($v) => "'{$v}'", $this->values);
-        $sql .= ' VALUES (' . implode(', ', $values) . ')';
-
-        $sql .= " ON CONFLICT {$names} DO UPDATE";
-
-        $set = array_map(fn($k) => "{$k} = excluded.{$k}", array_keys($this->values));
-        $sql .= ' SET ' . implode(', ', $set);
-        $sql .= " RETURNING id";
-
-        return $sql;
+    public function getParameters(): array {
+        return [ ':value' => $this->value ];
     }
 }

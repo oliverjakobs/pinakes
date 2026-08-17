@@ -10,7 +10,7 @@ SET city = 'Toronto',
 WHERE
     employeeid = 4;
 */
-class Update {
+class Update implements Statement {
     public readonly string $table_name;
     public readonly int $id;
 
@@ -26,19 +26,29 @@ class Update {
     }
 
     public function add(string $name, mixed $value): self {
-        if (is_string($value)) $value = "'{$value}'";
-        if (is_null($value)) $value = 'NULL';
         $this->values[$name] = $value;
         return $this;
     }
 
     public function build(): string {
-        $sql = "UPDATE {$this->table_name}";
+        $set = implode(
+            ', ', 
+            array_map(fn($k) => "{$k} = :{$k}", array_keys($this->values))
+        );
+        return <<<SQL
+            UPDATE {$this->table_name}
+            SET
+                {$set}
+            WHERE
+                id = :id
+        SQL;
+    }
 
-        $set = array_map(fn($v, $k) => "{$k} = {$v}", $this->values, array_keys($this->values));
-        $sql .= ' SET ' . implode(', ', $set);
-
-        $sql .= " WHERE id = :id";
-        return $sql;
+    public function getParameters(): array {
+        $params = array_combine(
+            array_map(fn($k) => ':' . $k, array_keys($this->values)),
+            $this->values
+        );
+        return [ ':id' => $this->id, ...$params ];
     }
 }

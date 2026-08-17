@@ -66,6 +66,9 @@ class DataType {
             }
             return DataType::entity($mapping->target);
         }
+        if ('DateTime' === $mapping->type) {
+            return DataType::datetime();
+        }
 
         return new self($mapping->type);
     }
@@ -210,7 +213,7 @@ class DataType {
     }
 
     public function render(mixed $data, bool $link = false): Renderable|string {
-        if (null === $data) return '-';
+        if (Helper::isEmpty($data)) return '-';
 
         switch ($this->type) {
             case self::TYPE_ENTITY:
@@ -244,7 +247,7 @@ class DataType {
     }
 
     public function export(mixed $data): string {
-        if (null === $data) return '';
+        if (Helper::isEmpty($data)) return '';
 
         switch ($this->type) {
             case self::TYPE_ARRAY:
@@ -283,6 +286,7 @@ class DataType {
     public function getForm(string $name, mixed $value): FormElement {
         switch ($this->type) {
             case self::TYPE_ENTITY:
+                if (null === $value?->getId()) $value = null;
             case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
             case self::TYPE_ARRAY:

@@ -2,30 +2,23 @@
 
 namespace App\Database\SQL;
 
-use App\Pinakes\Helper;
-
 /*
 DELETE FROM table
-WHERE search_condition;
+WHERE condition;
 */
-class Delete {
+class Delete implements Statement {
     public readonly string $table_name;
+    public readonly string $condition;
 
-    public array $wheres = [];
     public array $parameters = [];
 
-    public function __construct(string $table_name, string $where) {
+    public function __construct(string $table_name, string $condition) {
         $this->table_name = $table_name;
-        $this->addWhere($where);
+        $this->condition = $condition;
     }
 
     public function __toString() {
         return $this->build();
-    }
-
-    public function addWhere(string $where): self {
-        $this->wheres[] = $where;
-        return $this;
     }
 
     public function setParameter(string $key, mixed $value): self {
@@ -34,12 +27,13 @@ class Delete {
     }
 
     public function build(): string {
-        $sql = "DELETE FROM {$this->table_name}";
+        return <<<SQL
+            DELETE FROM {$this->table_name}
+            WHERE {$this->condition}
+        SQL;
+    }
 
-        if (!Helper::isEmpty($this->wheres)) {
-            $sql .= ' WHERE ' . implode(' AND WHERE ', $this->wheres);
-        }
-
-        return $sql;
+    public function getParameters(): array {
+        return $this->parameters;
     }
 }

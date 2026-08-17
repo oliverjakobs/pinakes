@@ -128,34 +128,8 @@ class DataTable2 {
         return $query;
     }
 
-    private ?array $_data = null;
-    public function getData(): array {
-        if (null !== $this->_data) return $this->_data;
-
-        $db = Database::getInstance();
-        $rows = $db->query($this->getSelect());
-
-        $entities = [];
-        foreach ($rows as $row) {
-            $entity_class = $this->mapper->getEntityClass();
-            $entities[] = Database::hydrate(new $entity_class(), $row);
-        }
-
-        return $entities;
-    }
-
     public function currentPage(): array {
-
-        $db = Database::getInstance();
-        $rows = $db->query($this->getSelect());
-
-        $entities = [];
-        foreach ($rows as $row) {
-            $entity_class = $this->mapper->getEntityClass();
-            $entities[] = Database::hydrate(new $entity_class(), $row);
-        }
-
-        return $entities;
+        return $this->mapper->fetchAll($this->getSelect());
     }
 
     public function getCaptions(): array {

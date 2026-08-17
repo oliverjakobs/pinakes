@@ -54,15 +54,11 @@ class MappedProperty {
 
         return new self(
             $property->getDeclaringClass()->getName(),
-            $property->getName(), 
+            $property->getName(),
             $property->getType()->getName(),
             $mapping->getName(),
             $mapping->getArguments()
         );
-    }
-
-    public function isOwningSide(): bool {
-        return $this->is_owning;
     }
 
     public function isAssociative(): bool {

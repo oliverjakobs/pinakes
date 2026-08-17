@@ -27,7 +27,6 @@ class SeriesMapper extends PinakesMapper {
                 'caption' => 'Name',
                 'data' => 'name',
                 'link' => DataColumn::LINK_SELF,
-                'data_type' => DataType::string(),
                 'edit' => true
             ],
             'authors' => [
@@ -38,8 +37,7 @@ class SeriesMapper extends PinakesMapper {
             ],
             'volume_count' => [
                 'caption' => 'Volumes',
-                'data' => fn(Series $s) => $s->volumes->count(),
-                'data_type' => DataType::integer()
+                'data' => 'volume_count',
             ],
         ];
     }

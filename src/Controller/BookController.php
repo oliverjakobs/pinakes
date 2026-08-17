@@ -2,13 +2,13 @@
 
 namespace App\Controller;
 
+use App\Database\Database;
+use App\Database\SQL\Delete;
 use App\Repository\BookRepository;
 use App\Entity\Book;
-use App\Entity\Series;
 use App\Entity\User;
-use App\Mapper\BookMapper;
+use App\Mapper\PinakesMapper;
 use App\Pinakes\OpenLibrary;
-use App\Pinakes\Pinakes;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,42 +19,29 @@ use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
-    public function list(Request $request, BookRepository $repository): Response {
+    public function list(Request $request): Response {
 
-        $mapper = new BookMapper();
-        $table = $mapper->createTable('list');
-
-        // $table = $repository->createTable();
+        $table = PinakesMapper::getMapper(Book::class)->createTable('list');
         return $this->renderList2($request, 'Books', $table, [
             Link::modal('New Book', 'book_modal'),
-            Link::modal('From ISBN', 'book_modal_isbn'),
             ViewElement::separator(),
             Link::create('Export Books', 'book_export')
         ]);
     }
 
     #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
-    public function show(Request $request, BookRepository $repository): Response {
-        // /** @var Book */
-        // $book = $this->getEntity($request, $repository);
+    public function show(Request $request): Response {
 
-        // return $this->renderShow($repository, $book, 'show', [
-        //     $book->getLinkEdit(),
-        //     $book->getLinkDelete(),
-        //     ViewElement::separator(),
-        //     $book->getLinkOpenLibrary(),
-        // ]);
-
-        $mapper = new BookMapper();
-        $fields = $mapper->getDataFieldsShow();
+        $mapper = PinakesMapper::getMapper(Book::class);
+        $fields = $mapper->getDataFields('show');
         /** @var Book */
         $book = $this->getEntityNew($request, $mapper, $fields);
 
         return $this->renderShow2($book, $fields, [
-                $book->getLinkEdit(),
-                $book->getLinkDelete(),
-                ViewElement::separator(),
-                $book->getLinkOpenLibrary(),
+            $book->getLinkEdit(),
+            $book->getLinkDelete(),
+            ViewElement::separator(),
+            $book->getLinkOpenLibrary(),
         ]);
     }
 
@@ -62,8 +49,8 @@ class BookController extends PinakesController {
     public function modal(Request $request, BookRepository $repository, #[MapQueryParameter] ?int $series = null): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $mapper = new BookMapper();
-        $fields = $mapper->getDataFieldsShow();
+        $mapper = PinakesMapper::getMapper(Book::class);
+        $fields = $mapper->getDataFields('show');
         /** @var Book */
         $book = $this->getEntityNew($request, $mapper, $fields) ?? new Book();
 
@@ -78,32 +65,13 @@ class BookController extends PinakesController {
     public function delete(Request $request, BookRepository $repository): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
         $entity = $this->getEntity($request, $repository);
-        return $this->deleteEntityAndRedirect($request, $repository, $entity, 'book');
-    }
 
-    #[Route('/book/modal-isbn', name: 'book_modal_isbn', methods: ['GET', 'POST'])]
-    public function modalIsbn(Request $request): Response {
-        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
+        $mapper = PinakesMapper::getMapper(Book::class);
+        $delete = new Delete($mapper->getTableName(), "id = :id");
+        $delete->setParameter(':id', $entity->getId());
+        Database::getInstance()->delete($delete);
 
-        if (Request::METHOD_POST === $request->getMethod()) {
-            $isbn = $request->request->get('isbn');
-            return $this->redirectToRoute('book_from_isbn', [ 'isbn' => $isbn ]);
-        }
-
-        return $this->render('modals/from_isbn.html.twig', [
-            'caption' => 'Enter ISBN',
-        ]);
-    }
-
-    #[Route('/book/from-isbn/{isbn}', name: 'book_from_isbn', methods: ['GET'])]
-    public function fromIsbn(string $isbn): Response {
-        $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-
-        $result = OpenLibrary::findByIsbn($isbn);
-
-        return $this->render('searchresult.html.twig', [
-            'results' => $result,
-        ]);
+        return $this->redirectHx('book');
     }
 
     #[Route('/book/import', name: 'book_import', methods: ['GET'])]

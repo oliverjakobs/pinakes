@@ -86,7 +86,6 @@ class BookMapper extends PinakesMapper {
             'created_at' => [
                 'caption' => 'Created at',
                 'data' => 'created_at',
-                'data_type' => DataType::datetime(),
             ]
         ];
     }

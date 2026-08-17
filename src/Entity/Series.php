@@ -23,7 +23,11 @@ class Series extends PinakesEntity {
 
     /** @var Collection<int, Book> */
     #[ORM\OneToMany(targetEntity: Book::class, mappedBy: 'series')]
+    #[Mapping\OneToMany(target: Book::class, mappedBy: 'series')]
     public Collection $volumes;
+
+    #[Mapping\Count(property: 'volumes')]
+    public ?int $volume_count = null;
 
     public function __construct() {
         $this->volumes = new ArrayCollection();

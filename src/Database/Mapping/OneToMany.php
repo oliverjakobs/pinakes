@@ -8,7 +8,6 @@ use Attribute;
 class OneToMany implements MappingAttribute {
     
     public function __construct(
-        public readonly string $mapping_type,
         public readonly string $target,
         public readonly ?string $mapped_by = null) {
     }

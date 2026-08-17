@@ -2,15 +2,12 @@
 
 namespace App\Controller;
 
-use App\Database\Database;
-use App\Entity\Book;
 use App\Entity\PinakesEntity;
 use App\Mapper\PinakesMapper;
 use App\Pinakes\Assert;
 use App\Pinakes\DataTable;
 use App\Pinakes\DataTable2;
 use App\Pinakes\Helper;
-use App\Pinakes\Pinakes;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
 use App\Repository\PinakesRepository;
@@ -37,14 +34,10 @@ abstract class PinakesController extends AbstractController {
         if (null === $id) return null;
 
         $query = $mapper->createQuery($fields);
-
         $query->addWhere('book.id = :id');
         $query->setParameter(':id', $id);
 
-        $db = Database::getInstance();
-        $rows = $db->query($query);
-
-        $entity = Database::hydrate(new Book(), array_first($rows));
+        $entity = $mapper->fetchOne($query);
         if (null === $entity) {
             throw $this->createNotFoundException('entity with id ' . $id . ' does not exist');
         }
@@ -146,8 +139,8 @@ abstract class PinakesController extends AbstractController {
 
     public function renderModal2(Request $request, PinakesMapper $mapper, PinakesEntity $entity, string $redirect, array $fields): Response {
         if (Request::METHOD_POST === $request->getMethod()) {
-            $mapper->updateEntity($entity, $request->request->all());
-            return $this->redirectToRoute($redirect, [ 'id' => $entity->getId() ]);
+            $id = $mapper->updateEntity($entity, $request->request->all());
+            return $this->redirectToRoute($redirect, [ 'id' => $id ]);
         }
         
         $caption = $entity->getId() ? 'Edit ' : 'Create ';
