@@ -31,18 +31,18 @@ class PublisherMapper extends PinakesMapper {
             ],
             'book_count' => [
                 'caption' => 'Books',
-                'data' => fn(Publisher $p) => $p->books->count(),
-                'data_type' => DataType::integer(),
-                // 'order_by' => 'book_count'
+                'data' => 'book_count',
             ],
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields([ 'name', 'book_count', 'translation_count' ]);
+        return $this->composeDataFields([ 'name', 'book_count' ]);
     }
-    
     public function getDataFieldsShow(): array {
-        return $this->composeDataFields([ 'name', 'openlibrary' ]);
+        return $this->composeDataFields([ 'name' ]);
+    }
+    public function getDataFieldsExport(): array {
+        return $this->composeDataFields([ 'name' ]);
     }
 }

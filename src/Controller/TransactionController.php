@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Transaction;
 use App\Entity\User;
+use App\Mapper\PinakesMapper;
+use App\Mapper\TransactionMapper;
 use App\Renderable\Link;
 use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,65 +15,75 @@ use Symfony\Component\Routing\Attribute\Route;
 class TransactionController extends PinakesController {
 
     #[Route('/bookfund', name: 'bookfund', methods: ['GET'])]
-    public function bookfund(TransactionRepository $repository): Response {
+    public function bookfund(Request $request): Response {
+        $mapper = PinakesMapper::getMapper(Transaction::class);
+        $table = $mapper->createTable('list');
+        $table->setOrder('timestamp', 'DESC');
+        $table->setPP(6);
+        $table->allow_ordering = false;
+        $table->allow_pagination = false;
         return $this->render('bookfund.html.twig', [
-            'transactions' => $repository->findAll(['timestamp' => 'desc'], 6),
-            'balance' => $repository->getBalance()
+            'transactions' => $table->currentPage(),
+            'balance' => Transaction::getBalance()
         ]);
     }
 
-    private function create_transaction(TransactionRepository $repository, float $amount, string $reason) {
+    private function create_transaction(TransactionMapper $mapper, float $amount, string $reason) {
         // TODO validate transaction
-        /** @var Transaction */
-        $transaction = $repository->create();
-        $transaction->amount = $amount;
-        $transaction->reason = $reason;
-
-        $repository->save($transaction);
+        $transaction = new Transaction();
+        $id = $mapper->updateEntity($transaction, array(
+            'amount' => $amount,
+            'reason' => $reason,
+            'timestamp' => new \DateTime()
+        ));
     }
 
     #[Route('/bookfund/deposit', name: 'bookfund_deposit', methods: ['POST'])]
-    public function deposit(Request $request, TransactionRepository $repository): Response {
+    public function deposit(Request $request): Response {
         $amount = floatval($request->request->get('amount'));
         $reason = $request->request->get('reason');
         
-        $this->create_transaction($repository, $amount, $reason);
+        $mapper = PinakesMapper::getMapper(Transaction::class);
+        $this->create_transaction($mapper, $amount, $reason);
         return $this->redirectHx('bookfund');
     }
 
     #[Route('/bookfund/withdrawal', name: 'bookfund_withdrawal', methods: ['POST'])]
-    public function withdrawal(Request $request, TransactionRepository $repository): Response {
+    public function withdrawal(Request $request): Response {
         $amount = floatval($request->request->get('amount'));
         $reason = $request->request->get('reason');
         
-        $this->create_transaction($repository, $amount * -1.0, $reason);
+        $mapper = PinakesMapper::getMapper(Transaction::class);
+        $this->create_transaction($mapper, $amount * -1.0, $reason);
         return $this->redirectHx('bookfund');
     }
 
     #[Route('/transaction', name: 'transaction', methods: ['GET'])]
-    public function list(Request $request, TransactionRepository $repository): Response {
-        return $this->renderList($request, 'Transactions', $repository->createTable(), [
-            Link::create('Export', 'transaction_export')
-        ]);
+    public function list(Request $request): Response {
+        $table = PinakesMapper::getMapper(Transaction::class)->createTable('list');
+        return $this->renderList2($request, 'Transactions', $table);
     }
 
     #[Route('/transaction/modal/{id}', name: 'transaction_modal', methods: ['GET', 'POST'])]
-    public function modalTransaction(Request $request, TransactionRepository $repository): Response {
+    public function modal(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->create();
-        return $this->renderModal($request, $repository, $entity, 'transaction');
+
+        $mapper = PinakesMapper::getMapper(Transaction::class);
+        $transaction = $this->getEntityNew($request, $mapper) ?? new Transaction();
+        return $this->renderModal2($request, $mapper, $transaction, 'transaction');
     }
 
     #[Route('/transaction/delete/{id}', name: 'transaction_delete', methods: ['DELETE'])]
-    public function delete(Request $request, TransactionRepository $repository): Response {
+    public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
-        $entity = $this->getEntity($request, $repository);
-        return $this->deleteEntityAndRedirect($request, $repository, $entity, 'transaction');
+
+        $transaction = $this->getEntityNew($request, Transaction::class);
+        PinakesMapper::getMapper(Transaction::class)->deleteEntity($transaction);
+        return $this->redirectHx('transaction');
     }
 
     #[Route('/transaction/export', name: 'transaction_export', methods: ['GET'])]
-    public function export(TransactionRepository $repository): Response {
-        $table = $repository->createTable('export');
-        return $this->exportCsv($table, 'bookfund');
+    public function export(Request $request): Response {
+        return new Response();
     }
 }

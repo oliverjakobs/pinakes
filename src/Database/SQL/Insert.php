@@ -16,13 +16,11 @@ RETURNING id;
 */
 class Insert implements Statement {
     public readonly string $table_name;
-    public readonly string $returning;
 
     public array $values = [];
 
-    public function __construct(string $table_name, string $returning = 'id') {
+    public function __construct(string $table_name) {
         $this->table_name = $table_name;
-        $this->returning = $returning;
     }
 
     public function __toString() {
@@ -42,7 +40,7 @@ class Insert implements Statement {
                 ({$names})
             VALUES
                 ({$values})
-            RETURNING {$this->returning}
+            RETURNING id
         SQL;
     }
 

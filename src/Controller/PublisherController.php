@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Book;
+use App\Entity\Publisher;
 use App\Entity\User;
-use App\Repository\PublisherRepository;
-use App\Repository\BookRepository;
+use App\Mapper\PinakesMapper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -12,32 +13,40 @@ use Symfony\Component\Routing\Attribute\Route;
 class PublisherController extends PinakesController {
 
     #[Route('/publisher', name: 'publisher', methods: ['GET'])]
-    public function list(Request $request, PublisherRepository $repository): Response {
-        return $this->renderList($request, 'Publishers', $repository->createTable());
+    public function list(Request $request): Response {
+        $table = PinakesMapper::getMapper(Publisher::class)->createTable('list');
+        return $this->renderList2($request, 'Publishers', $table);
     }
 
     #[Route('/publisher/show/{id}', name: 'publisher_show', methods: ['GET'])]
-    public function show(Request $request, PublisherRepository $repository, BookRepository $books): Response {
-        $publisher = $this->getEntity($request, $repository);
+    public function show(Request $request): Response {
+        /** @var Publisher */
+        $publisher = $this->getEntityNew($request, Publisher::class);
 
-        $table = $books->createTable()->addFilter('publisher', $publisher);
-        return $this->renderList($request, 'Publisher: ' . (string) $publisher, $table, [
+        $table = PinakesMapper::getMapper(Book::class)
+            ->createTable('list_publisher')
+            ->addFilter('publisher', $publisher);
+        return $this->renderList2($request, 'Publisher: ' . (string) $publisher, $table, [
             $publisher->getLinkEdit(),
             $publisher->getLinkDelete(),
         ]);
     }
 
     #[Route('/publisher/modal/{id?}', name: 'publisher_modal', methods: ['GET', 'POST'])]
-    public function modal(Request $request, PublisherRepository $repository): Response {
+    public function modal(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->create();
-        return $this->renderModal($request, $repository, $entity, 'publisher_show');
+
+        $mapper = PinakesMapper::getMapper(Publisher::class);
+        $publisher = $this->getEntityNew($request, $mapper) ?? new Publisher();
+        return $this->renderModal2($request, $mapper, $publisher, 'publisher_show');
     }
 
     #[Route('/publisher/delete/{id}', name: 'publisher_delete', methods: ['DELETE'])]
-    public function delete(Request $request, PublisherRepository $repository): Response {
+    public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository);
-        return $this->deleteEntityAndRedirect($request, $repository, $entity, 'publisher');
+
+        $publisher = $this->getEntityNew($request, Publisher::class);
+        PinakesMapper::getMapper(Publisher::class)->deleteEntity($publisher);
+        return $this->redirectHx('publisher');
     }
 }

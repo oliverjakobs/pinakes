@@ -3,12 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Author;
+use App\Entity\Book;
 use App\Entity\User;
-use App\Mapper\AuthorMapper;
 use App\Mapper\PinakesMapper;
 use App\Renderable\ViewElement;
-use App\Repository\AuthorRepository;
-use App\Repository\BookRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -22,12 +20,14 @@ class AuthorController extends PinakesController {
     }
 
     #[Route('/author/show/{id}', name: 'author_show', methods: ['GET'])]
-    public function show(Request $request, AuthorRepository $repository, BookRepository $books): Response {
+    public function show(Request $request): Response {
         /** @var Author */
-        $author = $this->getEntity($request, $repository);
+        $author = $this->getEntityNew($request, Author::class);
 
-        $table = $books->createTable('list_author')->addFilter('authors', $author);
-        return $this->renderList($request, 'Author: ' . (string) $author, $table, [
+        $table = PinakesMapper::getMapper(Book::class)
+            ->createTable('list_author')
+            ->addFilter('authors', $author);
+        return $this->renderList2($request, 'Author: ' . (string) $author, $table, [
             $author->getLinkEdit(),
             $author->getLinkDelete(),
             ViewElement::separator(),
@@ -36,16 +36,20 @@ class AuthorController extends PinakesController {
     }
 
     #[Route('/author/modal/{id?}', name: 'author_modal', methods: ['GET', 'POST'])]
-    public function modal(Request $request, AuthorRepository $repository): Response {
+    public function modal(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->create();
-        return $this->renderModal($request, $repository, $entity, 'author_show');
+
+        $mapper = PinakesMapper::getMapper(Author::class);
+        $author = $this->getEntityNew($request, $mapper) ?? new Author();
+        return $this->renderModal2($request, $mapper, $author, 'author_show');
     }
 
     #[Route('/author/delete/{id}', name: 'author_delete', methods: ['DELETE'])]
-    public function delete(Request $request, AuthorRepository $repository): Response {
+    public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository);
-        return $this->deleteEntityAndRedirect($request, $repository, $entity, 'author');
+
+        $author = $this->getEntityNew($request, Author::class);
+        PinakesMapper::getMapper(Author::class)->deleteEntity($author);
+        return $this->redirectHx('author');
     }
 }

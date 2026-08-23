@@ -29,15 +29,15 @@ abstract class PinakesController extends AbstractController {
         return $entity;
     }
 
-    protected function getEntityNew(Request $request, PinakesMapper $mapper, array $fields): ?PinakesEntity {
+    protected function getEntityNew(Request $request, PinakesMapper|string $mapper, array $properties = []): ?PinakesEntity {
         $id = $request->attributes->get('id');
         if (null === $id) return null;
 
-        $query = $mapper->createQuery($fields);
-        $query->addWhere('book.id = :id');
-        $query->setParameter(':id', $id);
+        if (is_string($mapper)) {
+            $mapper = PinakesMapper::getMapper($mapper);
+        }
 
-        $entity = $mapper->fetchOne($query);
+        $entity = $mapper->find((int) $id, $properties);
         if (null === $entity) {
             throw $this->createNotFoundException('entity with id ' . $id . ' does not exist');
         }
@@ -137,7 +137,7 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    public function renderModal2(Request $request, PinakesMapper $mapper, PinakesEntity $entity, string $redirect, array $fields): Response {
+    public function renderModal2(Request $request, PinakesMapper $mapper, PinakesEntity $entity, string $redirect, string $fields = 'show'): Response {
         if (Request::METHOD_POST === $request->getMethod()) {
             $id = $mapper->updateEntity($entity, $request->request->all());
             return $this->redirectToRoute($redirect, [ 'id' => $id ]);
@@ -147,7 +147,7 @@ abstract class PinakesController extends AbstractController {
         return $this->render('modals/entity.html.twig', [
             'caption' => $caption . $entity->getModelName(),
             'entity' => $entity,
-            'fields' => $fields,
+            'fields' => $mapper->getDataFields($fields),
         ]);
     }
 

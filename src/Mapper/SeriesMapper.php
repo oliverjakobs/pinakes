@@ -35,6 +35,10 @@ class SeriesMapper extends PinakesMapper {
                 'data_type' => DataType::collection(Author::class),
                 'link' => DataColumn::LINK_DATA
             ],
+            'volumes' => [
+                'caption' => 'Volumes',
+                'data' => 'volumes',
+            ],
             'volume_count' => [
                 'caption' => 'Volumes',
                 'data' => 'volume_count',
@@ -47,5 +51,8 @@ class SeriesMapper extends PinakesMapper {
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields([ 'name', 'authors' ]);
+    }
+    public function getDataFieldsExport(): array {
+        return $this->composeDataFields([ 'name' ]);
     }
 }

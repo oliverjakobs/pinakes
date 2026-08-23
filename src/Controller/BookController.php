@@ -4,11 +4,10 @@ namespace App\Controller;
 
 use App\Database\Database;
 use App\Database\SQL\Delete;
-use App\Repository\BookRepository;
 use App\Entity\Book;
+use App\Entity\Series;
 use App\Entity\User;
 use App\Mapper\PinakesMapper;
-use App\Pinakes\OpenLibrary;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,7 +19,6 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request): Response {
-
         $table = PinakesMapper::getMapper(Book::class)->createTable('list');
         return $this->renderList2($request, 'Books', $table, [
             Link::modal('New Book', 'book_modal'),
@@ -33,11 +31,9 @@ class BookController extends PinakesController {
     public function show(Request $request): Response {
 
         $mapper = PinakesMapper::getMapper(Book::class);
-        $fields = $mapper->getDataFields('show');
         /** @var Book */
-        $book = $this->getEntityNew($request, $mapper, $fields);
-
-        return $this->renderShow2($book, $fields, [
+        $book = $this->getEntityNew($request, $mapper);
+        return $this->renderShow2($book, $mapper->getDataFields('show'), [
             $book->getLinkEdit(),
             $book->getLinkDelete(),
             ViewElement::separator(),
@@ -46,42 +42,43 @@ class BookController extends PinakesController {
     }
 
     #[Route('/book/modal/{id?}', name: 'book_modal', methods: ['GET', 'POST'])]
-    public function modal(Request $request, BookRepository $repository, #[MapQueryParameter] ?int $series = null): Response {
+    public function modal(Request $request, #[MapQueryParameter] ?int $series = null): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $mapper = PinakesMapper::getMapper(Book::class);
-        $fields = $mapper->getDataFields('show');
+        
         /** @var Book */
-        $book = $this->getEntityNew($request, $mapper, $fields) ?? new Book();
+        $book = $this->getEntityNew($request, $mapper);
+        if (null === $book) {
+            $book = new Book();
 
-        // if (null !== $series) {
-        //     $book->series = Pinakes::getRepository(Series::class)->find($series);
-        // }
+            if (null !== $series) {
+                $book->series = PinakesMapper::getMapper(Series::class)->find($series);
+            }
+        }
 
-        return $this->renderModal2($request, $mapper, $book, 'book_show', $fields);
+        return $this->renderModal2($request, $mapper, $book, 'book_show', 'show');
     }
 
     #[Route('/book/delete/{id}', name: 'book_delete', methods: ['DELETE'])]
-    public function delete(Request $request, BookRepository $repository): Response {
+    public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository);
 
-        $mapper = PinakesMapper::getMapper(Book::class);
-        $delete = new Delete($mapper->getTableName(), "id = :id");
-        $delete->setParameter(':id', $entity->getId());
-        Database::getInstance()->delete($delete);
+        $book = $this->getEntityNew($request, Book::class);
+        PinakesMapper::getMapper(Book::class)->deleteEntity($book);
 
         return $this->redirectHx('book');
     }
 
     #[Route('/book/import', name: 'book_import', methods: ['GET'])]
-    public function import(Request $request, BookRepository $repository): Response {
+    public function import(Request $request): Response {
         return new Response();
     }
 
     #[Route('/book/export', name: 'book_export', methods: ['GET'])]
-    public function export(BookRepository $repository): Response {
-        $table = $repository->createTable('export');
-        return $this->exportCsv($table, 'books');
+    public function export(Request $request): Response {
+        return new Response();
+        // $table = $repository->createTable('export');
+        // return $this->exportCsv($table, 'books');
     }
 }

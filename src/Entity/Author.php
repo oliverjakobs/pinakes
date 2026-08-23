@@ -2,36 +2,25 @@
 
 namespace App\Entity;
 
-use App\Repository\AuthorRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 use App\Database\Mapping;
+use App\Pinakes\Helper;
 use App\Renderable\Link;
 
-#[ORM\Entity(repositoryClass: AuthorRepository::class)]
 class Author extends PinakesEntity {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
     #[Mapping\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
     #[Mapping\Column]
     public ?string $name = null;
 
-    /** @var Collection<int, Book> */
-    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'authors', fetch: 'EXTRA_LAZY')]
+    /** @var Book[] */
     #[Mapping\ManyToMany(target: Book::class, mappedBy: 'authors')]
-    public Collection $books;
+    public array $books = [];
 
-    /** @var Collection<int, Book> */
-    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'translators', fetch: 'EXTRA_LAZY')]
+    /** @var Book[] */
     #[Mapping\ManyToMany(target: Book::class, mappedBy: 'translators', join_table: 'book_translator')]
-    public Collection $translations;
+    public array $translations = [];
 
-    #[ORM\Column(length: 255, nullable: true)]
     #[Mapping\Column]
     public ?string $openlibrary = null;
 
@@ -42,8 +31,6 @@ class Author extends PinakesEntity {
     public ?int $translation_count = null;
 
     public function __construct() {
-        $this->books = new ArrayCollection();
-        $this->translations = new ArrayCollection();
     }
 
     public function __toString(): string {
@@ -54,18 +41,14 @@ class Author extends PinakesEntity {
         return $this->id;
     }
 
-    public function getBookCount(): int {
-        return $this->books->count();
-    }
-
     public function getLinkOpenLibrary(): ?Link {
         if (null === $this->openlibrary) return null;
         return Link::extern($this->openlibrary, 'https://openlibrary.org/authors/' . $this->openlibrary);
     }
 
     public function getMessageDelete(): string {
-        if (!$this->books->isEmpty()) return 'Author still has books assigned.';
-        if (!$this->translations->isEmpty()) return 'Author still has translations assigned.';
+        if (!Helper::isEmpty($this->books)) return 'Author still has books assigned.';
+        if (!Helper::isEmpty($this->translations)) return 'Author still has translations assigned.';
         return '';
     }
 }

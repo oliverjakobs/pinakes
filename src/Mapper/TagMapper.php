@@ -41,11 +41,13 @@ class TagMapper extends PinakesMapper {
                 'data_type' => DataType::color(),
                 'edit' => true,
             ],
+            'books' => [
+                'caption' => 'Books',
+                'data' => 'books',
+            ],
             'book_count' => [
                 'caption' => 'Books',
-                'data' => fn(Tag $t) => $t->books->count(),
-                'data_type' => DataType::integer(),
-                // 'order_by' => 'book_count'
+                'data' => 'book_count',
             ],
         ];
     }

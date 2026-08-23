@@ -95,12 +95,23 @@ class BookMapper extends PinakesMapper {
             'title', 'authors', 'publisher', 'tags', 'published', 'first_published', 'isbn', 'series', 'series_volume'
         ]);
     }
+    public function getDataFieldsShow(): array {
+        return $this->composeDataFields([
+            'title', 'authors', 'translators', 'publisher', 'published', 'first_published', 'isbn', 'tags', 'series', 'series_volume',
+            'created_at'
+        ]);
+    }
+    public function getDataFieldsExport(): array {
+        return $this->composeDataFields([
+            'created_at', 'title', 'authors', 'publisher', 'tags', 'published', 'first_published', 'isbn', 'series', 'series_volume'
+        ]);
+    }
 
     public function getDataFieldsListAuthor(): array {
-        return $this->composeDataFields([ 'title', 'publisher', 'first_published', 'published', 'isbn', 'series', 'series_volume' ]);
+        return $this->composeDataFields([ 'title', 'publisher', 'first_published', 'tags', 'isbn', 'series', 'series_volume' ]);
     }
     public function getDataFieldsListPublisher(): array {
-        return $this->composeDataFields([ 'title', 'authors', 'published', 'isbn', 'series', 'series_volume' ]);
+        return $this->composeDataFields([ 'title', 'authors', 'published', 'tags', 'isbn', 'series', 'series_volume' ]);
     }
     public function getDataFieldsListSeries(): array {
         return $this->composeDataFields([ 'series_volume', 'title', 'authors', 'first_published', 'tags', 'isbn'  ]);
@@ -108,18 +119,5 @@ class BookMapper extends PinakesMapper {
 
     public function getDataFieldsNewest(): array {
         return $this->composeDataFields([ 'title', 'authors' ]);
-    }
-
-    public function getDataFieldsShow(): array {
-        return $this->composeDataFields([
-            'title', 'authors', 'translators', 'publisher', 'published', 'first_published', 'isbn', 'tags', 'series', 'series_volume',
-            'created_at'
-        ]);
-    }
-
-    public function getDataFieldsExport(): array {
-        return $this->composeDataFields([
-            'created_at', 'title', 'authors', 'publisher', 'tags', 'published', 'first_published', 'isbn', 'series', 'series_volume'
-        ]);
     }
 }

@@ -2,24 +2,21 @@
 
 namespace App\Entity;
 
-use App\Repository\TransactionRepository;
-use Doctrine\ORM\Mapping as ORM;
+use App\Database\Database;
+use App\Database\SQL\Sum;
+use App\Database\Mapping;
 
-#[ORM\Entity(repositoryClass: TransactionRepository::class)]
-#[ORM\Table(name: '`transaction`')]
 class Transaction extends PinakesEntity {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[Mapping\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[Mapping\Column]
     public ?float $amount = null;
 
-    #[ORM\Column(length: 255)]
+    #[Mapping\Column]
     public ?string $reason = null;
 
-    #[ORM\Column]
+    #[Mapping\Column]
     public ?\DateTime $timestamp = null;
 
     public function __construct() {
@@ -32,5 +29,10 @@ class Transaction extends PinakesEntity {
 
     public function getId(): ?int {
         return $this->id;
+    }
+
+    public static function getBalance(): float {
+        $sum = new Sum(self::getMapper()->getTableName(), 'amount');
+        return Database::getInstance()->fetchColumn($sum);
     }
 }

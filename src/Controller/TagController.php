@@ -2,11 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Book;
+use App\Entity\Tag;
 use App\Entity\User;
-use App\Renderable\Link;
-use App\Renderable\ViewElement;
-use App\Repository\TagRepository;
-use App\Repository\BookRepository;
+use App\Mapper\PinakesMapper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -14,42 +13,45 @@ use Symfony\Component\Routing\Attribute\Route;
 class TagController extends PinakesController {
 
     #[Route('/tag', name: 'tag', methods: ['GET'])]
-    public function list(Request $request, TagRepository $repository): Response {
-        return $this->renderList($request, 'Tags', $repository->createTable(), [
-            Link::modal('New Tag', 'tag_modal'),
-            ViewElement::separator(),
-            Link::create('Export Tags', 'tag_export')
-        ]);
+    public function list(Request $request): Response {
+        $table = PinakesMapper::getMapper(Tag::class)->createTable('list');
+        return $this->renderList2($request, 'Tags', $table);
     }
 
     #[Route('/tag/show/{id}', name: 'tag_show', methods: ['GET'])]
-    public function show(Request $request, TagRepository $repository, BookRepository $books): Response {
-        $tag = $this->getEntity($request, $repository);
+    public function show(Request $request): Response {
+        /** @var Tag */
+        $tag = $this->getEntityNew($request, Tag::class);
 
-        $table = $books->createTable()->addFilter('tags', $tag->getId());
-        return $this->renderList($request, 'Tag: ' . (string) $tag, $table, [
+        $table = PinakesMapper::getMapper(Book::class)
+            ->createTable('list_publisher')
+            ->addFilter('tags', $tag);
+        return $this->renderList2($request, 'Tag: ' . (string) $tag, $table, [
             $tag->getLinkEdit(),
             $tag->getLinkDelete(),
         ]);
     }
 
     #[Route('/tag/modal/{id?}', name: 'tag_modal', methods: ['GET', 'POST'])]
-    public function modal(Request $request, TagRepository $repository): Response {
+    public function modal(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->create();
-        return $this->renderModal($request, $repository, $entity, 'tag_show');
+
+        $mapper = PinakesMapper::getMapper(Tag::class);
+        $tag = $this->getEntityNew($request, $mapper) ?? new Tag();
+        return $this->renderModal2($request, $mapper, $tag, 'tag_show');
     }
 
     #[Route('/tag/delete/{id}', name: 'tag_delete', methods: ['DELETE'])]
-    public function delete(Request $request, TagRepository $repository): Response {
+    public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository);
-        return $this->deleteEntityAndRedirect($request, $repository, $entity, 'tag');
+
+        $tag = $this->getEntityNew($request, Tag::class);
+        PinakesMapper::getMapper(Tag::class)->deleteEntity($tag);
+        return $this->redirectHx('tag');
     }
 
     #[Route('/tag/export', name: 'tag_export', methods: ['GET'])]
-    public function export(TagRepository $repository): Response {
-        $table = $repository->createTable('export');
-        return $this->exportCsv($table, 'tags');
+    public function export(Request $request): Response {
+        return new Response();
     }
 }

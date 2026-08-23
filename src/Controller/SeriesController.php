@@ -2,14 +2,15 @@
 
 namespace App\Controller;
 
+use App\Database\Database;
+use App\Database\SQL\InsertJoin;
+use App\Entity\Book;
 use App\Entity\Series;
+use App\Entity\Tag;
 use App\Entity\User;
-use App\Mapper\SeriesMapper;
+use App\Mapper\PinakesMapper;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
-use App\Repository\SeriesRepository;
-use App\Repository\BookRepository;
-use App\Repository\TagRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,24 +18,23 @@ use Symfony\Component\Routing\Attribute\Route;
 class SeriesController extends PinakesController {
 
     #[Route('/series', name: 'series', methods: ['GET'])]
-    public function list(Request $request, SeriesRepository $repository): Response {
-        $mapper = new SeriesMapper();
-        $table = $mapper->createTable('list');
-
+    public function list(Request $request): Response {
+        $table = PinakesMapper::getMapper(Series::class)->createTable('list');
         return $this->renderList2($request, 'Series', $table, [
-            Link::modal('New Series', 'series_modal'),
-        ]);
-        return $this->renderList($request, 'Series', $repository->createTable(), [
             Link::modal('New Series', 'series_modal'),
         ]);
     }
 
     #[Route('/series/show/{id}', name: 'series_show', methods: ['GET'])]
-    public function show(Request $request, SeriesRepository $repository, BookRepository $books): Response {
-        $series = $this->getEntity($request, $repository);
+    public function show(Request $request): Response {
+        /** @var Series */
+        $series = $this->getEntityNew($request, Series::class);
 
-        $table = $books->createTable('list_series')->addFilter('series', $series)->setOrder('series_volume');
-        return $this->renderList($request, 'Series: ' . (string) $series, $table, [
+        $table = PinakesMapper::getMapper(Book::class)
+            ->createTable('list_series')
+            ->addFilter('series', $series)
+            ->setOrder('series_volume');
+        return $this->renderList2($request, 'Series: ' . (string) $series, $table, [
             Link::modal('Add Volume', 'book_modal', [ 'series' => $series->getId() ]),
             Link::modal('Add Tag', 'series_add_tag', [ 'id' => $series->getId() ]),
             ViewElement::separator(),
@@ -44,39 +44,57 @@ class SeriesController extends PinakesController {
     }
 
     #[Route('/series/modal/{id?}', name: 'series_modal', methods: ['GET', 'POST'])]
-    public function modal(Request $request, SeriesRepository $repository): Response {
+    public function modal(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->create();
-        return $this->renderModal($request, $repository, $entity, 'series_show');
+
+        $mapper = PinakesMapper::getMapper(Series::class);
+        $series = $this->getEntityNew($request, $mapper) ?? new Series();
+        return $this->renderModal2($request, $mapper, $series, 'series_show');
     }
 
     #[Route('/series/delete/{id}', name: 'series_delete', methods: ['DELETE'])]
-    public function delete(Request $request, SeriesRepository $repository): Response {
+    public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
-        $entity = $this->getEntity($request, $repository);
-        return $this->deleteEntityAndRedirect($request, $repository, $entity, 'series');
+
+        $series = $this->getEntityNew($request, Series::class);
+        PinakesMapper::getMapper(Series::class)->deleteEntity($series);
+        return $this->redirectHx('series');
     }
-
+    
     #[Route('/series/add-tag/{id}', name: 'series_add_tag', methods: ['GET', 'POST'])]
-    public function addTag(Request $request, SeriesRepository $repository, TagRepository $tags): Response {
+    public function addTag(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
+        $mapper = PinakesMapper::getMapper(Series::class);
         /** @var Series */
-        $series = $this->getEntity($request, $repository);
+        $series = $this->getEntityNew($request, $mapper);
+
+        $tag_mapper = PinakesMapper::getMapper(Tag::class);
 
         if (Request::METHOD_POST === $request->getMethod()) {
-            $tag = $tags->getOrCreate($request->request->get('tag'));
-            foreach ($series->volumes as $vol) {
-                $vol->addTag($tag);
-                $repository->save($vol, false);
-            }
-            $repository->flush();
+            $tag = $request->request->get('tag');
+
+            Database::getInstance()->asTransaction(function () use ($tag_mapper, $tag, $series) {
+                $tag_id = $tag_mapper->upsert($tag);
+
+                $field = $tag_mapper->getDataField('books');
+                $join_table = $field->mapping->getJoinTable();
+
+                foreach ($series->volumes as $vol) {
+                    $insert = new InsertJoin($join_table, [
+                        'tag_id' => $tag_id,
+                        'book_id' => $vol->getId(),
+                    ]);
+
+                    Database::getInstance()->execute($insert);
+                }
+            });
             return $this->redirectToRoute('series_show', [ 'id' => $series->getId() ]);
         }
 
         return $this->render('modals/add_tag.html.twig', [
             'caption' => 'Select tag',
-            'options' => $tags->getOptions()
+            'options' => $tag_mapper->getOptions()
         ]);
     }
 }

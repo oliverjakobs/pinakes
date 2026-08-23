@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Mapper\PinakesMapper;
 use ReflectionClass;
 use App\Pinakes\Pinakes;
 use App\Renderable\Link;
@@ -15,9 +16,17 @@ abstract class PinakesEntity {
         return Pinakes::getRepository(static::class);
     }
 
+    public static function getMapper(): PinakesMapper {
+        return PinakesMapper::getMapper(static::class);
+    }
+
     public function getModelName(): string {
         $reflection = new ReflectionClass($this);
         return strtolower($reflection->getShortName());
+    }
+
+    public function equals(PinakesEntity $other): bool {
+        return $this->getId() === $other->getId();
     }
 
     public function getLinkSelf(?string $caption = null): Link {

@@ -271,7 +271,7 @@ class DataType {
 
     private function getOptions(): array {
         if (null !== $this->options) return $this->options;
-        if ($this->isTargetType()) return $this->getTargetRepository()->getOptions();
+        if ($this->isTargetType()) return $this->getTargetMapper()->getOptions();
 
         if (self::TYPE_ENUM === $this->type) {
             $result = [];

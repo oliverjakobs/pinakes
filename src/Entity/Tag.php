@@ -2,35 +2,26 @@
 
 namespace App\Entity;
 
-use App\Repository\TagRepository;
-use App\Renderable\ViewElement;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
 use App\Database\Mapping;
 
-#[ORM\Entity(repositoryClass: TagRepository::class)]
 class Tag extends PinakesEntity implements TagInterface {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
     #[Mapping\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
     #[Mapping\Column]
     public ?string $name = null;
 
-    #[ORM\Column(length: 9, options: ['default' => '#ffffff'])]
     #[Mapping\Column]
     public ?string $color = null;
 
-    /** @var Collection<int, Book> */
-    #[ORM\ManyToMany(targetEntity: Book::class, mappedBy: 'tags')]
-    public Collection $books;
+    /** @var Book[] */
+    #[Mapping\ManyToMany(target: Book::class, mappedBy: 'tags')]
+    public array $books;
+
+    #[Mapping\Count(property: 'books')]
+    public ?int $book_count = null;
 
     public function __construct() {
-        $this->books = new ArrayCollection();
         $this->color = '#ffffff';
     }
 

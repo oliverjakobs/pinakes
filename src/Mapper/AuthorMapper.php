@@ -4,7 +4,6 @@ namespace App\Mapper;
 
 use App\Entity\Author;
 use App\Pinakes\DataColumn;
-use App\Pinakes\DataType;
 
 class AuthorMapper extends PinakesMapper {
 
@@ -47,8 +46,10 @@ class AuthorMapper extends PinakesMapper {
     public function getDataFieldsList(): array {
         return $this->composeDataFields([ 'name', 'book_count', 'translation_count' ]);
     }
-    
     public function getDataFieldsShow(): array {
+        return $this->composeDataFields([ 'name', 'openlibrary' ]);
+    }
+    public function getDataFieldsExport(): array {
         return $this->composeDataFields([ 'name', 'openlibrary' ]);
     }
 }

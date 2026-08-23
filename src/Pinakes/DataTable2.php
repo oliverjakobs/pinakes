@@ -3,7 +3,9 @@
 namespace App\Pinakes;
 
 use App\Database\Database;
+use App\Database\SQL\Count;
 use App\Database\SQL\Query;
+use App\Entity\PinakesEntity;
 use App\Mapper\PinakesMapper;
 
 class TableCaption {
@@ -42,8 +44,19 @@ class DataTable2 {
     }
 
     public function getColumn(string $name): DataField {
-        Assert::isTrue(array_key_exists($name, $this->columns), 'Unkown column ' . $name);
+        Assert::isTrue(array_key_exists($name, $this->columns), 'Unkown column ' . $name . ' in table ' . $this->mapper->getTableName());
         return $this->columns[$name];
+    }
+
+    public function addFilter(string $name, mixed $value): self {
+        if (is_iterable($value)) {
+            $value = array_map(fn ($v) => ($v instanceof PinakesEntity) ? $v->getId() : $v, $value);
+        } else if ($value instanceof PinakesEntity) {
+            $value = $value->getId();
+        }
+
+        $this->filter[$name] = $value;
+        return $this;
     }
     
     public function setOrder(string $by, string $dir = 'ASC'): self {
@@ -92,7 +105,8 @@ class DataTable2 {
     private ?Query $_select = null;
     public function getSelect(): Query {
         if (null !== $this->_select) return $this->_select;
-        $query = $this->mapper->createQuery($this->columns);
+
+        $query = $this->mapper->createQueryFromFields($this->columns);
 
         $filter = array_merge($this->filter, $this->query);
 
@@ -103,11 +117,33 @@ class DataTable2 {
             $query->setParameter(':search', '%' . $search . '%');
         }
 
-        // // filter by data fields
-        // foreach ($filter as $name => $value) {
-        //     $field = $this->getColumn($name);
-        //     if (null !== $field) $qb = $field->filter($qb, $value);
-        // }
+        // filter by data fields
+        foreach ($filter as $name => $value) {
+            $field = $this->mapper->getDataField($name);
+            if (null === $field) continue;
+
+            Assert::notNull($field->property, 'Cannot filter without property');
+
+            $table_name = $this->mapper->getTableName();
+            if ($field->data_type->isArrayType()) {
+
+                $in_subquery = new Query($field->mapping->getJoinTable());
+                $in_subquery->addSelect("{$table_name}_id");
+
+                $target_name = PinakesMapper::getMapper($field->mapping->target)->getTableName();
+                if (is_iterable($value)) {
+                    Assert::error('Not implemented');
+                } else {
+                    $in_subquery->addWhere("{$target_name}_id = {$value}");
+                }
+
+                $query->addWhere(".id IN ({$in_subquery->build()})");
+            } else {
+                $param = ":{$field->name}";
+                $query->addWhere("{$param} = {$table_name}.{$field->property}_id");
+                $query->setParameter($param, $value);
+            }
+        }
 
         // apply order
         $by = $filter['order_by'] ?? null;
@@ -129,7 +165,7 @@ class DataTable2 {
     }
 
     public function currentPage(): array {
-        return $this->mapper->fetchAll($this->getSelect());
+        return $this->mapper->fetchQuery($this->getSelect());
     }
 
     public function getCaptions(): array {
@@ -178,7 +214,8 @@ class DataTable2 {
     }
     
     public function getCount(): int {
-        return Database::getInstance()->count($this->getSelect());
+        $count = Count::fromQuery($this->getSelect());
+        return Database::getInstance()->fetchColumn($count);
     }
 
     public function getMaxPages(): int {
