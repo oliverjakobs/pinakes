@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Database\Mapping;
 use App\Repository\RecordRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -15,9 +16,11 @@ class Record extends PinakesEntity {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Mapping\Column]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Mapping\Column]
     public ?string $title = null;
 
     #[ORM\ManyToOne(inversedBy: 'records', cascade: ['persist'])]

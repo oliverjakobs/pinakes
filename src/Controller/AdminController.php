@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Mapper\PinakesMapper;
 use App\Pinakes\DataTable;
-use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
@@ -13,27 +13,32 @@ use Symfony\Component\Routing\Attribute\Route;
 class AdminController extends PinakesController {
 
     #[Route('/admin', name: 'admin', methods: ['GET'])]
-    public function admin(Request $request, UserRepository $repository): Response {
-        return $this->renderList($request, 'Users', $repository->createTable());
+    public function admin(Request $request): Response {
+        return $this->list($request);
     }
 
     #[Route('/user', name: 'user', methods: ['GET'])]
-    public function list(Request $request, UserRepository $repository): Response {
-        return $this->renderList($request, 'Users', $repository->createTable());
+    public function list(Request $request): Response {
+        $table = PinakesMapper::getMapper(User::class)->createTable('list');
+        return $this->renderList2($request, 'Users', $table);
     }
 
     #[Route('/user/modal/{id}', name: 'user_modal', methods: ['GET', 'POST'])]
-    public function modalTransaction(Request $request, UserRepository $repository): Response {
+    public function modal(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
-        $entity = $this->getEntity($request, $repository) ?? $repository->create();
-        return $this->renderModal($request, $repository, $entity, 'user');
+
+        $mapper = PinakesMapper::getMapper(User::class);
+        $user = $this->getEntityNew($request, $mapper) ?? new User();
+        return $this->renderModal2($request, $mapper, $user, 'user');
     }
 
     #[Route('/user/delete/{id}', name: 'user_delete', methods: ['DELETE'])]
-    public function delete(Request $request, UserRepository $repository): Response {
+    public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
-        $entity = $this->getEntity($request, $repository);
-        return $this->deleteEntityAndRedirect($request, $repository, $entity, 'user');
+
+        $user = $this->getEntityNew($request, User::class);
+        PinakesMapper::getMapper(User::class)->deleteEntity($user);
+        return $this->redirectHx('user');
     }
 
     #[Route('/icons', name: 'icons', methods: ['GET'])]

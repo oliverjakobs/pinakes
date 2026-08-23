@@ -75,7 +75,7 @@ class SeriesController extends PinakesController {
             $tag = $request->request->get('tag');
 
             Database::getInstance()->asTransaction(function () use ($tag_mapper, $tag, $series) {
-                $tag_id = $tag_mapper->upsert($tag);
+                $tag_id = $tag_mapper->upsertEntity($tag);
 
                 $field = $tag_mapper->getDataField('books');
                 $join_table = $field->mapping->getJoinTable();

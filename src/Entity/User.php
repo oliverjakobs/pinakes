@@ -2,13 +2,10 @@
 
 namespace App\Entity;
 
-use App\Repository\UserRepository;
-use Doctrine\ORM\Mapping as ORM;
+use App\Database\Mapping;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity(repositoryClass: UserRepository::class)]
-#[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
 class User extends PinakesEntity implements UserInterface, PasswordAuthenticatedUserInterface {
     const ROLE_ADMIN = 'ROLE_ADMIN';
     const ROLE_LIBRARIAN = 'ROLE_LIBRARIAN';
@@ -20,24 +17,18 @@ class User extends PinakesEntity implements UserInterface, PasswordAuthenticated
         self::ROLE_USER
     ];
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[Mapping\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
+    #[Mapping\Column]
     public ?string $username = null;
 
-    /**
-     * @var list<string> The user roles
-     */
-    #[ORM\Column]
+    /** @var string[] The user roles */
+    #[Mapping\Column]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
-    #[ORM\Column]
+    /** * @var string The hashed password */
+    #[Mapping\Column]
     private ?string $password = null;
 
     public function getId(): ?int {

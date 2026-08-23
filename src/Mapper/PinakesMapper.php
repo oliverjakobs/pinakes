@@ -22,6 +22,7 @@ use App\Entity\Publisher;
 use App\Entity\Series;
 use App\Entity\Tag;
 use App\Entity\Transaction;
+use App\Entity\User;
 use App\Pinakes\Assert;
 use App\Pinakes\DataField;
 use App\Pinakes\DataTable2;
@@ -72,24 +73,32 @@ abstract class PinakesMapper {
         return $this->mapped_properties[$property];
     }
 
-    /** @return PinakesEntity[] */
-    public function fetchQuery(Query $query): array {
-        $db = Database::getInstance();
-
-        $entities = [];
-        foreach ($db->fetchAll($query) as $row) {
-            $entity_class = $this->getEntityClass();
-            $entities[] = Database::hydrate(new $entity_class(), $row);
+    /** @var string[]|MappedProperty[] $properties */
+    private function getMappedProperties(array $properties): array {
+        if (Helper::isEmpty($properties)) {
+            return $this->mapped_properties;
         }
-        return $entities;
+        
+        return array_map(function (string|MappedProperty $p) {
+            if (is_string($p)) return $this->getMapping($p);
+            return $p;
+        }, $properties);
     }
 
-    public function fetchAll(array $properties, array $where = [], array $order_by = []): array {
-        $query = new Query($this->getTableName());
-
-        foreach ($properties as $select) {
-            $query->addSelect('.' . $select);
+    /** @return PinakesEntity[] */
+    public function fetchQuery(Query $query): array {
+        $result = [];
+        foreach ( Database::getInstance()->fetchAll($query) as $row) {
+            $entity_class = $this->getEntityClass();
+            $result[] = Database::hydrate(new $entity_class(), $row);
         }
+        return $result;
+    }
+
+    /** @var string[]|MappedProperty[] $properties */
+    public function fetchAll(array $properties, array $where = [], array $order_by = []): array {
+        $properties = $this->getMappedProperties($properties);
+        $query = $this->createQuery($properties);
 
         return $this->fetchQuery($query);
     }
@@ -103,36 +112,23 @@ abstract class PinakesMapper {
         return array_filter($properties);
     }
 
-    public function findProperties(int $id, array $properties): ?PinakesEntity {
+    /** @var string[]|MappedProperty[] $properties */
+    public function find(int $id, array $properties = []): ?PinakesEntity {
+        return $this->findBy('id', $id, $properties);
+    }
+
+    /** @var string[]|MappedProperty[] $properties */
+    public function findBy(string $key, mixed $value, array $properties = []): ?PinakesEntity {
+        $properties = $this->getMappedProperties($properties);
+
         $query = $this->createQuery($properties);
-        $query->addSelect('.id');
-        
-        $query->addWhere('.id = :id');
-        $query->setParameter(':id', $id);
+        $query->addWhere(".{$key} = :key");
+        $query->setParameter(':key', $value);
 
         return $this->fetchOne($query);
     }
 
-    public function findFields(int $id, array $fields): ?PinakesEntity {
-        return $this->findProperties($id, $this->getFieldProperties($fields));
-    }
-
-    /** @var string[]|MappedProperty[] $properties */
-    public function find(int $id, array $properties = []): ?PinakesEntity {
-        if (!Helper::isEmpty($properties)) {
-            $query_properties = array_map(fn ($p) => $this->getMapping($p), $properties);
-        } else {
-            $query_properties = $this->mapped_properties;
-        }
-        return $this->findProperties($id, $query_properties);
-    }
-
     public function createTable(string $fields): DataTable2 {
-        $columns = $this->getDataFields($fields);
-        return new DataTable2($this, $columns);
-    }
-
-    public function createShow(int $id, string $fields): mixed {
         $columns = $this->getDataFields($fields);
         return new DataTable2($this, $columns);
     }
@@ -145,7 +141,7 @@ abstract class PinakesMapper {
         return Database::createQuery($this, $properties);
     }
 
-    public function upsert(mixed $value): ?int {
+    public function upsertEntity(mixed $value): ?int {
         if (Helper::isEmpty($value)) return null;
 
         $upsert = new Upsert($this->getTableName(), $this->getSearchKey(), $value);
@@ -207,6 +203,7 @@ abstract class PinakesMapper {
             Tag::class => new TagMapper(),
             Series::class => new SeriesMapper(),
             Transaction::class => new TransactionMapper(),
+            User::class => new UserMapper(),
         };
     }
 }

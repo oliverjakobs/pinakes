@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Mapper;
 
 use App\Entity\User;
 use App\Pinakes\DataType;
@@ -9,14 +9,18 @@ use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
-class UserRepository extends PinakesRepository implements PasswordUpgraderInterface {
-    
-    protected static function getEntityClass(): string {
-        return User::class;
+class UserMapper extends PinakesMapper implements PasswordUpgraderInterface {
+
+    public static function getTableName(): string { 
+        return 'user';
     }
 
-    public function getSearchKey(): string {
+    public static function getSearchKey(): string { 
         return 'username';
+    }
+
+    public static function getEntityClass(): string {
+        return User::class;
     }
 
     /**
@@ -28,8 +32,6 @@ class UserRepository extends PinakesRepository implements PasswordUpgraderInterf
         }
 
         $user->setPassword($newHashedPassword);
-        $this->getEntityManager()->persist($user);
-        $this->getEntityManager()->flush();
     }
 
     protected function defineDataFields(): array {
@@ -45,28 +47,30 @@ class UserRepository extends PinakesRepository implements PasswordUpgraderInterf
                 'data_type' => DataType::array()->setOptions(User::ROLES),
                 'edit' => true
             ],
-            'edit' => [
-                'caption' => '',
-                'data' => fn(User $u) => $u->getLinkEdit(Icon::create('pencil-square')),
-                'data_type' => DataType::action(),
-                'visibility' => User::ROLE_ADMIN
-            ],
-            'delete' => [
-                'caption' => '',
-                'data' => fn(User $u) => $u->getLinkDelete(Icon::create('trash3')),
-                'data_type' => DataType::action(),
-                'visibility' => User::ROLE_ADMIN
-            ],
+            // 'edit' => [
+            //     'caption' => '',
+            //     'data' => fn(User $u) => $u->getLinkEdit(Icon::create('pencil-square')),
+            //     'data_type' => DataType::action(),
+            //     'visibility' => User::ROLE_ADMIN
+            // ],
+            // 'delete' => [
+            //     'caption' => '',
+            //     'data' => fn(User $u) => $u->getLinkDelete(Icon::create('trash3')),
+            //     'data_type' => DataType::action(),
+            //     'visibility' => User::ROLE_ADMIN
+            // ],
 
             // TODO impersonation
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields([ 'username', 'roles', 'edit', 'delete' ]);
+        return $this->composeDataFields([ 'username', 'roles', /*'edit', 'delete'*/ ]);
     }
-
     public function getDataFieldsShow(): array {
+        return $this->composeDataFields([ 'username', 'roles' ]);
+    }
+    public function getDataFieldsExport(): array {
         return $this->composeDataFields([ 'username', 'roles' ]);
     }
 }

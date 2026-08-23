@@ -112,6 +112,8 @@ class Database {
                 }
             } else if ('DateTime' === $mapping->type) {
                 $value = new \DateTime($value);
+            } else if ('array' === $mapping->type) {
+                $value = json_decode($value, true);
             }
 
             $property->setValue($entity, $value);
@@ -204,7 +206,7 @@ class Database {
                 case ManyToOne::class:
                     if (null !== $value) {
                         $target = PinakesMapper::getMapper($mapping->target);
-                        $upsert_id = $target->upsert($value);
+                        $upsert_id = $target->upsertEntity($value);
                     } else {
                         $upsert_id = null;
                     }
@@ -225,7 +227,7 @@ class Database {
             $join_table = $mapping->getJoinTable();
 
             foreach ($value ?? [] as $v) {
-                $upsert_id = $target->upsert($v);
+                $upsert_id = $target->upsertEntity($v);
 
                 $insert = new InsertJoin($join_table, [
                     $table_name . '_id' => $id,
@@ -263,7 +265,7 @@ class Database {
                     $instance->execute($delete);
 
                     foreach ($value ?? [] as $v) {
-                        $upsert_id = $target->upsert($v);
+                        $upsert_id = $target->upsertEntity($v);
 
                         $insert = new InsertJoin($join_table, [
                             $table_name . '_id' => $id,
@@ -275,7 +277,7 @@ class Database {
                 case ManyToOne::class:
                     if (null !== $value) {
                         $target = PinakesMapper::getMapper($mapping->target);
-                        $upsert_id = $target->upsert($value);
+                        $upsert_id = $target->upsertEntity($value);
                     } else {
                         $upsert_id = null;
                     }

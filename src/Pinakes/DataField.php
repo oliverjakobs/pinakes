@@ -79,13 +79,6 @@ class DataField {
     public function getOrderBy(): string {
         if (!$this->canOrderBy()) return '';
 
-        // if (!empty($this->order_by)) {
-        //     foreach ($this->order_by as $by) {
-        //         $qb->addOrderBy($by, $dir);
-        //     }
-        //     return $qb;
-        // }
-
         if ($this->mapping->isVirtual()) {
             return $this->property;
         }
