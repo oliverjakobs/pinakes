@@ -1,8 +1,11 @@
 # TODO
 
+[] fix order by ManyToOne
+[] fix empty array mappings with links
+[] title/name not null
 [] enum mapping
-[] Records to Mapper
-[] Boardgames to Mapper
+[x] Records to Mapper
+[x] Boardgames to Mapper
 [] Icons to DataTable2
 [] show series->authors in table
 [x] use json_group_array|json_group_object instead of GROUP_CONCAT

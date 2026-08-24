@@ -12,9 +12,6 @@ use App\Renderable\Renderable;
 use App\Renderable\FormElement;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
-use App\Repository\PinakesRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 
 class DataType {
     const TYPE_STRING = 'string';
@@ -156,11 +153,6 @@ class DataType {
         return $this->type;
     }
 
-    public function getTargetRepository(): PinakesRepository {
-        Assert::isTrue($this->isTargetType(), 'Not a target type');
-        return Pinakes::getRepository($this->target_class);
-    }
-
     public function getTargetMapper(): PinakesMapper {
         Assert::isTrue($this->isTargetType(), 'Not a target type');
         return PinakesMapper::getMapper($this->target_class);
@@ -185,14 +177,13 @@ class DataType {
             case self::TYPE_ENTITY:
                 if (null === $value) return null;
                 Assert::isTrue(is_string($value), 'Expected string, got ' . get_debug_type($value) . ' instead');
-                return $this->getTargetRepository()->getOrCreate($value);
+                return $this->getTargetMapper()->getOrCreate($value);
             case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
                 if (null === $value) return [];
                 Assert::isTrue(is_array($value), 'Expected array, got ' . get_debug_type($value) . ' instead');
-                $repository = $this->getTargetRepository();
-                return array_map(fn ($e) => $repository->getOrCreate($e), $value);
-                return new ArrayCollection($entities);
+                $mapper = $this->getTargetMapper();
+                return array_map(fn ($e) => $mapper->getOrCreate($e), $value);
             case self::TYPE_DATETIME:
                 if (null === $value) return null;
                 return new DateTime($value);
@@ -220,13 +211,11 @@ class DataType {
                 if ($link) return $data->getLinkSelf();
                 return (string) $data;
             case self::TYPE_COLLECTION:
-                if ($data instanceof Collection) $data = $data->toArray();
                 if ($link) $data = array_map(fn (PinakesEntity $d) => $d->getLinkSelf(), $data);
                 return ViewElement::ul($data)->addStyleClasses('collection');
             case self::TYPE_ARRAY:
                 return ViewElement::ul($data)->addStyleClasses('collection');
             case self::TYPE_TAGS:
-                if ($data instanceof Collection) $data = $data->toArray();
                 $data = array_map(fn ($tag) => ViewElement::tag($tag->getLinkSelf(), $tag->getColor()), $data);
                 return implode(' ', $data);
             case self::TYPE_CURRENCY:
@@ -253,7 +242,6 @@ class DataType {
             case self::TYPE_ARRAY:
             case self::TYPE_COLLECTION:
             case self::TYPE_TAGS:
-                if ($data instanceof Collection) $data = $data->toArray();
                 return implode('; ', $data);
             case self::TYPE_CURRENCY:
                 return sprintf($this->fmt, $data);

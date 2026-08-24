@@ -3,39 +3,33 @@
 namespace App\Entity;
 
 use App\Database\Mapping;
-use App\Repository\RecordRepository;
-use Doctrine\ORM\Mapping as ORM;
 
 enum Medium: string {
     case CD = 'cd';
     case Vinyl = 'vinyl';
 }
 
-#[ORM\Entity(repositoryClass: RecordRepository::class)]
 class Record extends PinakesEntity {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+
     #[Mapping\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
     #[Mapping\Column]
     public ?string $title = null;
 
-    #[ORM\ManyToOne(inversedBy: 'records', cascade: ['persist'])]
+    #[Mapping\ManyToOne(target: Artist::class, inversed_by: 'records')]
     public ?Artist $artist = null;
 
-    #[ORM\ManyToOne(inversedBy: 'records', cascade: ['persist'])]
+    #[Mapping\ManyToOne(target: RecordLabel::class, inversed_by: 'records')]
     public ?RecordLabel $label = null;
 
-    #[ORM\Column(enumType: Medium::class)]
+    #[Mapping\Enum(enum_class: Medium::class)]
     public ?Medium $medium = null;
 
-    #[ORM\Column(nullable: true)]
+    #[Mapping\Column]
     public ?\DateTime $released = null;
 
-    #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[Mapping\Column]
     public ?\DateTime $created_at = null;
 
     public function __construct() {

@@ -15,10 +15,15 @@ use App\Database\SQL\InsertJoin;
 use App\Database\SQL\Query;
 use App\Database\SQL\Update;
 use App\Database\SQL\Upsert;
+use App\Entity\Artist;
 use App\Entity\Author;
+use App\Entity\Boardgame;
+use App\Entity\BoardgamePublisher;
 use App\Entity\Book;
 use App\Entity\PinakesEntity;
 use App\Entity\Publisher;
+use App\Entity\Record;
+use App\Entity\RecordLabel;
 use App\Entity\Series;
 use App\Entity\Tag;
 use App\Entity\Transaction;
@@ -128,6 +133,15 @@ abstract class PinakesMapper {
         return $this->fetchOne($query);
     }
 
+    public function getOrCreate(mixed $value): PinakesEntity {
+        $result = $this->findBy($this->getSearchKey(), $value);
+        if (null === $result) {
+            $entity_class = $this->getEntityClass();
+            $result = new $entity_class();
+        }
+        return $result;
+    }
+
     public function createTable(string $fields): DataTable2 {
         $columns = $this->getDataFields($fields);
         return new DataTable2($this, $columns);
@@ -204,6 +218,11 @@ abstract class PinakesMapper {
             Series::class => new SeriesMapper(),
             Transaction::class => new TransactionMapper(),
             User::class => new UserMapper(),
+            Record::class => new RecordMapper(),
+            RecordLabel::class => new RecordLabelMapper(),
+            Artist::class => new ArtistMapper(),
+            Boardgame::class => new BoardgameMapper(),
+            BoardgamePublisher::class => new BoardgamePublisherMapper(),
         };
     }
 }

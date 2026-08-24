@@ -1,19 +1,23 @@
-<?php
+<?php declare(strict_types=1);
 
-namespace App\Repository;
+namespace App\Mapper;
 
 use App\Entity\BoardgamePublisher;
-use App\Pinakes\DataColumn;
-use App\Pinakes\DataType;
+use App\Mapper\PinakesMapper;
+use App\Pinakes\DataField;
 
-class BoardgamePublisherRepository extends PinakesRepository {
+class BoardgamePublisherMapper extends PinakesMapper {
 
-    protected static function getEntityClass(): string {
-        return BoardgamePublisher::class;
+    public static function getTableName(): string { 
+        return 'boardgame_publisher';
     }
 
-    public function getSearchKey(): string {
+    public static function getSearchKey(): string { 
         return 'name';
+    }
+
+    public static function getEntityClass(): string {
+        return BoardgamePublisher::class;
     }
 
     protected function defineDataFields(): array {
@@ -21,13 +25,12 @@ class BoardgamePublisherRepository extends PinakesRepository {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataColumn::LINK_SELF,
+                'link' => DataField::LINK_SELF,
                 'edit' => true
             ],
             'boardgame_count' => [
                 'caption' => 'Boardgames',
-                'data' => fn(BoardgamePublisher $p) => $p->boardgames->count(),
-                'data_type' => DataType::integer()
+                'data' => 'boardgame_count',
             ],
         ];
     }
@@ -35,8 +38,10 @@ class BoardgamePublisherRepository extends PinakesRepository {
     public function getDataFieldsList(): array {
         return $this->composeDataFields([ 'name', 'boardgame_count' ]);
     }
-
     public function getDataFieldsShow(): array {
+        return $this->composeDataFields([ 'name' ]);
+    }
+    public function getDataFieldsExport(): array {
         return $this->composeDataFields([ 'name' ]);
     }
 }

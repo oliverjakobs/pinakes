@@ -1,9 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Mapper;
 
 use App\Entity\Record;
-use App\Pinakes\DataColumn;
+use App\Pinakes\DataField;
 
 class RecordMapper extends PinakesMapper {
 
@@ -24,19 +24,19 @@ class RecordMapper extends PinakesMapper {
             'title' => [
                 'caption' => 'Title',
                 'data' => 'title',
-                'link' => DataColumn::LINK_SELF,
+                'link' => DataField::LINK_SELF,
                 'edit' => true
             ],
             'artist' => [
                 'caption' => 'Artist',
                 'data' => 'artist',
-                'link' => DataColumn::LINK_DATA,
+                'link' => DataField::LINK_DATA,
                 'edit' => true
             ],
             'label' => [
                 'caption' => 'Label',
                 'data' => 'label',
-                'link' => DataColumn::LINK_DATA,
+                'link' => DataField::LINK_DATA,
                 'edit' => true
             ],
             'released' => [

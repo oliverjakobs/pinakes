@@ -4,7 +4,7 @@ namespace App\Mapper;
 
 use App\Entity\Author;
 use App\Entity\Series;
-use App\Pinakes\DataColumn;
+use App\Pinakes\DataField;
 use App\Pinakes\DataType;
 
 class SeriesMapper extends PinakesMapper {
@@ -26,14 +26,14 @@ class SeriesMapper extends PinakesMapper {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataColumn::LINK_SELF,
+                'link' => DataField::LINK_SELF,
                 'edit' => true
             ],
             'authors' => [
                 'caption' => 'Author(s)',
                 'data' => fn (Series $s) => $s->getAuthors(),
                 'data_type' => DataType::collection(Author::class),
-                'link' => DataColumn::LINK_DATA
+                'link' => DataField::LINK_DATA
             ],
             'volumes' => [
                 'caption' => 'Volumes',

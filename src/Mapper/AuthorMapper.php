@@ -3,7 +3,7 @@
 namespace App\Mapper;
 
 use App\Entity\Author;
-use App\Pinakes\DataColumn;
+use App\Pinakes\DataField;
 
 class AuthorMapper extends PinakesMapper {
 
@@ -24,7 +24,7 @@ class AuthorMapper extends PinakesMapper {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataColumn::LINK_SELF,
+                'link' => DataField::LINK_SELF,
                 'edit' => true
             ],
             'book_count' => [

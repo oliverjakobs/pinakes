@@ -21,9 +21,10 @@ class MappedProperty {
 
     public readonly bool $is_owning;
     public readonly ?string $target;
+    public readonly ?string $target_property;
     public readonly ?string $join_table;
 
-    public readonly ?self $target_property;
+    public readonly ?self $virtual_target;
     
     public function __construct(string $entity, string $property, string $type, string $mapping_type, array $options) {
         $this->entity = $entity;
@@ -33,15 +34,15 @@ class MappedProperty {
 
         $this->is_owning = array_key_exists('inversed_by', $options);
         $this->target = $options['target'] ?? null;
+        $this->target_property = $options['inversed_by'] ?? $options['mapped_by'] ?? null;
 
         $this->join_table = $options['join_table'] ?? null;
 
-        $target_property = $options['property'] ?? null;
-        if (null !== $target_property) {
-            $this->target_property = self::create($entity, $target_property);
-        } else {
-            $this->target_property = null;
+        $virtual_target = null;
+        if (array_key_exists('property', $options)) {
+            $virtual_target = self::create($entity, $options['property']);
         }
+        $this->virtual_target = $virtual_target;
     }
 
     public static function create(object|string $entity, string $property): ?self {
@@ -82,7 +83,7 @@ class MappedProperty {
     }
 
     public function isVirtual(): bool {
-        return null !== $this->target_property;
+        return null !== $this->virtual_target;
     }
 
     public function getJoinTable(): string {

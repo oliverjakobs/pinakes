@@ -1,10 +1,9 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Mapper;
 
 use App\Entity\RecordLabel;
-use App\Pinakes\DataColumn;
-use App\Pinakes\DataType;
+use App\Pinakes\DataField;
 
 class RecordLabelMapper extends PinakesMapper {
 
@@ -25,14 +24,12 @@ class RecordLabelMapper extends PinakesMapper {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataColumn::LINK_SELF,
+                'link' => DataField::LINK_SELF,
                 'edit' => true
             ],
             'record_count' => [
-                'caption' => 'Books',
-                'data' => fn(RecordLabel $l) => $l->records->count(),
-                'data_type' => DataType::integer(),
-                'order_by' => 'record_count'
+                'caption' => 'Records',
+                'data' => 'record_count',
             ],
         ];
     }

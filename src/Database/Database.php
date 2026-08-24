@@ -133,16 +133,21 @@ class Database {
         foreach ($properties as $mapping) {
             switch ($mapping->mapping_type) {
                 case Count::class:
-                    $target = $mapping->target_property;
+                    $target = $mapping->virtual_target;
                     $target_name = PinakesMapper::getMapper($target->entity)->getTableName();
 
                     if ($target->isManyToMany()) {
                         $from = $target->getJoinTable();
+                        $fn_key = "{$table_name}_id";
                     } else {
                         $from = PinakesMapper::getMapper($target->target)->getTableName();
+                        $fn_key = "{$target->target_property}_id";
                     }
 
-                    $result->addVirtualSelect("(SELECT COUNT(*) FROM {$from} WHERE {$target_name}_id = {$target_name}.id)", $mapping->name);
+                    // Helper::bp("(SELECT COUNT(*) FROM {$from} WHERE {$fn_key} = {$target_name}.id)");
+                    // Helper::bp("(SELECT COUNT(*) FROM {$from} WHERE {$target->name}.{$fn_key} = {$target_name}.id)");
+
+                    $result->addVirtualSelect("(SELECT COUNT(*) FROM {$from} WHERE {$fn_key} = {$target_name}.id)", $mapping->name);
                     break;
                 case ManyToMany::class:
                     $target = PinakesMapper::getMapper($mapping->target);
@@ -165,14 +170,14 @@ class Database {
                     $target_name = $target->getTableName();
 
                     $result->addSelect(Expr::json_object($mapping->name, $target->getDefaultSelect()), $mapping->name);
-                    $result->addJoin("LEFT JOIN {$target_name} {$mapping->name} ON {$mapping->name}.id = {$table_name}.{$target_name}_id");
+                    $result->addJoin("LEFT JOIN {$target_name} {$mapping->name} ON {$mapping->name}.id = {$table_name}.{$mapping->name}_id");
                     break;
                 case OneToMany::class:
                     $target = PinakesMapper::getMapper($mapping->target);
                     $target_name = $target->getTableName();
 
                     $result->addSelect(Expr::json_group($mapping->name, $target->getDefaultSelect()), $mapping->name);
-                    $result->addJoin("LEFT JOIN {$target_name} {$mapping->name} ON {$mapping->name}.{$table_name}_id = {$table_name}.id");
+                    $result->addJoin("LEFT JOIN {$target_name} {$mapping->name} ON {$mapping->name}.{$mapping->target_property}_id = {$table_name}.id");
                     break;
                 case Column::class:
                     $result->addSelect('.' . $mapping->name);

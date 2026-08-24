@@ -4,6 +4,56 @@ namespace App\Database\SQL;
 
 use App\Pinakes\Helper;
 
+/*
+SELECT
+    book.id,
+    book.title,
+    authors.authors AS authors,
+    json_object(
+        'id', publisher.id,
+        'name', publisher.name
+    ) AS publisher,
+    tags.tags AS tags,
+    book.published,
+    book.first_published,
+    book.isbn,
+    json_object(
+        'id', series.id,
+        'name', series.name
+    ) AS series,
+    book.series_volume
+FROM book
+LEFT JOIN (
+    SELECT
+        book_author.book_id,
+        json_group_array(
+            json_object('id', author.id, 'name', author.name)
+        ) AS authors
+    FROM book_author
+    JOIN author ON author.id = book_author.author_id
+    GROUP BY book_author.book_id
+) AS authors ON authors.book_id = book.id
+LEFT JOIN publisher
+    ON publisher.id = book.publisher_id
+LEFT JOIN (
+    SELECT
+        book_tag.book_id,
+        json_group_array(
+            json_object(
+                'id', tag.id,
+                'name', tag.name,
+                'color', tag.color
+            )
+        ) AS tags
+    FROM book_tag
+    JOIN tag ON tag.id = book_tag.tag_id
+    GROUP BY book_tag.book_id
+) AS tags ON tags.book_id = book.id
+LEFT JOIN series
+    ON series.id = book.series_id
+ORDER BY publisher.name DESC
+LIMIT 30 OFFSET 0;
+ */
 class Query implements Statement {
     public readonly string $table_name;
     public array $selects = [];

@@ -2,28 +2,22 @@
 
 namespace App\Entity;
 
-use App\Repository\BoardgamePublisherRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
+use App\Database\Mapping;
 
-#[ORM\Entity(repositoryClass: BoardgamePublisherRepository::class)]
 class BoardgamePublisher extends PinakesEntity {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+
+    #[Mapping\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[Mapping\Column]
     public ?string $name = null;
 
-    /** @var Collection<int, Boardgame> */
-    #[ORM\OneToMany(targetEntity: Boardgame::class, mappedBy: 'publisher')]
-    public Collection $boardgames;
+    /** @var Boardgame[] */
+    #[Mapping\OneToMany(target: Boardgame::class, mapped_by: 'publisher')]
+    public array $boardgames;
 
-    public function __construct() {
-        $this->boardgames = new ArrayCollection();
-    }
+    #[Mapping\Count(property: 'boardgames')]
+    public ?int $boardgame_count = null;
 
     public function __toString(): string {
         return $this->name ?? 'Unknown publisher';

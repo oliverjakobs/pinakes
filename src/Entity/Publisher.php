@@ -12,7 +12,7 @@ class Publisher extends PinakesEntity {
     public ?string $name = null;
 
     /** @var Book[] */
-    #[Mapping\OneToMany(target: Book::class, mappedBy: 'publisher')]
+    #[Mapping\OneToMany(target: Book::class, mapped_by: 'publisher')]
     public array $books;
 
     #[Mapping\Count(property: 'books')]

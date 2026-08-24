@@ -2,45 +2,37 @@
 
 namespace App\Entity;
 
-use App\Repository\BoardgameRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
-use Doctrine\ORM\Mapping as ORM;
+use App\Database\Mapping;
 
-#[ORM\Entity(repositoryClass: BoardgameRepository::class)]
 class Boardgame extends PinakesEntity {
 
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[Mapping\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+    #[Mapping\Column]
     public ?string $name = null;
 
-    /** @var Collection<int, Boardgame> */
-    #[ORM\OneToMany(targetEntity: Boardgame::class, mappedBy: 'base_game')]
-    public Collection $extensions;
+    /** @var Boardgame[] */
+    #[Mapping\OneToMany(target: Boardgame::class, mapped_by: 'base_game')]
+    public array $extensions = [];
 
-    #[ORM\ManyToOne(inversedBy: 'extensions', cascade: ['persist'])]
+    #[Mapping\ManyToOne(target: Boardgame::class, inversed_by: 'extensions')]
     public ?Boardgame $base_game = null;
 
-    #[ORM\ManyToOne(inversedBy: 'boardgames', cascade: ['persist'])]
+    #[Mapping\ManyToOne(target: BoardgamePublisher::class, inversed_by: 'boardgames')]
     public ?BoardgamePublisher $publisher = null;
 
-    #[ORM\Column()]
-    public ?int $min_player = null;
+    #[Mapping\Column]
+    public int $min_player = 1;
 
-    #[ORM\Column(nullable: true)]
+    #[Mapping\Column]
     public ?int $max_player = null;
 
-    #[ORM\Column(options: ['default' => 'CURRENT_TIMESTAMP'])]
+    #[Mapping\Column]
     public ?\DateTime $created_at = null;
 
     public function __construct() {
-        $this->extensions = new ArrayCollection();
         $this->created_at = new \DateTime();
-        $this->min_player = 1;
     }
 
     public function __toString(): string {

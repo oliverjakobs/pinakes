@@ -29,7 +29,6 @@ class BookController extends PinakesController {
 
     #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
     public function show(Request $request): Response {
-
         $mapper = PinakesMapper::getMapper(Book::class);
         /** @var Book */
         $book = $this->getEntityNew($request, $mapper);

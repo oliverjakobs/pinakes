@@ -85,7 +85,7 @@ class DataField {
 
         if (DataType::TYPE_ENTITY === $this->data_type->type) {
             $target = $this->data_type->getTargetMapper();
-            return "\"{$target->getTableName()}:{$target->getSearchKey()}\"";
+            return "{$target->getTableName()}.{$target->getSearchKey()}";
         }
         
         return "{$this->mapper->getTableName()}.{$this->property}";

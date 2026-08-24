@@ -24,10 +24,12 @@ class MappedPropertyTest extends TestCase {
         $this->assertEquals('string', $mapping->type);
         $this->assertEquals(Column::class, $mapping->mapping_type);
 
-        $this->assertFalse($mapping->is_owning);
         $this->assertNull($mapping->target);
-        $this->assertNull($mapping->join_table);
         $this->assertNull($mapping->target_property);
+        $this->assertFalse($mapping->is_owning);
+        $this->assertNull($mapping->join_table);
+
+        $this->assertNull($mapping->virtual_target);
     }
 
     public function testManyToMany(): void {
@@ -35,14 +37,15 @@ class MappedPropertyTest extends TestCase {
 
         $this->assertEquals(Book::class, $mapping->entity);
         $this->assertEquals('authors', $mapping->name);
-        $this->assertEquals(Collection::class, $mapping->type);
+        $this->assertEquals('array', $mapping->type);
         $this->assertEquals(ManyToMany::class, $mapping->mapping_type);
 
-        $this->assertTrue($mapping->is_owning);
         $this->assertEquals(Author::class, $mapping->target);
+        $this->assertEquals('books', $mapping->target_property);
+        $this->assertTrue($mapping->is_owning);
         $this->assertNull($mapping->join_table);
 
-        $this->assertNull($mapping->target_property);
+        $this->assertNull($mapping->virtual_target);
     }
 
     public function testManyToOne(): void {
@@ -53,11 +56,12 @@ class MappedPropertyTest extends TestCase {
         $this->assertEquals(Publisher::class, $mapping->type);
         $this->assertEquals(ManyToOne::class, $mapping->mapping_type);
 
-        $this->assertTrue($mapping->is_owning);
         $this->assertEquals(Publisher::class, $mapping->target);
+        $this->assertEquals('books', $mapping->target_property);
+        $this->assertTrue($mapping->is_owning);
         $this->assertNull($mapping->join_table);
 
-        $this->assertNull($mapping->target_property);
+        $this->assertNull($mapping->virtual_target);
     }
 
     public function testOneToMany(): void {
@@ -65,14 +69,15 @@ class MappedPropertyTest extends TestCase {
 
         $this->assertEquals(Publisher::class, $mapping->entity);
         $this->assertEquals('books', $mapping->name);
-        $this->assertEquals(Collection::class, $mapping->type);
+        $this->assertEquals('array', $mapping->type);
         $this->assertEquals(OneToMany::class, $mapping->mapping_type);
 
-        $this->assertFalse($mapping->is_owning);
         $this->assertEquals(Book::class, $mapping->target);
+        $this->assertEquals('publisher', $mapping->target_property);
+        $this->assertFalse($mapping->is_owning);
         $this->assertNull($mapping->join_table);
 
-        $this->assertNull($mapping->target_property);
+        $this->assertNull($mapping->virtual_target);
     }
 
     public function testCount(): void {
@@ -83,11 +88,12 @@ class MappedPropertyTest extends TestCase {
         $this->assertEquals('int', $mapping->type);
         $this->assertEquals(Count::class, $mapping->mapping_type);
 
-        $this->assertFalse($mapping->is_owning);
         $this->assertNull($mapping->target);
+        $this->assertNull($mapping->target_property);
+        $this->assertFalse($mapping->is_owning);
         $this->assertNull($mapping->join_table);
 
-        $this->assertNotNull($mapping->target_property);
-        $this->assertEquals('books', $mapping->target_property->name);
+        $this->assertNotNull($mapping->virtual_target);
+        $this->assertEquals('books', $mapping->virtual_target->name);
     }
 }

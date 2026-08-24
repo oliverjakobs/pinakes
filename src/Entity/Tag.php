@@ -15,7 +15,7 @@ class Tag extends PinakesEntity implements TagInterface {
     public ?string $color = null;
 
     /** @var Book[] */
-    #[Mapping\ManyToMany(target: Book::class, mappedBy: 'tags')]
+    #[Mapping\ManyToMany(target: Book::class, mapped_by: 'tags')]
     public array $books;
 
     #[Mapping\Count(property: 'books')]

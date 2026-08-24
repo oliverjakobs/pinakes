@@ -4,17 +4,11 @@ namespace App\Entity;
 
 use App\Mapper\PinakesMapper;
 use ReflectionClass;
-use App\Pinakes\Pinakes;
 use App\Renderable\Link;
-use App\Repository\PinakesRepository;
 
 abstract class PinakesEntity {
     abstract public function getId(): ?int;
     abstract public function __toString(): string;
-
-    public static function getRepository(): PinakesRepository {
-        return Pinakes::getRepository(static::class);
-    }
 
     public static function getMapper(): PinakesMapper {
         return PinakesMapper::getMapper(static::class);

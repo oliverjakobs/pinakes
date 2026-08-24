@@ -14,11 +14,11 @@ class Author extends PinakesEntity {
     public ?string $name = null;
 
     /** @var Book[] */
-    #[Mapping\ManyToMany(target: Book::class, mappedBy: 'authors')]
+    #[Mapping\ManyToMany(target: Book::class, mapped_by: 'authors')]
     public array $books = [];
 
     /** @var Book[] */
-    #[Mapping\ManyToMany(target: Book::class, mappedBy: 'translators', join_table: 'book_translator')]
+    #[Mapping\ManyToMany(target: Book::class, mapped_by: 'translators', join_table: 'book_translator')]
     public array $translations = [];
 
     #[Mapping\Column]
