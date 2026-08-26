@@ -19,7 +19,7 @@ class TableCaption {
     }
 }
 
-class DataTable2 {
+class DataTable {
     const DEFAULT_QUERY = [
         'order_by' => null,
         'order_dir' => 'desc',

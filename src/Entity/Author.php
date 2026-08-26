@@ -11,7 +11,7 @@ class Author extends PinakesEntity {
     private ?int $id = null;
 
     #[Mapping\Column]
-    public ?string $name = null;
+    public string $name = 'Unknown author';
 
     /** @var Book[] */
     #[Mapping\ManyToMany(target: Book::class, mapped_by: 'authors')]
@@ -25,16 +25,16 @@ class Author extends PinakesEntity {
     public ?string $openlibrary = null;
 
     #[Mapping\Count(property: 'books')]
-    public ?int $book_count = null;
+    public int $book_count = 0;
 
     #[Mapping\Count(property: 'translations')]
-    public ?int $translation_count = null;
+    public int $translation_count = 0;
 
     public function __construct() {
     }
 
     public function __toString(): string {
-        return $this->name ?? 'Unknown author';
+        return $this->name;
     }
 
     public function getId(): ?int {

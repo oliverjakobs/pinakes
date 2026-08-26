@@ -31,7 +31,7 @@ class SeriesMapper extends PinakesMapper {
             ],
             'authors' => [
                 'caption' => 'Author(s)',
-                'data' => fn (Series $s) => $s->getAuthors(),
+                'data' => 'authors',
                 'data_type' => DataType::collection(Author::class),
                 'link' => DataField::LINK_DATA
             ],

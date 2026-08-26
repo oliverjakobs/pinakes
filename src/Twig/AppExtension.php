@@ -6,7 +6,7 @@ use App\Pinakes\Pinakes;
 use App\Entity\PinakesEntity;
 use App\Entity\User;
 use App\Pinakes\DataField;
-use App\Pinakes\DataTable2;
+use App\Pinakes\DataTable;
 use App\Pinakes\DataType;
 use App\Renderable\FormElement;
 use App\Renderable\Renderable;
@@ -22,7 +22,7 @@ class AppExtension {
     }
 
     #[AsTwigFunction('filter_url')]
-    public function getFilterUrl(Request $request, DataTable2 $table, array $filter = []): string {
+    public function getFilterUrl(Request $request, DataTable $table, array $filter = []): string {
         $route = $request->attributes->get('_route');
         $params = $request->attributes->get('_route_params');
 
@@ -59,7 +59,7 @@ class AppExtension {
     }
 
     #[AsTwigFunction('render_filter')]
-    public function renderFilter(DataTable2 $table, DataField $col): FormElement {
+    public function renderFilter(DataTable $table, DataField $col): FormElement {
         $value = $table->getFilterValue($col->name);
         return $col->data_type->getForm($col->name, $col->data_type->parse($value));
     }

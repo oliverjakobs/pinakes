@@ -9,24 +9,20 @@ class Tag extends PinakesEntity implements TagInterface {
     private ?int $id = null;
 
     #[Mapping\Column]
-    public ?string $name = null;
+    public string $name = 'Unknown tag';
 
     #[Mapping\Column]
-    public ?string $color = null;
+    public string $color = '#ffffff';
 
     /** @var Book[] */
     #[Mapping\ManyToMany(target: Book::class, mapped_by: 'tags')]
-    public array $books;
+    public array $books = [];
 
     #[Mapping\Count(property: 'books')]
-    public ?int $book_count = null;
-
-    public function __construct() {
-        $this->color = '#ffffff';
-    }
+    public int $book_count = 0;
 
     public function __toString(): string {
-        return $this->name ?? 'Unknown tag';
+        return $this->name;
     }
 
     public function getId(): ?int {

@@ -7,6 +7,7 @@ use App\Database\Mapping\ManyToMany;
 use App\Database\Mapping\ManyToOne;
 use App\Database\Mapping\OneToMany;
 use App\Database\Mapping\Count;
+use App\Database\Mapping\Reference;
 use App\Database\SQL\Delete;
 use App\Database\SQL\Expr;
 use App\Database\SQL\Insert;
@@ -14,7 +15,10 @@ use App\Database\SQL\InsertJoin;
 use App\Database\SQL\Query;
 use App\Database\SQL\Statement;
 use App\Database\SQL\Update;
+use App\Entity\Boardgame;
+use App\Entity\Book;
 use App\Entity\PinakesEntity;
+use App\Entity\Series;
 use App\Mapper\PinakesMapper;
 use App\Pinakes\Assert;
 use App\Pinakes\Helper;
@@ -91,23 +95,37 @@ class Database {
             $mapping = MappedProperty::fromReflection($property);
             if (null === $mapping) continue;
 
+            if (Reference::class === $mapping->mapping_type) {
+                $target_mapper = PinakesMapper::getMapper($mapping->virtual_target->target);
+                $mapping = $target_mapper->getMapping($mapping->reference);
+            }
+
             if ($mapping->isAssociative()) {
                 $class_name = $mapping->target;
 
                 if ($mapping->isArrayType()) {
-                    if (null !== $value) {
-                        $value = json_decode($value, true);
-                    }
+                    /**
+                     * invalid values:
+                     * - NULL
+                     * - "[{"id":null,"name":null}]"
+                    */
                     $entities = [];
-                    foreach ($value ?? [] as $v) {
+                    foreach (json_decode($value ?? '[]', true) as $v) {
+                        if (!array_key_exists('id', $v) || null === $v['id']) continue;
                         if (is_int($v)) Helper::bp($data, $v);
                         $entities[] = self::hydrate(new $class_name(), $v);
                     }
                     $value = $entities;
                 } else {
-                    if (null !== $value) {
-                        $value = json_decode($value, true);
+                    /**
+                     * invalid values:
+                     * - "{"id":null,"name":null}"
+                     */
+                    $value = json_decode($value, true);
+                    if (array_key_exists('id', $value) && null !== $value['id']) {
                         $value = self::hydrate(new $class_name(), $value);
+                    } else {
+                        $value = null;
                     }
                 }
             } else if ('DateTime' === $mapping->type) {
@@ -133,21 +151,44 @@ class Database {
         foreach ($properties as $mapping) {
             switch ($mapping->mapping_type) {
                 case Count::class:
+                    $table_name = PinakesMapper::getMapper($mapping->entity)->getTableName();
+                    
                     $target = $mapping->virtual_target;
-                    $target_name = PinakesMapper::getMapper($target->entity)->getTableName();
-
                     if ($target->isManyToMany()) {
                         $from = $target->getJoinTable();
-                        $fn_key = "{$table_name}_id";
+                        $target_key = "{$table_name}_id";
                     } else {
                         $from = PinakesMapper::getMapper($target->target)->getTableName();
-                        $fn_key = "{$target->target_property}_id";
+                        $target_key = "{$target->target_property}_id";
                     }
 
-                    // Helper::bp("(SELECT COUNT(*) FROM {$from} WHERE {$fn_key} = {$target_name}.id)");
-                    // Helper::bp("(SELECT COUNT(*) FROM {$from} WHERE {$target->name}.{$fn_key} = {$target_name}.id)");
+                    $result->addSelect("(SELECT COUNT(*) FROM {$from} WHERE {$target_key} = {$table_name}.id)", $mapping->name);
+                    break;
+                case Reference::class:
+                    $target = $mapping->virtual_target;
+                    $target_mapper = PinakesMapper::getMapper($target->target);
+                    $target_name = $target_mapper->getTableName();
 
-                    $result->addVirtualSelect("(SELECT COUNT(*) FROM {$from} WHERE {$fn_key} = {$target_name}.id)", $mapping->name);
+                    $reference = $target_mapper->getMapping($mapping->reference);
+                    $reference_target_mapper = PinakesMapper::getMapper($reference->target);
+                    $reference_target_name = $reference_target_mapper->getTableName();
+
+                    if ($reference->isManyToMany()) {
+                        $from = $reference->getJoinTable();
+                    } else {
+                        // $from = $reference_target_mapper->getTableName();
+                        Assert::notImplemented();
+                    }
+                    $exists = new Query($from);
+                    $exists->addSelect('1');
+                    $exists->addJoin("JOIN {$target_name} ON {$target_name}.id = {$from}.{$target_name}_id");
+                    $exists->addWhere(".{$reference_target_name}_id = {$reference_target_name}.id AND book.{$table_name}_id = {$table_name}.id");
+
+                    $subquery = new Query($reference_target_name);
+                    $subquery->addSelect(Expr::json_group($subquery->table_name, $reference_target_mapper->getDefaultSelect()));
+                    $subquery->addWhere("EXISTS ({$exists->build()})");
+                    
+                    $result->addSelect("({$subquery->build()})", $mapping->name);
                     break;
                 case ManyToMany::class:
                     $target = PinakesMapper::getMapper($mapping->target);

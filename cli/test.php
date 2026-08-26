@@ -138,8 +138,14 @@ LIMIT 5 OFFSET 0;
 SQL;
 
 /*
-SELECT a.id, a.name
-FROM authors a
+SELECT
+json_group_array(
+    json_object(
+        'id', author.id,
+        'name', author.name
+    )
+)
+FROM authors author
 WHERE EXISTS (
     SELECT 1
     FROM book_authors ba
@@ -161,7 +167,7 @@ FROM (
     JOIN authors a ON a.id = ba.author_id
     WHERE b.series_id = s.id
     ORDER BY a.name
-) AS author
+) AS author;
 
 SELECT
     book.id,

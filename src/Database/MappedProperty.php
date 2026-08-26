@@ -25,6 +25,7 @@ class MappedProperty {
     public readonly ?string $join_table;
 
     public readonly ?self $virtual_target;
+    public readonly ?string $reference;
     
     public function __construct(string $entity, string $property, string $type, string $mapping_type, array $options) {
         $this->entity = $entity;
@@ -43,6 +44,7 @@ class MappedProperty {
             $virtual_target = self::create($entity, $options['property']);
         }
         $this->virtual_target = $virtual_target;
+        $this->reference = $options['reference'] ?? null;
     }
 
     public static function create(object|string $entity, string $property): ?self {

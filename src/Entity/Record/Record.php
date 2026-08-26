@@ -15,7 +15,7 @@ class Record extends PinakesEntity {
     private ?int $id = null;
 
     #[Mapping\Column]
-    public ?string $title = null;
+    public string $title = 'Untitled record';
 
     #[Mapping\ManyToOne(target: Artist::class, inversed_by: 'records')]
     public ?Artist $artist = null;
@@ -30,14 +30,14 @@ class Record extends PinakesEntity {
     public ?\DateTime $released = null;
 
     #[Mapping\Column]
-    public ?\DateTime $created_at = null;
+    public \DateTime $created_at;
 
     public function __construct() {
         $this->created_at = new \DateTime();
     }
 
     public function __toString(): string {
-        return $this->title ?? 'Untitled record';
+        return $this->title;
     }
 
     public function getId(): ?int {

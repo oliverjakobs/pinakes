@@ -61,7 +61,6 @@ class Query implements Statement {
     public array $wheres = [];
     public array $group_by = [];
     public array $order_by = [];
-    public array $virtual_selects = [];
 
     public array $parameters = [];
 
@@ -80,11 +79,6 @@ class Query implements Statement {
         if ('.' === $select[0]) $select = $this->table_name . $select;
         if (null !== $alias) $select = sprintf('%s AS %s', $select, $alias);
         $this->selects[] = $select;
-        return $this;
-    }
-
-    public function addVirtualSelect(string $select, string $name): self {
-        $this->virtual_selects[$name] = $select;
         return $this;
     }
 
@@ -141,24 +135,12 @@ class Query implements Statement {
             $order_by = 'ORDER BY ' . implode(', ', $order_by);
         }
 
-        $virtual_select = '';
-        if (!Helper::isEmpty($this->virtual_selects)) {
-            $virtual_select = array_map(fn($v, $k) => $v . ' AS ' . $k, $this->virtual_selects, array_keys($this->virtual_selects));
-            $virtual_select = ', ' . implode(', ', $virtual_select);
-        }
-
-        $from = $this->table_name;
+        $limit = '';
         if (null !== $this->limit) {
-            $subquery = "SELECT * {$virtual_select} FROM {$this->table_name} {$where} {$order_by} LIMIT {$this->limit} OFFSET {$this->offset}";
-            $from = "({$subquery}) AS {$this->table_name}";
-            $where = '';
-            if (!Helper::isEmpty($this->virtual_selects)) {
-                $virtual_select = array_map(fn($k) => "{$this->table_name}.{$k}", array_keys($this->virtual_selects));
-                $virtual_select = ', ' . implode(', ', $virtual_select);
-            }
+            $limit = "LIMIT {$this->limit} OFFSET {$this->offset}";
         }
 
-        return "SELECT {$select} {$virtual_select} FROM {$from} {$join} {$where} {$group_by} {$order_by}";
+        return "SELECT {$select} FROM {$this->table_name} {$join} {$where} {$group_by} {$order_by} {$limit}";
     }
 
     public function getParameters(): array {

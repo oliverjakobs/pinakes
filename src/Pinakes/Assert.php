@@ -27,4 +27,8 @@ class Assert {
     public static function error(string $msg) {
         assert(false, $msg);
     }
+
+    public static function notImplemented() {
+        self::error('Not implemented');
+    }
 }

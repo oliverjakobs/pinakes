@@ -4,16 +4,8 @@ namespace App\Mapper;
 
 use App\Database\Database;
 use App\Database\MappedProperty;
-use App\Database\Mapping\Count;
-use App\Database\Mapping\ManyToMany;
-use App\Database\Mapping\ManyToOne;
-use App\Database\Mapping\OneToMany;
 use App\Database\SQL\Delete;
-use App\Database\SQL\Expr;
-use App\Database\SQL\Insert;
-use App\Database\SQL\InsertJoin;
 use App\Database\SQL\Query;
-use App\Database\SQL\Update;
 use App\Database\SQL\Upsert;
 use App\Entity\Artist;
 use App\Entity\Author;
@@ -30,7 +22,7 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use App\Pinakes\Assert;
 use App\Pinakes\DataField;
-use App\Pinakes\DataTable2;
+use App\Pinakes\DataTable;
 use App\Pinakes\Helper;
 use ReflectionClass;
 
@@ -93,7 +85,7 @@ abstract class PinakesMapper {
     /** @return PinakesEntity[] */
     public function fetchQuery(Query $query): array {
         $result = [];
-        foreach ( Database::getInstance()->fetchAll($query) as $row) {
+        foreach (Database::getInstance()->fetchAll($query) as $row) {
             $entity_class = $this->getEntityClass();
             $result[] = Database::hydrate(new $entity_class(), $row);
         }
@@ -142,9 +134,9 @@ abstract class PinakesMapper {
         return $result;
     }
 
-    public function createTable(string $fields): DataTable2 {
+    public function createTable(string $fields): DataTable {
         $columns = $this->getDataFields($fields);
-        return new DataTable2($this, $columns);
+        return new DataTable($this, $columns);
     }
 
     public function createQueryFromFields(array $fields): Query {

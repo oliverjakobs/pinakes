@@ -11,7 +11,7 @@ class Book extends PinakesEntity {
     private ?int $id = null;
 
     #[Mapping\Column]
-    public ?string $title = null;
+    public string $title = 'Untitled book';
 
     /** @var Author[] */
     #[Mapping\ManyToMany(target: Author::class, inversed_by: 'books')]
@@ -51,7 +51,7 @@ class Book extends PinakesEntity {
     }
 
     public function __toString(): string {
-        return $this->title ?? 'Untitled book';
+        return $this->title;
     }
 
     public function getId(): ?int {

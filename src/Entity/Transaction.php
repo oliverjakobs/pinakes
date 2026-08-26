@@ -17,7 +17,7 @@ class Transaction extends PinakesEntity {
     public ?string $reason = null;
 
     #[Mapping\Column]
-    public ?\DateTime $timestamp = null;
+    public \DateTime $timestamp;
 
     public function __construct() {
         $this->timestamp = new \DateTime();

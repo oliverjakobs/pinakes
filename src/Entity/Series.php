@@ -9,20 +9,20 @@ class Series extends PinakesEntity {
     private ?int $id = null;
 
     #[Mapping\Column]
-    public ?string $name = null;
+    public string $name = 'Untitled Series';
 
     /** @var Book[] */
     #[Mapping\OneToMany(target: Book::class, mapped_by: 'series')]
-    public array $volumes;
+    public array $volumes = [];
 
     #[Mapping\Count(property: 'volumes')]
-    public ?int $volume_count = null;
+    public int $volume_count = 0;
 
-    public function __construct() {
-    }
+    #[Mapping\Reference(property: 'volumes', reference: 'authors')]
+    public array $authors = [];
 
     public function __toString(): string {
-        return $this->name ?? 'Untitled Series';
+        return $this->name;
     }
 
     public function getId(): ?int {

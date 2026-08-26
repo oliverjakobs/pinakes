@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\PinakesEntity;
 use App\Mapper\PinakesMapper;
-use App\Pinakes\DataTable2;
+use App\Pinakes\DataTable;
 use App\Pinakes\Helper;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
@@ -30,7 +30,7 @@ abstract class PinakesController extends AbstractController {
         return $entity;
     }
 
-    protected function pushFilterUrl(Response $response, Request $request, DataTable2 $table): Response {
+    protected function pushFilterUrl(Response $response, Request $request, DataTable $table): Response {
         // TODO dont push if only order changed
         $referer = $request->headers->get('referer');
         if (null !== $referer) {
@@ -60,7 +60,7 @@ abstract class PinakesController extends AbstractController {
         return $actions;
     }
     
-    public function renderList2(Request $request, string $title, DataTable2 $table, array $actions = [], array $filters = []): Response {
+    public function renderList2(Request $request, string $title, DataTable $table, array $actions = [], array $filters = []): Response {
         $filter_only = $table->setQuery($request->query->all());
 
         if ($filter_only) {
@@ -104,7 +104,7 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    public function exportCsv(DataTable2 $table, string $filename): Response {
+    public function exportCsv(DataTable $table, string $filename): Response {
         $response = $this->render('export/export.csv.twig', [
             'table' => $table
         ]);

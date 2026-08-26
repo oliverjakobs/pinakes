@@ -10,7 +10,7 @@ class Boardgame extends PinakesEntity {
     private ?int $id = null;
 
     #[Mapping\Column]
-    public ?string $name = null;
+    public string $name = 'Untitled boardgame';
 
     /** @var Boardgame[] */
     #[Mapping\OneToMany(target: Boardgame::class, mapped_by: 'base_game')]
@@ -36,7 +36,7 @@ class Boardgame extends PinakesEntity {
     }
 
     public function __toString(): string {
-        return $this->name ?? 'Untitled boardgame';
+        return $this->name;
     }
 
     public function getId(): ?int {
