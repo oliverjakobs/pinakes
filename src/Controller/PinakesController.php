@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 abstract class PinakesController extends AbstractController {
 
-    protected function getEntityNew(Request $request, PinakesMapper|string $mapper, array $properties = []): ?PinakesEntity {
+    protected function getEntity(Request $request, PinakesMapper|string $mapper): ?PinakesEntity {
         $id = $request->attributes->get('id');
         if (null === $id) return null;
 
@@ -22,7 +22,7 @@ abstract class PinakesController extends AbstractController {
             $mapper = PinakesMapper::getMapper($mapper);
         }
 
-        $entity = $mapper->find((int) $id, $properties);
+        $entity = $mapper->find((int) $id);
         if (null === $entity) {
             throw $this->createNotFoundException('entity with id ' . $id . ' does not exist');
         }
@@ -60,7 +60,7 @@ abstract class PinakesController extends AbstractController {
         return $actions;
     }
     
-    public function renderList2(Request $request, string $title, DataTable $table, array $actions = [], array $filters = []): Response {
+    public function renderList(Request $request, string $title, DataTable $table, array $actions = [], array $filters = []): Response {
         $filter_only = $table->setQuery($request->query->all());
 
         if ($filter_only) {
@@ -76,7 +76,7 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    public function renderShow2(PinakesEntity $entity, array $fields, array $actions = []) {
+    public function renderShow(PinakesEntity $entity, array $fields, array $actions = []) {
         return $this->render('show.html.twig', [
             'entity' => $entity,
             'fields' => $fields,
@@ -84,7 +84,7 @@ abstract class PinakesController extends AbstractController {
         ]);
     }
 
-    public function renderModal2(Request $request, PinakesMapper $mapper, PinakesEntity $entity, string $redirect, string $fields = 'show'): Response {
+    public function renderModal(Request $request, PinakesMapper $mapper, PinakesEntity $entity, string $redirect, string $fields = 'show'): Response {
         if (Request::METHOD_POST === $request->getMethod()) {
             $id = $mapper->updateEntity($entity, $request->request->all());
             return $this->redirectToRoute($redirect, [ 'id' => $id ]);

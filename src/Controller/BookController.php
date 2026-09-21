@@ -20,7 +20,7 @@ class BookController extends PinakesController {
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request): Response {
         $table = PinakesMapper::getMapper(Book::class)->createTable('list');
-        return $this->renderList2($request, 'Books', $table, [
+        return $this->renderList($request, 'Books', $table, [
             Link::modal('New Book', 'book_modal'),
             ViewElement::separator(),
             Link::create('Export Books', 'book_export')
@@ -31,8 +31,8 @@ class BookController extends PinakesController {
     public function show(Request $request): Response {
         $mapper = PinakesMapper::getMapper(Book::class);
         /** @var Book */
-        $book = $this->getEntityNew($request, $mapper);
-        return $this->renderShow2($book, $mapper->getDataFields('show'), [
+        $book = $this->getEntity($request, $mapper);
+        return $this->renderShow($book, $mapper->getDataFields('show'), [
             $book->getLinkEdit(),
             $book->getLinkDelete(),
             ViewElement::separator(),
@@ -45,25 +45,25 @@ class BookController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $mapper = PinakesMapper::getMapper(Book::class);
-        
+
         /** @var Book */
-        $book = $this->getEntityNew($request, $mapper);
+        $book = $this->getEntity($request, $mapper);
         if (null === $book) {
             $book = new Book();
-
-            if (null !== $series) {
-                $book->series = PinakesMapper::getMapper(Series::class)->find($series);
-            }
         }
 
-        return $this->renderModal2($request, $mapper, $book, 'book_show', 'show');
+        if (null !== $series) {
+            $book->series = PinakesMapper::getMapper(Series::class)->find($series);
+        }
+
+        return $this->renderModal($request, $mapper, $book, 'book_show', 'show');
     }
 
     #[Route('/book/delete/{id}', name: 'book_delete', methods: ['DELETE'])]
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $book = $this->getEntityNew($request, Book::class);
+        $book = $this->getEntity($request, Book::class);
         PinakesMapper::getMapper(Book::class)->deleteEntity($book);
 
         return $this->redirectHx('book');

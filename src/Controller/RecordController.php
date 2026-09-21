@@ -19,7 +19,7 @@ class RecordController extends PinakesController {
     #[Route('/record', name: 'record', methods: ['GET'])]
     public function list(Request $request): Response {
         $table = PinakesMapper::getMapper(Record::class)->createTable('list');
-        return $this->renderList2($request, 'Records', $table, [
+        return $this->renderList($request, 'Records', $table, [
             Link::modal('New Book', 'record_modal'),
         ]);
     }
@@ -28,7 +28,7 @@ class RecordController extends PinakesController {
     public function cd(Request $request): Response {
         $medium = Medium::CD;
         $table = PinakesMapper::getMapper(Record::class)->createTable('list')->addFilter('medium', $medium);
-        return $this->renderList2($request, 'Records', $table, [
+        return $this->renderList($request, 'Records', $table, [
             Link::modal('New CD', 'record_modal', [ 'medium' => $medium->value ]),
         ]);
     }
@@ -37,7 +37,7 @@ class RecordController extends PinakesController {
     public function vinyl(Request $request): Response {
         $medium = Medium::Vinyl;
         $table = PinakesMapper::getMapper(Record::class)->createTable('list')->addFilter('medium', $medium);
-        return $this->renderList2($request, 'Records', $table, [
+        return $this->renderList($request, 'Records', $table, [
             Link::modal('New Vinyl', 'record_modal', [ 'medium' => $medium->value ]),
         ]);
     }
@@ -46,8 +46,8 @@ class RecordController extends PinakesController {
     public function show(Request $request): Response {
         $mapper = PinakesMapper::getMapper(Record::class);
         /** @var Record */
-        $record = $this->getEntityNew($request, $mapper);
-        return $this->renderShow2($record, $mapper->getDataFields('show'), [
+        $record = $this->getEntity($request, $mapper);
+        return $this->renderShow($record, $mapper->getDataFields('show'), [
             $record->getLinkEdit(),
             $record->getLinkDelete(),
         ]);
@@ -60,23 +60,23 @@ class RecordController extends PinakesController {
         $mapper = PinakesMapper::getMapper(Record::class);
         
         /** @var Record */
-        $record = $this->getEntityNew($request, $mapper);
+        $record = $this->getEntity($request, $mapper);
         if (null === $record) {
             $record = new Record();
-
-            if (null !== $medium) {
-                $record->setMedium($medium);
-            }
         }
 
-        return $this->renderModal2($request, $mapper, $record, 'record_show');
+        if (null !== $medium) {
+            $record->setMedium($medium);
+        }
+
+        return $this->renderModal($request, $mapper, $record, 'record_show');
     }
 
     #[Route('/record/delete/{id}', name: 'record_delete', methods: ['DELETE'])]
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $record = $this->getEntityNew($request, Record::class);
+        $record = $this->getEntity($request, Record::class);
         PinakesMapper::getMapper(Record::class)->deleteEntity($record);
         return $this->redirectHx('record');
     }
@@ -84,18 +84,18 @@ class RecordController extends PinakesController {
     #[Route('/artist', name: 'artist', methods: ['GET'])]
     public function artistList(Request $request): Response {
         $table = PinakesMapper::getMapper(Artist::class)->createTable('list');
-        return $this->renderList2($request, 'Artists', $table);
+        return $this->renderList($request, 'Artists', $table);
     }
 
     #[Route('/artist/show/{id}', name: 'artist_show', methods: ['GET'])]
     public function artistShow(Request $request): Response {
         /** @var Artist */
-        $artist = $this->getEntityNew($request, Artist::class);
+        $artist = $this->getEntity($request, Artist::class);
 
         $table = PinakesMapper::getMapper(Record::class)
             ->createTable('list')
             ->addFilter('artist', $artist);
-        return $this->renderList2($request, 'Artist: ' . (string) $artist, $table, [
+        return $this->renderList($request, 'Artist: ' . (string) $artist, $table, [
             $artist->getLinkEdit(),
             $artist->getLinkDelete(),
         ]);
@@ -106,15 +106,15 @@ class RecordController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $mapper = PinakesMapper::getMapper(Artist::class);
-        $artist = $this->getEntityNew($request, $mapper) ?? new Artist();
-        return $this->renderModal2($request, $mapper, $artist, 'artist_show');
+        $artist = $this->getEntity($request, $mapper) ?? new Artist();
+        return $this->renderModal($request, $mapper, $artist, 'artist_show');
     }
 
     #[Route('/artist/delete/{id}', name: 'artist_delete', methods: ['DELETE'])]
     public function artistDelete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $artist = $this->getEntityNew($request, Artist::class);
+        $artist = $this->getEntity($request, Artist::class);
         PinakesMapper::getMapper(Artist::class)->deleteEntity($artist);
         return $this->redirectHx('publisher');
     }
@@ -122,18 +122,18 @@ class RecordController extends PinakesController {
     #[Route('/recordlabel', name: 'recordlabel', methods: ['GET'])]
     public function labelList(Request $request): Response {
         $table = PinakesMapper::getMapper(RecordLabel::class)->createTable('list');
-        return $this->renderList2($request, 'Labels', $table);
+        return $this->renderList($request, 'Labels', $table);
     }
 
     #[Route('/recordlabel/show/{id}', name: 'recordlabel_show', methods: ['GET'])]
     public function labelShow(Request $request): Response {
         /** @var RecordLabel */
-        $label = $this->getEntityNew($request, RecordLabel::class);
+        $label = $this->getEntity($request, RecordLabel::class);
 
         $table = PinakesMapper::getMapper(Record::class)
             ->createTable('list')
             ->addFilter('label', $label);
-        return $this->renderList2($request, 'Label: ' . (string) $label, $table, [
+        return $this->renderList($request, 'Label: ' . (string) $label, $table, [
             $label->getLinkEdit(),
             $label->getLinkDelete(),
         ]);
@@ -144,15 +144,15 @@ class RecordController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $mapper = PinakesMapper::getMapper(RecordLabel::class);
-        $label = $this->getEntityNew($request, $mapper) ?? new RecordLabel();
-        return $this->renderModal2($request, $mapper, $label, 'artist_show');
+        $label = $this->getEntity($request, $mapper) ?? new RecordLabel();
+        return $this->renderModal($request, $mapper, $label, 'artist_show');
     }
 
     #[Route('/recordlabel/delete/{id}', name: 'recordlabel_delete', methods: ['DELETE'])]
     public function labelDelete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $label = $this->getEntityNew($request, RecordLabel::class);
+        $label = $this->getEntity($request, RecordLabel::class);
         PinakesMapper::getMapper(Artist::class)->deleteEntity($label);
         return $this->redirectHx('publisher');
     }

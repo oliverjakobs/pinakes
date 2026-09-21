@@ -4,12 +4,8 @@ namespace App\Mapper;
 
 use App\Entity\User;
 use App\Pinakes\DataType;
-use App\Renderable\Icon;
-use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 
-class UserMapper extends PinakesMapper implements PasswordUpgraderInterface {
+class UserMapper extends PinakesMapper {
 
     public static function getTableName(): string { 
         return 'user';
@@ -21,17 +17,6 @@ class UserMapper extends PinakesMapper implements PasswordUpgraderInterface {
 
     public static function getEntityClass(): string {
         return User::class;
-    }
-
-    /**
-     * Used to upgrade (rehash) the user's password automatically over time.
-     */
-    public function upgradePassword(PasswordAuthenticatedUserInterface $user, string $newHashedPassword): void {
-        if (!$user instanceof User) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', $user::class));
-        }
-
-        $user->setPassword($newHashedPassword);
     }
 
     protected function defineDataFields(): array {

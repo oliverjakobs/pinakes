@@ -23,7 +23,7 @@ class Record extends PinakesEntity {
     #[Mapping\ManyToOne(target: RecordLabel::class, inversed_by: 'records')]
     public ?RecordLabel $label = null;
 
-    #[Mapping\Enum(enum_class: Medium::class)]
+    #[Mapping\Enum()]
     public ?Medium $medium = null;
 
     #[Mapping\Column]

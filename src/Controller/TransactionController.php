@@ -61,7 +61,7 @@ class TransactionController extends PinakesController {
     #[Route('/transaction', name: 'transaction', methods: ['GET'])]
     public function list(Request $request): Response {
         $table = PinakesMapper::getMapper(Transaction::class)->createTable('list');
-        return $this->renderList2($request, 'Transactions', $table);
+        return $this->renderList($request, 'Transactions', $table);
     }
 
     #[Route('/transaction/modal/{id}', name: 'transaction_modal', methods: ['GET', 'POST'])]
@@ -69,15 +69,15 @@ class TransactionController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
         $mapper = PinakesMapper::getMapper(Transaction::class);
-        $transaction = $this->getEntityNew($request, $mapper) ?? new Transaction();
-        return $this->renderModal2($request, $mapper, $transaction, 'transaction');
+        $transaction = $this->getEntity($request, $mapper) ?? new Transaction();
+        return $this->renderModal($request, $mapper, $transaction, 'transaction');
     }
 
     #[Route('/transaction/delete/{id}', name: 'transaction_delete', methods: ['DELETE'])]
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
-        $transaction = $this->getEntityNew($request, Transaction::class);
+        $transaction = $this->getEntity($request, Transaction::class);
         PinakesMapper::getMapper(Transaction::class)->deleteEntity($transaction);
         return $this->redirectHx('transaction');
     }

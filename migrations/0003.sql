@@ -1,0 +1,22 @@
+
+CREATE TABLE IF NOT EXISTS artist (
+  id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  name  TEXT    NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS record_label (
+  id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  name  TEXT    NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS record (
+  id          INTEGER   PRIMARY KEY AUTOINCREMENT,
+  artist_id   INTEGER   DEFAULT NULL,
+  label_id    INTEGER   DEFAULT NULL,
+  title       TEXT      NOT NULL,
+  medium      TEXT      NOT NULL,
+  released    DATETIME  DEFAULT NULL,
+  created_at  DATETIME  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (artist_id) REFERENCES artist (id),
+  FOREIGN KEY (label_id) REFERENCES record_label (id)
+);

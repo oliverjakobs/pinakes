@@ -3,6 +3,7 @@
 namespace App\Pinakes;
 
 use App\Database\MappedProperty;
+use App\Database\Mapping\Enum;
 use DateTime;
 use BackedEnum;
 use App\Entity\PinakesEntity;
@@ -65,6 +66,9 @@ class DataType {
         }
         if ('DateTime' === $mapping->type) {
             return DataType::datetime();
+        }
+        if (Enum::class === $mapping->mapping_type) {
+            return DataType::enum($mapping->type);
         }
 
         return new self($mapping->type);
@@ -170,37 +174,6 @@ class DataType {
 
     public function isTargetType(): bool {
         return in_array($this->type, self::TARGET_TYPES);
-    }
-
-    public function parse(string|array|null $value): mixed {
-        switch ($this->type) {
-            case self::TYPE_ENTITY:
-                if (null === $value) return null;
-                Assert::isTrue(is_string($value), 'Expected string, got ' . get_debug_type($value) . ' instead');
-                return $this->getTargetMapper()->getOrCreate($value);
-            case self::TYPE_TAGS:
-            case self::TYPE_COLLECTION:
-                if (null === $value) return [];
-                Assert::isTrue(is_array($value), 'Expected array, got ' . get_debug_type($value) . ' instead');
-                $mapper = $this->getTargetMapper();
-                return array_map(fn ($e) => $mapper->getOrCreate($e), $value);
-            case self::TYPE_DATETIME:
-                if (null === $value) return null;
-                return new DateTime($value);
-            case self::TYPE_CURRENCY:
-            case self::TYPE_FLOAT:
-                if (null === $value) return null;
-                return floatval($value);
-            case self::TYPE_INTEGER:
-                if (null === $value) return null;
-                return intval($value);
-            case self::TYPE_ENUM:
-                if (null === $value) return null;
-                return $this->target_class::from($value);
-            case self::TYPE_ACTION:
-                Assert::error('Cannot parse type "' . $this->type . '"');
-        }
-        return $value;
     }
 
     public function render(mixed $data, bool $link = false): Renderable|string {

@@ -15,6 +15,10 @@ class Assert {
     public static function isTrue(bool $value, string $msg) {
         assert($value, $msg);
     }
+    
+    public static function isFalse(bool $value, string $msg) {
+        assert(!$value, $msg);
+    }
 
     public static function notNull(mixed $value, string $msg) {
         assert(null !== $value, $msg);

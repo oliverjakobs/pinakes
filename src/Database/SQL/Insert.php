@@ -16,11 +16,13 @@ RETURNING id;
 */
 class Insert implements Statement {
     public readonly string $table_name;
+    public readonly bool $returning;
 
     public array $values = [];
 
-    public function __construct(string $table_name) {
+    public function __construct(string $table_name, bool $returning = true) {
         $this->table_name = $table_name;
+        $this->returning = $returning;
     }
 
     public function __toString() {
@@ -35,12 +37,13 @@ class Insert implements Statement {
     public function build(): string {
         $names = implode(', ', array_keys($this->values));
         $values = implode(', ', array_map(fn($k) => ':' . $k, array_keys($this->values)));
+        $returning = $this->returning ? 'RETURNING id' : '';
         return <<<SQL
-            INSERT INTO {$this->table_name}
+            INSERT INTO "{$this->table_name}"
                 ({$names})
             VALUES
                 ({$values})
-            RETURNING id
+            {$returning}
         SQL;
     }
 

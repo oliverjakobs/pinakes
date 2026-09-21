@@ -63,23 +63,9 @@ abstract class PinakesMapper {
         return [ static::getTableName() . '.' . static::getSearchKey() => 'ASC' ];
     }
 
-    abstract protected function defineDataFields(): array;
-
     public function getMapping(string $property): MappedProperty {
         Assert::isTrue(array_key_exists($property, $this->mapped_properties), 'Unkown property: ' . $property);
         return $this->mapped_properties[$property];
-    }
-
-    /** @var string[]|MappedProperty[] $properties */
-    private function getMappedProperties(array $properties): array {
-        if (Helper::isEmpty($properties)) {
-            return $this->mapped_properties;
-        }
-        
-        return array_map(function (string|MappedProperty $p) {
-            if (is_string($p)) return $this->getMapping($p);
-            return $p;
-        }, $properties);
     }
 
     /** @return PinakesEntity[] */
@@ -92,55 +78,34 @@ abstract class PinakesMapper {
         return $result;
     }
 
-    /** @var string[]|MappedProperty[] $properties */
-    public function fetchAll(array $properties, array $where = [], array $order_by = []): array {
-        $properties = $this->getMappedProperties($properties);
-        $query = $this->createQuery($properties);
-
+    /** @return PinakesEntity[] */
+    public function fetchAll(array $where = [], array $order_by = []): array {
+        $query = $this->createQuery($this->mapped_properties);
         return $this->fetchQuery($query);
     }
 
-    public function fetchOne(Query $query): ?PinakesEntity {
-        return array_first($this->fetchQuery($query));
+    public function fetchOne(array $where = [], array $order_by = []): ?PinakesEntity {
+        $result = $this->fetchAll($where, $order_by);
+        Assert::isTrue(1 === count($result), 'Result not unique');
+        return array_first($result);
     }
 
-    private function getFieldProperties(array $fields): array {
-        $properties = array_map(fn(DataField $field) => $field->mapping, $fields);
-        return array_filter($properties);
-    }
-
-    /** @var string[]|MappedProperty[] $properties */
-    public function find(int $id, array $properties = []): ?PinakesEntity {
-        return $this->findBy('id', $id, $properties);
-    }
-
-    /** @var string[]|MappedProperty[] $properties */
-    public function findBy(string $key, mixed $value, array $properties = []): ?PinakesEntity {
-        $properties = $this->getMappedProperties($properties);
-
-        $query = $this->createQuery($properties);
+    public function findBy(string $key, mixed $value): ?PinakesEntity {
+        $query = $this->createQuery($this->mapped_properties);
         $query->addWhere(".{$key} = :key");
         $query->setParameter(':key', $value);
 
-        return $this->fetchOne($query);
+        // TODO use fetchOne
+        return array_first($this->fetchQuery($query));
     }
 
-    public function getOrCreate(mixed $value): PinakesEntity {
-        $result = $this->findBy($this->getSearchKey(), $value);
-        if (null === $result) {
-            $entity_class = $this->getEntityClass();
-            $result = new $entity_class();
-        }
-        return $result;
+    public function find(int $id): ?PinakesEntity {
+        return $this->findBy('id', $id);
     }
 
     public function createTable(string $fields): DataTable {
         $columns = $this->getDataFields($fields);
         return new DataTable($this, $columns);
-    }
-
-    public function createQueryFromFields(array $fields): Query {
-        return $this->createQuery($this->getFieldProperties($fields));
     }
 
     public function createQuery(array $properties): Query {
@@ -169,6 +134,9 @@ abstract class PinakesMapper {
         Database::getInstance()->execute($delete);
     }
 
+
+    abstract protected function defineDataFields(): array;
+
     protected function composeDataFields(array $names): array {
         $result = [];
         foreach ($names as $name) {
@@ -195,7 +163,7 @@ abstract class PinakesMapper {
 
     public function getOptions(): array {
         $options = [];
-        foreach ($this->fetchAll($this->getDefaultSelect()) as $entity) {
+        foreach ($this->fetchAll() as $entity) {
             $options[$entity->getId()] = (string) $entity;
         }
         return $options;

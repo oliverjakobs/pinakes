@@ -24,29 +24,29 @@ class Link implements Renderable {
     private ?string $target = null;
     private ?string $swap = null;
 
-    private function __construct(self|string $caption, string $url) {
+    private function __construct(Renderable|string $caption, string $url) {
         $this->url = $url;
         $this->caption = $caption;
     }
 
-    public static function create(self|string $caption, string $route, array $parameters = []): self {
+    public static function create(Renderable|string $caption, string $route, array $parameters = []): self {
         $url = Pinakes::getUrl($route, $parameters);
         return new self($caption, $url);
     }
 
-    public static function post(self|string $caption, string $route, array $parameters = []): self {
+    public static function post(Renderable|string $caption, string $route, array $parameters = []): self {
         $result = self::create($caption, $route, $parameters);
         $result->method = self::METHOD_POST;
         return $result;
     }
 
-    public static function delete(self|string $caption, string $route, array $parameters = []): self {
+    public static function delete(Renderable|string $caption, string $route, array $parameters = []): self {
         $result = self::create($caption, $route, $parameters);
         $result->method = self::METHOD_DELETE;
         return $result;
     }
 
-    public static function modal(self|string $caption, string $route, array $parameters = []): self {
+    public static function modal(Renderable|string $caption, string $route, array $parameters = []): self {
         $result = self::create($caption, $route, $parameters);
         $result->method = self::METHOD_GET;
         $result->target = 'body';
@@ -54,7 +54,7 @@ class Link implements Renderable {
         return $result;
     }
 
-    public static function extern(self|string $caption, string $url): self {
+    public static function extern(Renderable|string $caption, string $url): self {
         $result = new self($caption, $url);
         $result->is_extern = true;
         return $result;

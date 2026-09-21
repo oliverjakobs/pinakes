@@ -7,6 +7,7 @@ use App\Database\Mapping\ManyToMany;
 use App\Database\Mapping\ManyToOne;
 use App\Database\Mapping\OneToMany;
 use App\Database\Mapping\Count;
+use App\Database\Mapping\Enum;
 use App\Database\Mapping\Reference;
 use App\Database\SQL\Delete;
 use App\Database\SQL\Expr;
@@ -15,10 +16,7 @@ use App\Database\SQL\InsertJoin;
 use App\Database\SQL\Query;
 use App\Database\SQL\Statement;
 use App\Database\SQL\Update;
-use App\Entity\Boardgame;
-use App\Entity\Book;
 use App\Entity\PinakesEntity;
-use App\Entity\Series;
 use App\Mapper\PinakesMapper;
 use App\Pinakes\Assert;
 use App\Pinakes\Helper;
@@ -45,6 +43,7 @@ class Database {
 
     private function __construct(string $dsn) {
         $this->pdo = new \PDO($dsn);
+        $this->pdo->exec('PRAGMA foreign_keys = ON');
     }
 
     public function fetchAll(Query $query): array {
@@ -58,15 +57,24 @@ class Database {
     }
 
     public function execute(Statement $statement): \PDOStatement {
-        $sql = $statement->build() . ';';
+        return $this->executeSQL($statement->build() . ';', $statement->getParameters());
+    }
+
+    public function executeSQL(string $sql, array $parameters = []): \PDOStatement {
         try {
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute($statement->getParameters());
+            $stmt->execute($parameters);
         } catch (\PDOException $ex) {
             var_dump($ex->getMessage());
-            var_dump($sql); die();
+            var_dump($sql);
+            var_dump($parameters);
+            die();
         }
         return $stmt;
+    }
+
+    public function exec(string $statement) {
+        $this->pdo->exec($statement);
     }
 
     public function asTransaction(Closure $func) {
@@ -100,38 +108,39 @@ class Database {
                 $mapping = $target_mapper->getMapping($mapping->reference);
             }
 
-            if ($mapping->isAssociative()) {
-                $class_name = $mapping->target;
-
-                if ($mapping->isArrayType()) {
+            switch ($mapping->mapping_type) {
+                case OneToMany::class:
+                case ManyToMany::class:
                     /**
                      * invalid values:
                      * - NULL
                      * - "[{"id":null,"name":null}]"
                     */
+                    $class_name = $mapping->target;
                     $entities = [];
                     foreach (json_decode($value ?? '[]', true) as $v) {
                         if (!array_key_exists('id', $v) || null === $v['id']) continue;
-                        if (is_int($v)) Helper::bp($data, $v);
                         $entities[] = self::hydrate(new $class_name(), $v);
                     }
                     $value = $entities;
-                } else {
+                    
+                    break;
+                case ManyToOne::class:
                     /**
                      * invalid values:
                      * - "{"id":null,"name":null}"
                      */
                     $value = json_decode($value, true);
                     if (array_key_exists('id', $value) && null !== $value['id']) {
+                        $class_name = $mapping->target;
                         $value = self::hydrate(new $class_name(), $value);
                     } else {
                         $value = null;
                     }
-                }
-            } else if ('DateTime' === $mapping->type) {
-                $value = new \DateTime($value);
-            } else if ('array' === $mapping->type) {
-                $value = json_decode($value, true);
+                    break;
+
+                default:
+                    $value = $mapping->parseValue($value);
             }
 
             $property->setValue($entity, $value);
@@ -221,6 +230,7 @@ class Database {
                     $result->addJoin("LEFT JOIN {$target_name} {$mapping->name} ON {$mapping->name}.{$mapping->target_property}_id = {$table_name}.id");
                     break;
                 case Column::class:
+                case Enum::class:
                     $result->addSelect('.' . $mapping->name);
             }
         }
@@ -235,14 +245,16 @@ class Database {
         $insert = new Insert($table_name);
 
         $many_to_manys = [];
-
         foreach ($data as $name => $value) {
             if (is_array($value)) $value = Helper::filterEmpty($value);
             if (Helper::isEmpty($value)) $value = null;
 
             $mapping = $mapper->getMapping($name);
 
+            Assert::isFalse($mapping->isVirtual(), 'Cannot insert virtual mapping');
+
             switch ($mapping->mapping_type) {
+
                 case OneToMany::class:
                     // not used for now
                     Assert::error('Unused');
@@ -261,7 +273,7 @@ class Database {
                     break;
 
                 default:
-                    $insert->add($mapping->name, $value);
+                    $insert->add($mapping->name, $mapping->prepareValue($value));
             }
         }
         $id = $instance->fetchColumn($insert);
@@ -293,10 +305,10 @@ class Database {
         $update = new Update($table_name, $id);
 
         foreach ($data as $name => $value) {
+            $mapping = $mapper->getMapping($name);
+
             if (is_array($value)) $value = Helper::filterEmpty($value);
             if (Helper::isEmpty($value)) $value = null;
-
-            $mapping = $mapper->getMapping($name);
 
             switch ($mapping->mapping_type) {
                 case OneToMany::class:
@@ -332,7 +344,7 @@ class Database {
                     break;
 
                 default:
-                    $update->add($mapping->name, $value);
+                    $update->add($mapping->name, $mapping->prepareValue($value));
             }
         }
         $instance->execute($update);

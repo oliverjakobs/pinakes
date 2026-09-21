@@ -15,18 +15,18 @@ class TagController extends PinakesController {
     #[Route('/tag', name: 'tag', methods: ['GET'])]
     public function list(Request $request): Response {
         $table = PinakesMapper::getMapper(Tag::class)->createTable('list');
-        return $this->renderList2($request, 'Tags', $table);
+        return $this->renderList($request, 'Tags', $table);
     }
 
     #[Route('/tag/show/{id}', name: 'tag_show', methods: ['GET'])]
     public function show(Request $request): Response {
         /** @var Tag */
-        $tag = $this->getEntityNew($request, Tag::class);
+        $tag = $this->getEntity($request, Tag::class);
 
         $table = PinakesMapper::getMapper(Book::class)
             ->createTable('list_publisher')
             ->addFilter('tags', $tag);
-        return $this->renderList2($request, 'Tag: ' . (string) $tag, $table, [
+        return $this->renderList($request, 'Tag: ' . (string) $tag, $table, [
             $tag->getLinkEdit(),
             $tag->getLinkDelete(),
         ]);
@@ -37,15 +37,15 @@ class TagController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $mapper = PinakesMapper::getMapper(Tag::class);
-        $tag = $this->getEntityNew($request, $mapper) ?? new Tag();
-        return $this->renderModal2($request, $mapper, $tag, 'tag_show');
+        $tag = $this->getEntity($request, $mapper) ?? new Tag();
+        return $this->renderModal($request, $mapper, $tag, 'tag_show');
     }
 
     #[Route('/tag/delete/{id}', name: 'tag_delete', methods: ['DELETE'])]
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $tag = $this->getEntityNew($request, Tag::class);
+        $tag = $this->getEntity($request, Tag::class);
         PinakesMapper::getMapper(Tag::class)->deleteEntity($tag);
         return $this->redirectHx('tag');
     }

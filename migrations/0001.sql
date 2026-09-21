@@ -1,0 +1,60 @@
+
+CREATE TABLE IF NOT EXISTS author (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  name        TEXT    NOT NULL UNIQUE,
+  openlibrary TEXT    DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS publisher (
+  id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  name  TEXT    NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS series (
+  id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  name  TEXT    NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS book (
+  id              INTEGER   PRIMARY KEY AUTOINCREMENT,
+  publisher_id    INTEGER   DEFAULT NULL,
+  series_id       INTEGER   DEFAULT NULL,
+  title           TEXT      NOT NULL,
+  published       INTEGER   DEFAULT NULL,
+  first_published INTEGER   DEFAULT NULL,
+  isbn            TEXT      DEFAULT NULL,
+  series_volume   INTEGER   DEFAULT NULL,
+  created_at      DATETIME  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (publisher_id) REFERENCES publisher (id),
+  FOREIGN KEY (series_id) REFERENCES series (id)
+);
+
+CREATE TABLE IF NOT EXISTS book_author (
+  book_id   INTEGER NOT NULL,
+  author_id INTEGER NOT NULL,
+  PRIMARY KEY(book_id, author_id),
+  FOREIGN KEY (book_id)   REFERENCES book (id)   ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (author_id) REFERENCES author (id) ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS book_translator (
+  book_id   INTEGER NOT NULL,
+  author_id INTEGER NOT NULL,
+  PRIMARY KEY(book_id, author_id),
+  FOREIGN KEY (book_id)   REFERENCES book (id)   ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (author_id) REFERENCES author (id) ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS tag (
+  id    INTEGER PRIMARY KEY AUTOINCREMENT,
+  name  TEXT    NOT NULL UNIQUE,
+  color TEXT    NOT NULL DEFAULT '#ffffff'
+);
+
+CREATE TABLE IF NOT EXISTS book_tag (
+  book_id INTEGER NOT NULL,
+  tag_id  INTEGER NOT NULL,
+  PRIMARY KEY(book_id, tag_id),
+  FOREIGN KEY (book_id) REFERENCES book (id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (tag_id)  REFERENCES tag (id)  ON UPDATE NO ACTION ON DELETE CASCADE
+);

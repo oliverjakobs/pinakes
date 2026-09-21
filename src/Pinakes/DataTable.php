@@ -7,6 +7,7 @@ use App\Database\SQL\Count;
 use App\Database\SQL\Query;
 use App\Entity\PinakesEntity;
 use App\Mapper\PinakesMapper;
+use BackedEnum;
 
 class TableCaption {
     public string $text;
@@ -53,6 +54,8 @@ class DataTable {
             $value = array_map(fn ($v) => ($v instanceof PinakesEntity) ? $v->getId() : $v, $value);
         } else if ($value instanceof PinakesEntity) {
             $value = $value->getId();
+        } else if ($value instanceof BackedEnum) {
+            $value = $value->value;
         }
 
         $this->filter[$name] = $value;
@@ -106,7 +109,8 @@ class DataTable {
     public function getSelect(): Query {
         if (null !== $this->_select) return $this->_select;
 
-        $query = $this->mapper->createQueryFromFields($this->columns);
+        $properties = array_map(fn(DataField $field) => $field->mapping, $this->columns);
+        $query = $this->mapper->createQuery(array_filter($properties));
 
         $filter = array_merge($this->filter, $this->query);
 
@@ -138,9 +142,13 @@ class DataTable {
                 }
 
                 $query->addWhere(".id IN ({$in_subquery->build()})");
-            } else {
+            } else if ($field->data_type->isTargetType()) {
                 $param = ":{$field->name}";
                 $query->addWhere("{$param} = {$table_name}.{$field->property}_id");
+                $query->setParameter($param, $value);
+            } else {
+                $param = ":{$field->name}";
+                $query->addWhere("{$param} = {$table_name}.{$field->property}");
                 $query->setParameter($param, $value);
             }
         }

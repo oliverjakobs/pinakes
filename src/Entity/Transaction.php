@@ -33,6 +33,6 @@ class Transaction extends PinakesEntity {
 
     public static function getBalance(): float {
         $sum = new Sum(self::getMapper()->getTableName(), 'amount');
-        return Database::getInstance()->fetchColumn($sum);
+        return Database::getInstance()->fetchColumn($sum) ?? 0.0;
     }
 }

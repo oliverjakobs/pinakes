@@ -6,7 +6,7 @@ use Attribute;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Enum implements MappingAttribute {
-    public function __construct(string $enum_class) {
+    public function __construct() {
 
     }
 }

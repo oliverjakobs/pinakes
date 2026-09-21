@@ -3,13 +3,11 @@
 namespace App\Pinakes;
 
 use App\Entity\PinakesEntity;
-use Doctrine\Common\Collections\Collection;
 
 class Helper {
 
     public static function isEmpty(mixed $value): bool {
         if (null === $value) return true;
-        if ($value instanceof Collection) return $value->isEmpty();
         if ($value instanceof PinakesEntity) return null === $value->getId();
         if (is_string($value)) return self::strEmpty($value);
         return !is_scalar($value) && empty($value);

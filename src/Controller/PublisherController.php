@@ -15,18 +15,18 @@ class PublisherController extends PinakesController {
     #[Route('/publisher', name: 'publisher', methods: ['GET'])]
     public function list(Request $request): Response {
         $table = PinakesMapper::getMapper(Publisher::class)->createTable('list');
-        return $this->renderList2($request, 'Publishers', $table);
+        return $this->renderList($request, 'Publishers', $table);
     }
 
     #[Route('/publisher/show/{id}', name: 'publisher_show', methods: ['GET'])]
     public function show(Request $request): Response {
         /** @var Publisher */
-        $publisher = $this->getEntityNew($request, Publisher::class);
+        $publisher = $this->getEntity($request, Publisher::class);
 
         $table = PinakesMapper::getMapper(Book::class)
             ->createTable('list_publisher')
             ->addFilter('publisher', $publisher);
-        return $this->renderList2($request, 'Publisher: ' . (string) $publisher, $table, [
+        return $this->renderList($request, 'Publisher: ' . (string) $publisher, $table, [
             $publisher->getLinkEdit(),
             $publisher->getLinkDelete(),
         ]);
@@ -37,15 +37,15 @@ class PublisherController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $mapper = PinakesMapper::getMapper(Publisher::class);
-        $publisher = $this->getEntityNew($request, $mapper) ?? new Publisher();
-        return $this->renderModal2($request, $mapper, $publisher, 'publisher_show');
+        $publisher = $this->getEntity($request, $mapper) ?? new Publisher();
+        return $this->renderModal($request, $mapper, $publisher, 'publisher_show');
     }
 
     #[Route('/publisher/delete/{id}', name: 'publisher_delete', methods: ['DELETE'])]
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $publisher = $this->getEntityNew($request, Publisher::class);
+        $publisher = $this->getEntity($request, Publisher::class);
         PinakesMapper::getMapper(Publisher::class)->deleteEntity($publisher);
         return $this->redirectHx('publisher');
     }

@@ -2,6 +2,7 @@
 
 namespace App\Database;
 
+use App\Database\Mapping\Enum;
 use App\Database\Mapping\MappingAttribute;
 use App\Database\Mapping\ManyToMany;
 use App\Database\Mapping\ManyToOne;
@@ -9,11 +10,11 @@ use App\Database\Mapping\OneToMany;
 use App\Mapper\PinakesMapper;
 use App\Pinakes\Assert;
 use ArrayAccess;
+use DateTime;
 use ReflectionAttribute;
 use ReflectionProperty;
 
 class MappedProperty {
-
     public readonly string $entity;
     public readonly string $name;
     public readonly string $type;
@@ -100,5 +101,29 @@ class MappedProperty {
             return "{$mapper->getTableName()}_{$target_mapper->getTableName()}";
         }
         return "{$target_mapper->getTableName()}_{$mapper->getTableName()}";
+    }
+
+    public function prepareValue(mixed $value): mixed {
+        if (Enum::class === $this->mapping_type) {
+            $value = $value->value;
+        } else if ($value instanceof DateTime) {
+            Assert::isTrue(DateTime::class === $this->type, 'Unexpected value type');
+            $value = $value->format('Y-m-d H:i:s');
+        }
+
+        return $value;
+    }
+
+    public function parseValue(mixed $value): mixed {
+        if (Enum::class === $this->mapping_type) {
+            $enum_class = $this->type;
+            $value = $enum_class::from($value);
+        } else if ($this->isArrayType()) {
+            $value = json_decode($value, true);
+        } else if ('DateTime' === $this->type) {
+            $value = new DateTime($value);
+        }
+
+        return $value;
     }
 }

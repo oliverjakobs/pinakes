@@ -17,7 +17,7 @@ class BoardgameController extends PinakesController {
     #[Route('/boardgame', name: 'boardgame', methods: ['GET'])]
     public function list(Request $request): Response {
         $table = PinakesMapper::getMapper(Boardgame::class)->createTable('list');
-        return $this->renderList2($request, 'Boardgames', $table, [
+        return $this->renderList($request, 'Boardgames', $table, [
             Link::modal('New Game', 'boardgame_modal'),
         ]);
     }
@@ -26,8 +26,8 @@ class BoardgameController extends PinakesController {
     public function show(Request $request): Response {
         $mapper = PinakesMapper::getMapper(Boardgame::class);
         /** @var Boardgame */
-        $boardgame = $this->getEntityNew($request, $mapper);
-        return $this->renderShow2($boardgame, $mapper->getDataFields('show'), [
+        $boardgame = $this->getEntity($request, $mapper);
+        return $this->renderShow($boardgame, $mapper->getDataFields('show'), [
             $boardgame->getLinkEdit(),
             $boardgame->getLinkDelete(),
         ]);
@@ -40,22 +40,23 @@ class BoardgameController extends PinakesController {
         $mapper = PinakesMapper::getMapper(Boardgame::class);
 
         /** @var Boardgame */
-        $boardgame = $this->getEntityNew($request, $mapper);
+        $boardgame = $this->getEntity($request, $mapper);
         if (null === $boardgame) {
             $boardgame = new Boardgame();
-
-            if (null !== $base) {
-                $boardgame->base_game = $mapper->find($base);
-            }
         }
-        return $this->renderModal2($request, $mapper, $boardgame, 'boardgame_show');
+
+        if (null !== $base) {
+            $boardgame->base_game = $mapper->find($base);
+        }
+
+        return $this->renderModal($request, $mapper, $boardgame, 'boardgame_show');
     }
 
     #[Route('/boardgame/delete/{id}', name: 'boardgame_delete', methods: ['DELETE'])]
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $boardgame = $this->getEntityNew($request, Boardgame::class);
+        $boardgame = $this->getEntity($request, Boardgame::class);
         PinakesMapper::getMapper(Boardgame::class)->deleteEntity($boardgame);
         return $this->redirectHx('boardgame');
     }
@@ -64,18 +65,18 @@ class BoardgameController extends PinakesController {
     #[Route('/boardgame/publisher', name: 'boardgamepublisher', methods: ['GET'])]
     public function publisherList(Request $request): Response {
         $table = PinakesMapper::getMapper(BoardgamePublisher::class)->createTable('list');
-        return $this->renderList2($request, 'Publishers', $table);
+        return $this->renderList($request, 'Publishers', $table);
     }
 
     #[Route('/boardgame/publisher/{id}', name: 'boardgamepublisher_show', methods: ['GET'])]
     public function publisherShow(Request $request): Response {
         /** @var BoardgamePublisher */
-        $publisher = $this->getEntityNew($request, BoardgamePublisher::class);
+        $publisher = $this->getEntity($request, BoardgamePublisher::class);
 
         $table = PinakesMapper::getMapper(Boardgame::class)
             ->createTable('list')
             ->addFilter('publisher', $publisher);
-        return $this->renderList2($request, 'Publisher: ' . (string) $publisher, $table, [
+        return $this->renderList($request, 'Publisher: ' . (string) $publisher, $table, [
             $publisher->getLinkEdit(),
             $publisher->getLinkDelete(),
         ]);
@@ -86,15 +87,15 @@ class BoardgameController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $mapper = PinakesMapper::getMapper(BoardgamePublisher::class);
-        $publisher = $this->getEntityNew($request, $mapper) ?? new BoardgamePublisher();
-        return $this->renderModal2($request, $mapper, $publisher, 'boardgamepublisher_show');
+        $publisher = $this->getEntity($request, $mapper) ?? new BoardgamePublisher();
+        return $this->renderModal($request, $mapper, $publisher, 'boardgamepublisher_show');
     }
 
     #[Route('/boardgame/publisher/delete/{id}', name: 'boardgamepublisher_delete', methods: ['DELETE'])]
     public function publisherDelete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $publisher = $this->getEntityNew($request, BoardgamePublisher::class);
+        $publisher = $this->getEntity($request, BoardgamePublisher::class);
         PinakesMapper::getMapper(BoardgamePublisher::class)->deleteEntity($publisher);
         return $this->redirectHx('publisher');
     }

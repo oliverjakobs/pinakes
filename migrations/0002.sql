@@ -1,0 +1,7 @@
+
+CREATE TABLE IF NOT EXISTS "transaction" (
+  id        INTEGER   PRIMARY KEY AUTOINCREMENT,
+  amount    REAL      NOT NULL,
+  reason    TEXT      NOT NULL,
+  timestamp DATETIME  NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

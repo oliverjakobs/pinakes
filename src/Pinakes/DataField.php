@@ -27,6 +27,7 @@ class DataField {
     private int $link;
 
     public readonly bool $edit;
+    // public readonly string $visibility;
 
     public function __construct(
         PinakesMapper $mapper,
@@ -36,7 +37,7 @@ class DataField {
         string $caption = '',
         int $link = self::LINK_NONE,
         bool $edit = false,
-    ) {        
+    ) {
         $this->mapper = $mapper;
         $this->name = $name;
 

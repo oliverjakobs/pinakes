@@ -20,7 +20,7 @@ class AdminController extends PinakesController {
     #[Route('/user', name: 'user', methods: ['GET'])]
     public function list(Request $request): Response {
         $table = PinakesMapper::getMapper(User::class)->createTable('list');
-        return $this->renderList2($request, 'Users', $table);
+        return $this->renderList($request, 'Users', $table);
     }
 
     #[Route('/user/modal/{id}', name: 'user_modal', methods: ['GET', 'POST'])]
@@ -28,15 +28,15 @@ class AdminController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
         $mapper = PinakesMapper::getMapper(User::class);
-        $user = $this->getEntityNew($request, $mapper) ?? new User();
-        return $this->renderModal2($request, $mapper, $user, 'user');
+        $user = $this->getEntity($request, $mapper) ?? new User();
+        return $this->renderModal($request, $mapper, $user, 'user');
     }
 
     #[Route('/user/delete/{id}', name: 'user_delete', methods: ['DELETE'])]
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
-        $user = $this->getEntityNew($request, User::class);
+        $user = $this->getEntity($request, User::class);
         PinakesMapper::getMapper(User::class)->deleteEntity($user);
         return $this->redirectHx('user');
     }

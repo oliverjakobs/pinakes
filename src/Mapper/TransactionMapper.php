@@ -4,6 +4,7 @@ namespace App\Mapper;
 
 use App\Entity\Transaction;
 use App\Pinakes\DataType;
+use App\Renderable\Icon;
 
 class TransactionMapper extends PinakesMapper {
 
@@ -41,23 +42,23 @@ class TransactionMapper extends PinakesMapper {
                 'data' => 'timestamp',
                 'edit' => true
             ],
-            // 'edit' => [
-            //     'caption' => '',
-            //     'data' => fn(Transaction $t) => $t->getLinkEdit(Icon::create('pencil-square')),
-            //     'data_type' => DataType::action(),
-            //     'visibility' => User::ROLE_ADMIN
-            // ],
-            // 'delete' => [
-            //     'caption' => '',
-            //     'data' => fn(Transaction $t) => $t->getLinkDelete(Icon::create('trash3')),
-            //     'data_type' => DataType::action(),
-            //     'visibility' => User::ROLE_ADMIN
-            // ],
+            'edit' => [
+                'caption' => '',
+                'data' => fn(Transaction $t) => $t->getLinkEdit(Icon::create('pencil-square')),
+                'data_type' => DataType::action(),
+                // 'visibility' => User::ROLE_ADMIN
+            ],
+            'delete' => [
+                'caption' => '',
+                'data' => fn(Transaction $t) => $t->getLinkDelete(Icon::create('trash3')),
+                'data_type' => DataType::action(),
+                // 'visibility' => User::ROLE_ADMIN
+            ],
         ];
     }
 
     public function getDataFieldsList(): array {
-        return $this->composeDataFields([ 'timestamp', 'reason', 'amount', /*'edit', 'delete'*/ ]);
+        return $this->composeDataFields([ 'timestamp', 'reason', 'amount', 'edit', 'delete' ]);
     }
     public function getDataFieldsShow(): array {
         return $this->composeDataFields([ 'reason', 'amount', 'timestamp' ]);
