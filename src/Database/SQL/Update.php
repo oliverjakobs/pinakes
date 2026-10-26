@@ -41,6 +41,7 @@ class Update implements Statement {
                 {$set}
             WHERE
                 id = :id
+            RETURNING id
         SQL;
     }
 

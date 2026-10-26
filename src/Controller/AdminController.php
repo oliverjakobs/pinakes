@@ -37,7 +37,7 @@ class AdminController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
         $user = $this->getEntity($request, User::class);
-        PinakesMapper::getMapper(User::class)->deleteEntity($user);
+        PinakesMapper::getMapper(User::class)->delete($user);
         return $this->redirectHx('user');
     }
 
@@ -52,9 +52,30 @@ class AdminController extends PinakesController {
             ];
         }, $icons);
 
-        $table = DataTable::fromData($icons, []);
-        $table->component_path = 'components/icons.html.twig';
-        return $this->renderList($request, 'Icons', $table);
+        $component_path = 'components/icon_cards.html.twig';
+
+        list($query, $filter_only) = $this->parseQuery($request);
+
+        $filter = array_merge([
+            'page' => 1,
+            'pp' => 30,
+        ], $query);
+
+        if ($filter_only) {
+            $response = $this->render($component_path, [ 
+                'data' => $icons,
+                'filter' => array_merge($filter, $query)
+            ]);
+            return $response;
+            // return $this->pushFilterUrl($response, $request, $table);
+        }
+
+        return $this->render('icons.html.twig', [
+            'title' => 'Icons',
+            'component_path' => $component_path,
+            'data' => $icons,
+            'filter' => array_merge($filter, $query)
+        ]);
     }
 
 }

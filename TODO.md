@@ -1,5 +1,6 @@
 # TODO
 
+[x] self table_name
 [] check if delete cascades properly
 [x] migrations
 [] table filter

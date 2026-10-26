@@ -6,8 +6,6 @@ use App\Entity\Transaction;
 use App\Entity\User;
 use App\Mapper\PinakesMapper;
 use App\Mapper\TransactionMapper;
-use App\Renderable\Link;
-use App\Repository\TransactionRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -31,7 +29,7 @@ class TransactionController extends PinakesController {
     private function create_transaction(TransactionMapper $mapper, float $amount, string $reason) {
         // TODO validate transaction
         $transaction = new Transaction();
-        $id = $mapper->updateEntity($transaction, array(
+        $id = $mapper->save($transaction, array(
             'amount' => $amount,
             'reason' => $reason,
             'timestamp' => new \DateTime()
@@ -78,7 +76,7 @@ class TransactionController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
         $transaction = $this->getEntity($request, Transaction::class);
-        PinakesMapper::getMapper(Transaction::class)->deleteEntity($transaction);
+        PinakesMapper::getMapper(Transaction::class)->delete($transaction);
         return $this->redirectHx('transaction');
     }
 

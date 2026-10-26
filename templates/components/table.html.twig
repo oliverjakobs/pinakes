@@ -3,29 +3,22 @@
 <table class="list">
   <thead>
     <tr>
-    {% for field in table.columns %}
-    {# TODO order by datafield #}
-      {% set can_order_by = table.allow_ordering and field.canOrderBy %}
-      {% if can_order_by %}
-        {% set direction = (field.name == table.orderBy) ? table.orderDir : '' %}
-      {% else %}
-        {% set direction = '' %}
-      {% endif %}
+    {% for caption in table.captions %}
       <th
-        {% if can_order_by %}
-          hx-get="{{ filter_url(app.request, table, {
-            'order_by': field.name,
-            'order_dir': (direction == 'asc') ? 'desc' : 'asc',
+        {% if caption.order_by is not empty %}
+          hx-get="{{ filter_url(app.request, table.filter|merge({
+            'order_by': caption.order_by,
+            'order_dir': (caption.order_dir == 'asc') ? 'desc' : 'asc',
             'page': 1
-          }) }}"
+          })) }}"
           hx-trigger="click"
           hx-swap="outerHTML"
           hx-target="[hx-table-content]"
           class="can-order"
         {% endif %}
       >
-        {% if field.caption is defined %}
-          <div class="caption {{ direction }}">{{ field.caption }}</div>
+        {% if caption.text is defined %}
+          <div class="caption {{ caption.order_dir }}">{{ caption.text }}</div>
         {% endif %}
       </th>
     {% endfor %}
@@ -48,7 +41,10 @@
 
 {% if table.allow_pagination %}
   {% include 'elements/pagination.html.twig' with {
-    'table': table
+    'page': table.page,
+    'per_page': table.perPage,
+    'count': table.count,
+    'filter': table.filter
   } only %}
 {% endif %}
 

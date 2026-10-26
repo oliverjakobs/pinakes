@@ -18,12 +18,6 @@ class IndexController extends PinakesController {
         $newest->setPP(5);
         $newest->allow_ordering = false;
         $newest->allow_pagination = false;
-        
-        // $newest = DataTable::fromData($books->getNewest(), $books->getDataFields('newest'));
-        // // $newest = new DataTable($books, $books->getDataFields('newest'));
-        // $newest->allow_ordering = false;
-        // $newest->allow_pagination = false;
-        // $newest->use_new = true;
 
         return $this->render('index.html.twig', [
             'newest' => $newest,

@@ -34,10 +34,20 @@ abstract class PinakesController extends AbstractController {
         // TODO dont push if only order changed
         $referer = $request->headers->get('referer');
         if (null !== $referer) {
-            $query = $table->buildQuery();
+            $query = [];
+
+            $search = $table->getSearch();
+            if (!Helper::isEmpty($search)) {
+                $query['search'] = $search;
+            }
+            
+            $page = $table->getPage();
+            if (1 < $page) {
+                $query['page'] = $page;
+            }
 
             $url = parse_url($referer, PHP_URL_PATH);
-            if (!empty($query)) $url .= '?' . $query;
+            if (!Helper::isEmpty($query)) $url .= '?' . http_build_query($query);
             $response->headers->set('HX-Push-Url', $url);
         }
 
@@ -59,12 +69,23 @@ abstract class PinakesController extends AbstractController {
         }
         return $actions;
     }
+
+    /** @return array<array|bool> */
+    public function parseQuery(Request $request): array {
+        $query = $request->query->all();
+
+        $filter_only = $query['filter_only'] ?? false;
+        unset($query['filter_only']);
+
+        return [ $query, $filter_only ];
+    }
     
     public function renderList(Request $request, string $title, DataTable $table, array $actions = [], array $filters = []): Response {
-        $filter_only = $table->setQuery($request->query->all());
+        list($query, $filter_only) = $this->parseQuery($request);
+        $table->setQuery($query);
 
         if ($filter_only) {
-            $response = $this->render('components/table2.html.twig', [ 'table' => $table ]);
+            $response = $this->render($table->component_path, [ 'table' => $table ]);
             return $this->pushFilterUrl($response, $request, $table);
         }
 
@@ -86,7 +107,7 @@ abstract class PinakesController extends AbstractController {
 
     public function renderModal(Request $request, PinakesMapper $mapper, PinakesEntity $entity, string $redirect, string $fields = 'show'): Response {
         if (Request::METHOD_POST === $request->getMethod()) {
-            $id = $mapper->updateEntity($entity, $request->request->all());
+            $id = $mapper->save($entity, $request->request->all());
             return $this->redirectToRoute($redirect, [ 'id' => $id ]);
         }
         

@@ -1,7 +1,6 @@
 <div hx-table-content class="table-container">
-
 <div class="tiled">
-  {% for entity in table.currentPage %}
+  {% for entity in data|slice((filter.page - 1) * filter.pp, filter.pp) %}
     <div class="card">
       <div class="icon">{{ icon(entity.icon)}}</div>
       <div class="caption">{{ entity.caption }}</div>
@@ -11,9 +10,12 @@
   {% endfor %}
 </div>
 
-{% if table.allow_pagination %}
+{% if allow_pagination ?? true %}
   {% include 'elements/pagination.html.twig' with {
-    'table': table
+    'page': filter.page,
+    'count': data|length,
+    'per_page': filter.pp,
+    'filter': filter
   } only %}
 {% endif %}
 

@@ -17,7 +17,7 @@
       name="search"
       value="{{ table.search }}"
       hx-trigger="keyup[key=='Enter']"
-      hx-get="{{ filter_url(app.request, table) }}"
+      hx-get="{{ filter_url(app.request, table.filter) }}"
       hx-target="[hx-table-content]">
     {% if filters is not empty %}
     <label
@@ -33,7 +33,7 @@
     <input type="checkbox" id="table-filter-check">
     <div class="filter-dropdown">
       <form 
-        hx-get="{{ filter_url(app.request, table) }}"
+        hx-get="{{ filter_url(app.request, table.filter) }}"
         hx-target="[hx-table-content]">
         {% for form in filters %}
           <div>

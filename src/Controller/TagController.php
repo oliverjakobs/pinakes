@@ -46,7 +46,7 @@ class TagController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $tag = $this->getEntity($request, Tag::class);
-        PinakesMapper::getMapper(Tag::class)->deleteEntity($tag);
+        PinakesMapper::getMapper(Tag::class)->delete($tag);
         return $this->redirectHx('tag');
     }
 

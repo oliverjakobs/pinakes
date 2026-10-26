@@ -67,7 +67,7 @@ class Query implements Statement {
     private ?int $limit = null; 
     private ?int $offset = null;
 
-    public function __construct(string $table_name) {
+    public function __construct(string $table_name, string $alias = 'self') {
         $this->table_name = $table_name;
     }
 
@@ -76,31 +76,30 @@ class Query implements Statement {
     }
 
     public function addSelect(string $select, ?string $alias = null): self {
-        if ('.' === $select[0]) $select = $this->table_name . $select;
         if (null !== $alias) $select = sprintf('%s AS %s', $select, $alias);
-        $this->selects[] = $select;
+        $this->selects[] = Expr::parse($select, $this->table_name);
         return $this;
     }
 
     public function addJoin(string $join): self {
-        $this->joins[] = $join;
+        $this->joins[] = Expr::parse($join, $this->table_name);
         return $this;
     }
 
     public function addWhere(string $where): self {
-        if ('.' === $where[0]) $where = $this->table_name . $where;
-        $this->wheres[] = $where;
+        if ('.' === $where[0]) $where = 'self' . $where;
+        $this->wheres[] = Expr::parse($where, $this->table_name);
         return $this;
     }
 
     public function addOrderBy(string $by, string $dir = 'ASC'): self {
+        $by = Expr::parse($by, $this->table_name);
         $this->order_by[$by] = $dir;
         return $this;
     }
 
     public function addGroupBy(string $by): self {
-        if ('.' === $by[0]) $by = $this->table_name . $by;
-        $this->group_by[] = $by;
+        $this->group_by[] = Expr::parse($by, $this->table_name);
         return $this;
     }
 

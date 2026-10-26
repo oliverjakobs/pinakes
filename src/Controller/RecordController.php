@@ -77,7 +77,7 @@ class RecordController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $record = $this->getEntity($request, Record::class);
-        PinakesMapper::getMapper(Record::class)->deleteEntity($record);
+        PinakesMapper::getMapper(Record::class)->delete($record);
         return $this->redirectHx('record');
     }
 
@@ -115,7 +115,7 @@ class RecordController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $artist = $this->getEntity($request, Artist::class);
-        PinakesMapper::getMapper(Artist::class)->deleteEntity($artist);
+        PinakesMapper::getMapper(Artist::class)->delete($artist);
         return $this->redirectHx('publisher');
     }
 
@@ -153,7 +153,7 @@ class RecordController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $label = $this->getEntity($request, RecordLabel::class);
-        PinakesMapper::getMapper(Artist::class)->deleteEntity($label);
+        PinakesMapper::getMapper(Artist::class)->delete($label);
         return $this->redirectHx('publisher');
     }
 }

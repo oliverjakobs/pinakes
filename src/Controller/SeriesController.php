@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Database\Database;
-use App\Database\SQL\InsertJoin;
+use App\Database\SQL\Insert;
 use App\Entity\Book;
 use App\Entity\Series;
 use App\Entity\Tag;
@@ -57,7 +57,7 @@ class SeriesController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $series = $this->getEntity($request, Series::class);
-        PinakesMapper::getMapper(Series::class)->deleteEntity($series);
+        PinakesMapper::getMapper(Series::class)->delete($series);
         return $this->redirectHx('series');
     }
     
@@ -75,17 +75,15 @@ class SeriesController extends PinakesController {
             $tag = $request->request->get('tag');
 
             Database::getInstance()->asTransaction(function () use ($tag_mapper, $tag, $series) {
-                $tag_id = $tag_mapper->upsertEntity($tag);
+                $tag_id = $tag_mapper->upsert($tag);
 
                 $field = $tag_mapper->getDataField('books');
                 $join_table = $field->mapping->getJoinTable();
 
                 foreach ($series->volumes as $vol) {
-                    $insert = new InsertJoin($join_table, [
-                        'tag_id' => $tag_id,
-                        'book_id' => $vol->getId(),
-                    ]);
-
+                    $insert = new Insert($join_table, false, true);
+                    $insert->add('tag_id', $tag_id);
+                    $insert->add('book_id', $vol->getId());
                     Database::getInstance()->execute($insert);
                 }
             });

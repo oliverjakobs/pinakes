@@ -46,7 +46,7 @@ class PublisherController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $publisher = $this->getEntity($request, Publisher::class);
-        PinakesMapper::getMapper(Publisher::class)->deleteEntity($publisher);
+        PinakesMapper::getMapper(Publisher::class)->delete($publisher);
         return $this->redirectHx('publisher');
     }
 }

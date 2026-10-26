@@ -22,11 +22,15 @@ class AppExtension {
     }
 
     #[AsTwigFunction('filter_url')]
-    public function getFilterUrl(Request $request, DataTable $table, array $filter = []): string {
+    public function getFilterUrl(Request $request, array $filter): string {
         $route = $request->attributes->get('_route');
         $params = $request->attributes->get('_route_params');
 
-        return $table->getFilterUrl($route, array_merge($params, $filter));
+        return Pinakes::getUrl($route, array_merge(
+            $filter,
+            $params,
+            ['filter_only' => true]
+        ));
     }
 
     #[AsTwigFunction('navigation_items')]

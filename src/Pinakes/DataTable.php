@@ -3,7 +3,6 @@
 namespace App\Pinakes;
 
 use App\Database\Database;
-use App\Database\SQL\Count;
 use App\Database\SQL\Query;
 use App\Entity\PinakesEntity;
 use App\Mapper\PinakesMapper;
@@ -21,17 +20,17 @@ class TableCaption {
 }
 
 class DataTable {
-    const DEFAULT_QUERY = [
+    const DEFAULT_FILTER = [
         'order_by' => null,
         'order_dir' => 'desc',
         'page' => 1,
         'pp' => 30,
+        'filter_only' => false
     ];
 
-    private array $filter = [];
-    private array $query = self::DEFAULT_QUERY;
+    public array $filter = self::DEFAULT_FILTER;
     
-    public string $component_path = 'components/table2.html.twig'; 
+    public string $component_path = 'components/table.html.twig'; 
     public bool $allow_pagination = true;
     public bool $allow_ordering = true;
 
@@ -63,46 +62,19 @@ class DataTable {
     }
     
     public function setOrder(string $by, string $dir = 'ASC'): self {
-        $this->query['order_by'] = $by;
-        $this->query['order_dir'] = $dir;
+        $this->filter['order_by'] = $by;
+        $this->filter['order_dir'] = $dir;
         return $this;
     }
 
     public function setPP(int $pp): self {
-        $this->query['pp'] = $pp;
+        $this->filter['pp'] = $pp;
         return $this;
     }
 
-    public function setQuery(array $query): bool {
-        $filter_only = $query['filter_only'] ?? false;
-        unset($query['filter_only']);
-        $this->query = array_merge($this->query, array_filter($query));
-        return boolval($filter_only);
-    }
-
-    public function getFilterUrl(string $route, array $params): string {
-        return Pinakes::getUrl($route, array_merge(
-            $this->filter,
-            $this->query,
-            $params,
-            ['filter_only' => true]
-        ));
-    }
-
-    public function buildQuery(): string {
-        $diff = [
-            'order_dir' => null,
-            'order_by' => null,
-            'pp' => null,
-            'filter_only' => null
-        ];
-
-        if (1 === intval($this->query['page'])) {
-            $diff['page'] = null;
-        }
-
-        $query = array_diff_key($this->query, $diff, $this->filter);
-        return http_build_query($query);
+    public function setQuery(array $query): self {
+        $this->filter = array_merge($this->filter, array_filter($query));
+        return $this;
     }
 
     private ?Query $_select = null;
@@ -112,17 +84,15 @@ class DataTable {
         $properties = array_map(fn(DataField $field) => $field->mapping, $this->columns);
         $query = $this->mapper->createQuery(array_filter($properties));
 
-        $filter = array_merge($this->filter, $this->query);
-
         // add search
-        $search = $filter['search'] ?? null;
+        $search = $this->filter['search'] ?? null;
         if (null !== $search) {
-            $query->addWhere('.' . $this->mapper->getSearchKey() . ' LIKE :search');
+            $query->addWhere("self.{$this->mapper->getSearchKey()} LIKE :search");
             $query->setParameter(':search', '%' . $search . '%');
         }
 
         // filter by data fields
-        foreach ($filter as $name => $value) {
+        foreach ($this->filter as $name => $value) {
             $field = $this->mapper->getDataField($name);
             if (null === $field) continue;
 
@@ -141,24 +111,24 @@ class DataTable {
                     $in_subquery->addWhere("{$target_name}_id = {$value}");
                 }
 
-                $query->addWhere(".id IN ({$in_subquery->build()})");
+                $query->addWhere("self.id IN ({$in_subquery->build()})");
             } else if ($field->data_type->isTargetType()) {
                 $param = ":{$field->name}";
-                $query->addWhere("{$param} = {$table_name}.{$field->property}_id");
+                $query->addWhere("{$param} = self.{$field->property}_id");
                 $query->setParameter($param, $value);
             } else {
                 $param = ":{$field->name}";
-                $query->addWhere("{$param} = {$table_name}.{$field->property}");
+                $query->addWhere("{$param} = self.{$field->property}");
                 $query->setParameter($param, $value);
             }
         }
 
         // apply order
-        $by = $filter['order_by'] ?? null;
+        $by = $this->filter['order_by'] ?? null;
         if (null !== $by) {
             $field = $this->mapper->getDataField($by);
             // if (null !== $field) 
-            $query->addOrderBy($field->getOrderBy(), $filter['order_dir'] ?? 'asc');
+            $query->addOrderBy($field->getOrderBy(), $this->filter['order_dir'] ?? 'asc');
         } else {
             foreach ($this->mapper->getDefaultOrder() as $by => $dir) {
                 $query->addOrderBy($by, $dir);
@@ -194,13 +164,9 @@ class DataTable {
     }
 
     public function getFilterValue(string $key, mixed $default = null): mixed {
-        return $this->query[$key] ?? $this->filter[$key] ?? $default;
+        return $this->filter[$key] ?? $default;
     }
-
-    public function getFilterValueInt(string $key, int $default = 0): int {
-        return intval($this->getFilterValue($key, $default));
-    }
-
+    
     public function getSearch(): ?string {
         return $this->getFilterValue('search');
     }
@@ -214,16 +180,15 @@ class DataTable {
     }
 
     public function getPage(): int {
-        return $this->getFilterValueInt('page', 1);
+        return (int) $this->getFilterValue('page', 1);
     }
 
     public function getPerPage(): int {
-        return $this->getFilterValueInt('pp', 1);
+        return (int) $this->getFilterValue('pp', 1);
     }
     
     public function getCount(): int {
-        $count = Count::fromQuery($this->getSelect());
-        return Database::getInstance()->fetchColumn($count);
+        return Database::getInstance()->count($this->getSelect());
     }
 
     public function getMaxPages(): int {

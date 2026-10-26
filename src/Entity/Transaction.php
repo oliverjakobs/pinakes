@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Database\Database;
 use App\Database\SQL\Sum;
 use App\Database\Mapping;
+use App\Database\SQL\Query;
 
 class Transaction extends PinakesEntity {
     #[Mapping\Column]
@@ -32,7 +33,8 @@ class Transaction extends PinakesEntity {
     }
 
     public static function getBalance(): float {
-        $sum = new Sum(self::getMapper()->getTableName(), 'amount');
-        return Database::getInstance()->fetchColumn($sum) ?? 0.0;
+        $query = new Query(self::getMapper()->getTableName());
+        $query->addSelect('SUM(amount)');
+        return Database::getInstance()->fetchColumn($query) ?? 0.0;
     }
 }

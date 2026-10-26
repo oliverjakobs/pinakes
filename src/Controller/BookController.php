@@ -64,7 +64,7 @@ class BookController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $book = $this->getEntity($request, Book::class);
-        PinakesMapper::getMapper(Book::class)->deleteEntity($book);
+        PinakesMapper::getMapper(Book::class)->delete($book);
 
         return $this->redirectHx('book');
     }

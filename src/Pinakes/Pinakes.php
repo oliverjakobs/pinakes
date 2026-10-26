@@ -3,8 +3,6 @@
 namespace App\Pinakes;
 
 use App\Database\Database;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -12,7 +10,6 @@ use Twig\Environment;
 
 class Pinakes {
     private static ?self $_instance = null;
-    private static ?EntityManagerInterface $em = null;
     private static ?RouterInterface $router = null;
     private static ?AuthorizationCheckerInterface $auth = null;
     private static ?Environment $twig = null;
@@ -39,15 +36,6 @@ class Pinakes {
 
     public static function isInitialized(): bool {
         return null !== self::$_instance;
-    }
-
-    public static function getEntityManager(): EntityManagerInterface {
-        if (null === self::$em) self::$em = self::getInstance()->container->get('doctrine.orm.entity_manager');
-        return self::$em;
-    }
-
-    public static function getRepository(string $entity): EntityRepository {
-        return self::getEntityManager()->getRepository($entity);
     }
 
     public static function getAbsolutePath(string $path): string {

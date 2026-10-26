@@ -1,0 +1,25 @@
+{% extends "_base.html.twig" %}
+
+{% block title %}
+  Pinakes - {{ title }}
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <h1>{{ title }}</h1>
+
+  <div class="table-control">
+    <input
+      class="table-search"
+      type="search"
+      placeholder="Search..."
+      name="search"
+      value="{{ filter.search ?? '' }}"
+      hx-trigger="keyup[key=='Enter']"
+      hx-get="{{ filter_url(app.request, filter) }}"
+      hx-target="[hx-table-content]">
+  </div>
+  {% include component_path %}
+</div>
+{% endblock %}

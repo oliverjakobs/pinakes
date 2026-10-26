@@ -89,7 +89,7 @@ class DataField {
             return "{$this->mapping->name}.{$search_key}";
         }
         
-        return "{$this->mapper->getTableName()}.{$this->property}";
+        return "self.{$this->property}";
     }
 
     public function getData(PinakesEntity $entity): mixed {

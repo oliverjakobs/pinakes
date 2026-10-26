@@ -22,7 +22,7 @@ class BookMapper extends PinakesMapper {
     }
     
     public static function getDefaultOrder(): array {
-        return [ 'book.created_at' => 'DESC', 'book.title' => 'ASC' ];
+        return [ 'self.created_at' => 'DESC', 'self.title' => 'ASC' ];
     }
 
     protected function defineDataFields(): array {

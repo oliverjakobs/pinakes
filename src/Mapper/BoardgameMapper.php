@@ -21,7 +21,7 @@ class BoardgameMapper extends PinakesMapper {
     }
     
     public static function getDefaultOrder(): array {
-        return [ 'boardgame.created_at' => 'DESC', 'boardgame.name' => 'ASC' ];
+        return [ 'self.created_at' => 'DESC', 'self.name' => 'ASC' ];
     }
 
     protected function defineDataFields(): array {

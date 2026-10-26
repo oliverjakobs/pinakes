@@ -57,7 +57,7 @@ class BoardgameController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $boardgame = $this->getEntity($request, Boardgame::class);
-        PinakesMapper::getMapper(Boardgame::class)->deleteEntity($boardgame);
+        PinakesMapper::getMapper(Boardgame::class)->delete($boardgame);
         return $this->redirectHx('boardgame');
     }
 
@@ -96,7 +96,7 @@ class BoardgameController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $publisher = $this->getEntity($request, BoardgamePublisher::class);
-        PinakesMapper::getMapper(BoardgamePublisher::class)->deleteEntity($publisher);
+        PinakesMapper::getMapper(BoardgamePublisher::class)->delete($publisher);
         return $this->redirectHx('publisher');
     }
 }

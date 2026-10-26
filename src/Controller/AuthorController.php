@@ -49,7 +49,7 @@ class AuthorController extends PinakesController {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
         $author = $this->getEntity($request, Author::class);
-        PinakesMapper::getMapper(Author::class)->deleteEntity($author);
+        PinakesMapper::getMapper(Author::class)->delete($author);
         return $this->redirectHx('author');
     }
 }

@@ -5,9 +5,8 @@ namespace App\Database\SQL;
 
 class Expr {
 
-    // TODO replace 'self' with table_name
     public static function parse(string $expr, string $table_name): string {
-        return $expr;
+        return str_replace('self.', $table_name . '.', $expr);
     }
 
     public static function json_object(string $table, array $fields): string {
