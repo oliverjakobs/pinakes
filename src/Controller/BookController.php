@@ -2,12 +2,12 @@
 
 namespace App\Controller;
 
-use App\Database\Database;
-use App\Database\SQL\Delete;
 use App\Entity\Book;
 use App\Entity\Series;
 use App\Entity\User;
+use App\Mapper\BookMapper;
 use App\Mapper\PinakesMapper;
+use App\Mapper\SeriesMapper;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,7 +19,7 @@ class BookController extends PinakesController {
 
     #[Route('/book', name: 'book', methods: ['GET'])]
     public function list(Request $request): Response {
-        $table = PinakesMapper::getMapper(Book::class)->createTable('list');
+        $table = BookMapper::getInstance()->createTable('list');
         return $this->renderList($request, 'Books', $table, [
             Link::modal('New Book', 'book_modal'),
             ViewElement::separator(),
@@ -29,7 +29,7 @@ class BookController extends PinakesController {
 
     #[Route('/book/show/{id}', name: 'book_show', methods: ['GET'])]
     public function show(Request $request): Response {
-        $mapper = PinakesMapper::getMapper(Book::class);
+        $mapper = BookMapper::getInstance();
         /** @var Book */
         $book = $this->getEntity($request, $mapper);
         return $this->renderShow($book, $mapper->getDataFields('show'), [
@@ -44,7 +44,7 @@ class BookController extends PinakesController {
     public function modal(Request $request, #[MapQueryParameter] ?int $series = null): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $mapper = PinakesMapper::getMapper(Book::class);
+        $mapper = BookMapper::getInstance();
 
         /** @var Book */
         $book = $this->getEntity($request, $mapper);
@@ -53,7 +53,7 @@ class BookController extends PinakesController {
         }
 
         if (null !== $series) {
-            $book->series = PinakesMapper::getMapper(Series::class)->find($series);
+            $book->series = SeriesMapper::getInstance()->find($series);
         }
 
         return $this->renderModal($request, $mapper, $book, 'book_show', 'show');
@@ -63,9 +63,9 @@ class BookController extends PinakesController {
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $book = $this->getEntity($request, Book::class);
-        PinakesMapper::getMapper(Book::class)->delete($book);
-
+        $mapper = BookMapper::getInstance();
+        $book = $this->getEntity($request, $mapper);
+        $mapper->delete($book);
         return $this->redirectHx('book');
     }
 

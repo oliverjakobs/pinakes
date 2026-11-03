@@ -5,8 +5,10 @@ namespace App\Mapper;
 use App\Entity\Boardgame;
 use App\Pinakes\DataField;
 use App\Pinakes\DataType;
+use App\Pinakes\Singleton;
 
 class BoardgameMapper extends PinakesMapper {
+    use Singleton;
 
     public static function getTableName(): string { 
         return 'boardgame';
@@ -40,8 +42,15 @@ class BoardgameMapper extends PinakesMapper {
             ],
             'player_count' => [
                 'caption' => 'Players',
-                'data' => fn(Boardgame $bg) => $bg->getPlayerCount(),
+                'data' => function (Boardgame $bg) {
+                    $result = (string) $bg->min_player;
+                    if (0 !== (int) $bg->max_player) {
+                        $result .= '-' . $bg->max_player;
+                    }
+                    return $result;
+                },
                 'data_type' => DataType::integer(1, 16),
+                'requires' => [ 'min_player', 'max_player' ]
                 // 'filter' => function (QueryBuilder $qb, $filter): QueryBuilder {
                 //     $qb->andWhere(':player_count <= e.max_player');
                 //     $qb->andWhere(':player_count >= e.min_player');

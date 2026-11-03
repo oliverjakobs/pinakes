@@ -29,13 +29,13 @@ class DataTable {
     ];
 
     public array $filter = self::DEFAULT_FILTER;
-    
+
     public string $component_path = 'components/table.html.twig'; 
     public bool $allow_pagination = true;
     public bool $allow_ordering = true;
 
     public readonly PinakesMapper $mapper;
-    /** @var DataField[] $columns */
+    /** @var array<string, DataField> $columns */
     public readonly array $columns;
 
     public function __construct(PinakesMapper $mapper, array $columns) {
@@ -50,9 +50,9 @@ class DataTable {
 
     public function addFilter(string $name, mixed $value): self {
         if (is_iterable($value)) {
-            $value = array_map(fn ($v) => ($v instanceof PinakesEntity) ? $v->getId() : $v, $value);
+            $value = array_map(fn ($v) => ($v instanceof PinakesEntity) ? $v->id : $v, $value);
         } else if ($value instanceof PinakesEntity) {
-            $value = $value->getId();
+            $value = $value->id;
         } else if ($value instanceof BackedEnum) {
             $value = $value->value;
         }
@@ -77,12 +77,19 @@ class DataTable {
         return $this;
     }
 
+    private function getProperties(): array {
+        $result = [];
+        foreach ($this->columns as $col) {
+            $result = array_merge($result, [ $col->mapping ], $col->requires);
+        }
+        return array_filter($result);
+    }
+
     private ?Query $_select = null;
     public function getSelect(): Query {
         if (null !== $this->_select) return $this->_select;
 
-        $properties = array_map(fn(DataField $field) => $field->mapping, $this->columns);
-        $query = $this->mapper->createQuery(array_filter($properties));
+        $query = $this->mapper->createQuery($this->getProperties());
 
         // add search
         $search = $this->filter['search'] ?? null;
@@ -113,11 +120,11 @@ class DataTable {
 
                 $query->addWhere("self.id IN ({$in_subquery->build()})");
             } else if ($field->data_type->isTargetType()) {
-                $param = ":{$field->name}";
+                $param = ":{$name}";
                 $query->addWhere("{$param} = self.{$field->property}_id");
                 $query->setParameter($param, $value);
             } else {
-                $param = ":{$field->name}";
+                $param = ":{$name}";
                 $query->addWhere("{$param} = self.{$field->property}");
                 $query->setParameter($param, $value);
             }
@@ -149,13 +156,13 @@ class DataTable {
     public function getCaptions(): array {
         $result = [];
 
-        foreach ($this->columns as $col) {
+        foreach ($this->columns as $name => $col) {
             $caption = new TableCaption($col->caption);
 
             if ($this->allow_ordering && $col->canOrderBy()) {
                 // $order = $col->getOrderBy()
-                $caption->order_by = $col->name;
-                $caption->order_dir = ($col->name === $this->getOrderBy()) ? $this->getOrderDir() : '';
+                $caption->order_by = $name;
+                $caption->order_dir = ($name === $this->getOrderBy()) ? $this->getOrderDir() : '';
             }
 
             $result[] = $caption;

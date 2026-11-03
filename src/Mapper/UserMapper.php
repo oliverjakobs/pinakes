@@ -4,8 +4,10 @@ namespace App\Mapper;
 
 use App\Entity\User;
 use App\Pinakes\DataType;
+use App\Pinakes\Singleton;
 
 class UserMapper extends PinakesMapper {
+    use Singleton;
 
     public static function getTableName(): string { 
         return 'user';

@@ -6,8 +6,10 @@ use App\Entity\Author;
 use App\Entity\Series;
 use App\Pinakes\DataField;
 use App\Pinakes\DataType;
+use App\Pinakes\Singleton;
 
 class SeriesMapper extends PinakesMapper {
+    use Singleton;
 
     public static function getTableName(): string { 
         return 'series';

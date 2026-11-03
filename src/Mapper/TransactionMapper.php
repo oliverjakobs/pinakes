@@ -2,11 +2,15 @@
 
 namespace App\Mapper;
 
+use App\Database\Database;
+use App\Database\SQL\Query;
 use App\Entity\Transaction;
 use App\Pinakes\DataType;
+use App\Pinakes\Singleton;
 use App\Renderable\Icon;
 
 class TransactionMapper extends PinakesMapper {
+    use Singleton;
 
     public static function getTableName(): string { 
         return '`transaction`';
@@ -22,6 +26,12 @@ class TransactionMapper extends PinakesMapper {
 
     public static function getDefaultOrder(): array {
         return [ 'timestamp' => 'DESC' ];
+    }
+
+    public static function getBalance(): float {
+        $query = new Query(self::getTableName());
+        $query->addSelect('SUM(amount)');
+        return Database::getInstance()->fetchColumn($query) ?? 0.0;
     }
 
     protected function defineDataFields(): array {

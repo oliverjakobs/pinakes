@@ -3,8 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Mapper\PinakesMapper;
-use App\Pinakes\DataTable;
+use App\Mapper\UserMapper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
@@ -19,7 +18,7 @@ class AdminController extends PinakesController {
 
     #[Route('/user', name: 'user', methods: ['GET'])]
     public function list(Request $request): Response {
-        $table = PinakesMapper::getMapper(User::class)->createTable('list');
+        $table = UserMapper::getInstance()->createTable('list');
         return $this->renderList($request, 'Users', $table);
     }
 
@@ -27,7 +26,7 @@ class AdminController extends PinakesController {
     public function modal(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
-        $mapper = PinakesMapper::getMapper(User::class);
+        $mapper = UserMapper::getInstance();
         $user = $this->getEntity($request, $mapper) ?? new User();
         return $this->renderModal($request, $mapper, $user, 'user');
     }
@@ -36,8 +35,9 @@ class AdminController extends PinakesController {
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
-        $user = $this->getEntity($request, User::class);
-        PinakesMapper::getMapper(User::class)->delete($user);
+        $mapper = UserMapper::getInstance();
+        $user = $this->getEntity($request, $mapper);
+        $mapper->delete($user);
         return $this->redirectHx('user');
     }
 

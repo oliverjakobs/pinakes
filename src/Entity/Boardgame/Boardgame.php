@@ -5,10 +5,6 @@ namespace App\Entity;
 use App\Database\Mapping;
 
 class Boardgame extends PinakesEntity {
-
-    #[Mapping\Column]
-    private ?int $id = null;
-
     #[Mapping\Column]
     public string $name = 'Untitled boardgame';
 
@@ -31,23 +27,12 @@ class Boardgame extends PinakesEntity {
     #[Mapping\Column]
     public ?\DateTime $created_at = null;
 
-    public function __construct() {
+    public function __construct(?int $id = null) {
+        parent::__construct($id);
         $this->created_at = new \DateTime();
     }
 
     public function __toString(): string {
         return $this->name;
-    }
-
-    public function getId(): ?int {
-        return $this->id;
-    }
-
-    public function getPlayerCount(): string {
-        $result = (string) $this->min_player;
-        if (0 !== (int) $this->max_player) {
-            $result .= '-' . $this->max_player;
-        }
-        return $result;
     }
 }

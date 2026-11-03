@@ -2,9 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Book;
-use App\Entity\Transaction;
-use App\Mapper\PinakesMapper;
+use App\Mapper\BookMapper;
+use App\Mapper\TransactionMapper;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -13,7 +12,7 @@ class IndexController extends PinakesController {
     #[Route('/', name: 'pinakes')]
     public function index(): Response {
 
-        $newest = PinakesMapper::getMapper(Book::class)->createTable('newest');
+        $newest = BookMapper::getInstance()->createTable('newest');
         $newest->setOrder('created_at', 'DESC');
         $newest->setPP(5);
         $newest->allow_ordering = false;
@@ -21,7 +20,7 @@ class IndexController extends PinakesController {
 
         return $this->render('index.html.twig', [
             'newest' => $newest,
-            'balance' => Transaction::getBalance()
+            'balance' => TransactionMapper::getBalance()
         ]);
     }
 

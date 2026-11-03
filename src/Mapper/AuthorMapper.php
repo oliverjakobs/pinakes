@@ -4,8 +4,10 @@ namespace App\Mapper;
 
 use App\Entity\Author;
 use App\Pinakes\DataField;
+use App\Pinakes\Singleton;
 
 class AuthorMapper extends PinakesMapper {
+    use Singleton;
 
     public static function getTableName(): string { 
         return 'author';

@@ -5,10 +5,6 @@ namespace App\Entity;
 use App\Database\Mapping;
 
 class Artist extends PinakesEntity {
-    
-    #[Mapping\Column]
-    private ?int $id = null;
-
     #[Mapping\Column]
     public string $name = 'Unknown artist';
 
@@ -21,9 +17,5 @@ class Artist extends PinakesEntity {
 
     public function __toString(): string {
         return $this->name;
-    }
-
-    public function getId(): ?int {
-        return $this->id;
     }
 }

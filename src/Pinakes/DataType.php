@@ -144,7 +144,7 @@ class DataType {
     }
 
     public static function tags(string $entity): self {
-        Assert::isTrue(is_a($entity, TagInterface::class, true), 'Invalid tag-target ' . $entity);
+        Assert::isTrue(property_exists($entity, 'color'), 'Invalid tag-target ' . $entity);
         return self::withTarget(self::TYPE_TAGS, $entity);
     }
 
@@ -189,7 +189,7 @@ class DataType {
             case self::TYPE_ARRAY:
                 return ViewElement::ul($data)->addStyleClasses('collection');
             case self::TYPE_TAGS:
-                $data = array_map(fn ($tag) => ViewElement::tag($tag->getLinkSelf(), $tag->getColor()), $data);
+                $data = array_map(fn ($tag) => ViewElement::tag($tag->getLinkSelf(), $tag->color), $data);
                 return implode(' ', $data);
             case self::TYPE_CURRENCY:
                 return sprintf($this->fmt, $data);
@@ -247,7 +247,7 @@ class DataType {
     public function getForm(string $name, mixed $value): FormElement {
         switch ($this->type) {
             case self::TYPE_ENTITY:
-                if (null === $value?->getId()) $value = null;
+                if (null === $value?->id) $value = null;
             case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
             case self::TYPE_ARRAY:

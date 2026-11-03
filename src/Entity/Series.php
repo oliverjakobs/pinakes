@@ -6,9 +6,6 @@ use App\Database\Mapping;
 
 class Series extends PinakesEntity {
     #[Mapping\Column]
-    private ?int $id = null;
-
-    #[Mapping\Column]
     public string $name = 'Untitled Series';
 
     /** @var Book[] */
@@ -23,13 +20,5 @@ class Series extends PinakesEntity {
 
     public function __toString(): string {
         return $this->name;
-    }
-
-    public function getId(): ?int {
-        return $this->id;
-    }
-
-    public function getAuthors(): array {
-        return [];
     }
 }

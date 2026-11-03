@@ -14,13 +14,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 abstract class PinakesController extends AbstractController {
 
-    protected function getEntity(Request $request, PinakesMapper|string $mapper): ?PinakesEntity {
+    protected function getEntity(Request $request, PinakesMapper $mapper): ?PinakesEntity {
         $id = $request->attributes->get('id');
         if (null === $id) return null;
-
-        if (is_string($mapper)) {
-            $mapper = PinakesMapper::getMapper($mapper);
-        }
 
         $entity = $mapper->find((int) $id);
         if (null === $entity) {
@@ -111,7 +107,7 @@ abstract class PinakesController extends AbstractController {
             return $this->redirectToRoute($redirect, [ 'id' => $id ]);
         }
         
-        $caption = $entity->getId() ? 'Edit ' : 'Create ';
+        $caption = $entity->id ? 'Edit ' : 'Create ';
         return $this->render('modals/entity.html.twig', [
             'caption' => $caption . $entity->getModelName(),
             'entity' => $entity,

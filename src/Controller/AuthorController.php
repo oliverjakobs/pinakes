@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Author;
-use App\Entity\Book;
 use App\Entity\User;
-use App\Mapper\PinakesMapper;
+use App\Mapper\AuthorMapper;
+use App\Mapper\BookMapper;
 use App\Renderable\ViewElement;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,16 +15,16 @@ class AuthorController extends PinakesController {
 
     #[Route('/author', name: 'author', methods: ['GET'])]
     public function list(Request $request): Response {
-        $table = PinakesMapper::getMapper(Author::class)->createTable('list');
+        $table = AuthorMapper::getInstance()->createTable('list');
         return $this->renderList($request, 'Authors', $table);
     }
 
     #[Route('/author/show/{id}', name: 'author_show', methods: ['GET'])]
     public function show(Request $request): Response {
         /** @var Author */
-        $author = $this->getEntity($request, Author::class);
+        $author = $this->getEntity($request, AuthorMapper::getInstance());
 
-        $table = PinakesMapper::getMapper(Book::class)
+        $table = BookMapper::getInstance()
             ->createTable('list_author')
             ->addFilter('authors', $author);
         return $this->renderList($request, 'Author: ' . (string) $author, $table, [
@@ -39,7 +39,7 @@ class AuthorController extends PinakesController {
     public function modal(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $mapper = PinakesMapper::getMapper(Author::class);
+        $mapper = AuthorMapper::getInstance();
         $author = $this->getEntity($request, $mapper) ?? new Author();
         return $this->renderModal($request, $mapper, $author, 'author_show');
     }
@@ -48,8 +48,9 @@ class AuthorController extends PinakesController {
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_LIBRARIAN);
 
-        $author = $this->getEntity($request, Author::class);
-        PinakesMapper::getMapper(Author::class)->delete($author);
+        $mapper = AuthorMapper::getInstance();
+        $author = $this->getEntity($request, $mapper);
+        $mapper->delete($author);
         return $this->redirectHx('author');
     }
 }

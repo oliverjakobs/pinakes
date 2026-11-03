@@ -4,8 +4,10 @@ namespace App\Mapper;
 
 use App\Entity\Record;
 use App\Pinakes\DataField;
+use App\Pinakes\Singleton;
 
 class RecordMapper extends PinakesMapper {
+    use Singleton;
 
     public static function getTableName(): string { 
         return 'record';

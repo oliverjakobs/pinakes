@@ -8,7 +8,7 @@ class Helper {
 
     public static function isEmpty(mixed $value): bool {
         if (null === $value) return true;
-        if ($value instanceof PinakesEntity) return null === $value->getId();
+        if ($value instanceof PinakesEntity) return null === $value->id;
         if (is_string($value)) return self::strEmpty($value);
         return !is_scalar($value) && empty($value);
     }

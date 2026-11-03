@@ -14,7 +14,7 @@ class TransactionController extends PinakesController {
 
     #[Route('/bookfund', name: 'bookfund', methods: ['GET'])]
     public function bookfund(Request $request): Response {
-        $mapper = PinakesMapper::getMapper(Transaction::class);
+        $mapper = TransactionMapper::getInstance();
         $table = $mapper->createTable('list');
         $table->setOrder('timestamp', 'DESC');
         $table->setPP(6);
@@ -22,7 +22,7 @@ class TransactionController extends PinakesController {
         $table->allow_pagination = false;
         return $this->render('bookfund.html.twig', [
             'transactions' => $table->currentPage(),
-            'balance' => Transaction::getBalance()
+            'balance' => TransactionMapper::getBalance()
         ]);
     }
 
@@ -41,7 +41,7 @@ class TransactionController extends PinakesController {
         $amount = floatval($request->request->get('amount'));
         $reason = $request->request->get('reason');
         
-        $mapper = PinakesMapper::getMapper(Transaction::class);
+        $mapper = TransactionMapper::getInstance();
         $this->create_transaction($mapper, $amount, $reason);
         return $this->redirectHx('bookfund');
     }
@@ -51,14 +51,14 @@ class TransactionController extends PinakesController {
         $amount = floatval($request->request->get('amount'));
         $reason = $request->request->get('reason');
         
-        $mapper = PinakesMapper::getMapper(Transaction::class);
+        $mapper = TransactionMapper::getInstance();
         $this->create_transaction($mapper, $amount * -1.0, $reason);
         return $this->redirectHx('bookfund');
     }
 
     #[Route('/transaction', name: 'transaction', methods: ['GET'])]
     public function list(Request $request): Response {
-        $table = PinakesMapper::getMapper(Transaction::class)->createTable('list');
+        $table = TransactionMapper::getInstance()->createTable('list');
         return $this->renderList($request, 'Transactions', $table);
     }
 
@@ -66,7 +66,7 @@ class TransactionController extends PinakesController {
     public function modal(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
-        $mapper = PinakesMapper::getMapper(Transaction::class);
+        $mapper = TransactionMapper::getInstance();
         $transaction = $this->getEntity($request, $mapper) ?? new Transaction();
         return $this->renderModal($request, $mapper, $transaction, 'transaction');
     }
@@ -75,8 +75,9 @@ class TransactionController extends PinakesController {
     public function delete(Request $request): Response {
         $this->denyAccessUnlessGranted(User::ROLE_ADMIN);
 
-        $transaction = $this->getEntity($request, Transaction::class);
-        PinakesMapper::getMapper(Transaction::class)->delete($transaction);
+        $mapper = TransactionMapper::getInstance();
+        $transaction = $this->getEntity($request, $mapper);
+        $mapper->delete($transaction);
         return $this->redirectHx('transaction');
     }
 

@@ -3,7 +3,7 @@
 namespace App\Security;
 
 use App\Entity\User;
-use App\Mapper\PinakesMapper;
+use App\Mapper\UserMapper;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -14,7 +14,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 class UserProvider implements UserProviderInterface, PasswordUpgraderInterface {
 
     private function getUser(string $username): ?User {
-        $mapper = PinakesMapper::getMapper(User::class);
+        $mapper = UserMapper::getInstance();
         $user = $mapper->findBy('username', $username);
 
         if (null === $user) {

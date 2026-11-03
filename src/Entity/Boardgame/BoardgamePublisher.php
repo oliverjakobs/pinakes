@@ -5,10 +5,6 @@ namespace App\Entity;
 use App\Database\Mapping;
 
 class BoardgamePublisher extends PinakesEntity {
-
-    #[Mapping\Column]
-    private ?int $id = null;
-
     #[Mapping\Column]
     public string $name = 'Unknown publisher';
 
@@ -21,9 +17,5 @@ class BoardgamePublisher extends PinakesEntity {
 
     public function __toString(): string {
         return $this->name;
-    }
-
-    public function getId(): ?int {
-        return $this->id;
     }
 }

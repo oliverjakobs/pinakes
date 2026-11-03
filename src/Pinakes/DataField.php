@@ -16,11 +16,13 @@ class DataField {
 
     public readonly PinakesMapper $mapper;
 
-    public readonly string $name;
     public readonly string $caption;
     public readonly ?string $property;
     public readonly DataType $data_type;
     public readonly ?MappedProperty $mapping;
+
+    /** @var MappedProperty[] $requires */
+    public readonly array $requires;
 
     private ?Closure $data_cb;
 
@@ -31,15 +33,14 @@ class DataField {
 
     public function __construct(
         PinakesMapper $mapper,
-        string $name,
         string|Closure $data,
         ?DataType $data_type = null,
         string $caption = '',
         int $link = self::LINK_NONE,
         bool $edit = false,
+        array $requires = [],
     ) {
         $this->mapper = $mapper;
-        $this->name = $name;
 
         if (is_callable($data)) {
             $this->property = null;
@@ -51,7 +52,7 @@ class DataField {
 
         $mapping = null;
         if (null !== $this->property) {
-            $mapping = MappedProperty::create($mapper->getEntityClass(), $this->property);
+            $mapping = $mapper->getMapping($this->property);
 
             if (null === $data_type) {
                 $data_type = DataType::fromMapping($mapping);
@@ -60,7 +61,7 @@ class DataField {
 
         $this->mapping = $mapping;
 
-        Assert::notNull($data_type, 'Failed to determine data type for ' . $name);
+        Assert::notNull($data_type, 'Failed to determine data type');
         $this->data_type = $data_type;
         
         Assert::inArray($link, [ self::LINK_NONE, self::LINK_SELF, self::LINK_DATA ], 'Unkown link type');
@@ -69,6 +70,12 @@ class DataField {
 
         $this->caption = $caption;
         $this->edit = $edit;
+
+        $required_properies = [];
+        foreach ($requires as $req) {
+            $required_properies[] = $mapper->getMapping($req);
+        }
+        $this->requires = $required_properies;
     }
 
     public function canOrderBy(): bool {

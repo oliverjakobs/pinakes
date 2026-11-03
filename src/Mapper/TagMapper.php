@@ -5,8 +5,10 @@ namespace App\Mapper;
 use App\Entity\Tag;
 use App\Pinakes\DataField;
 use App\Pinakes\DataType;
+use App\Pinakes\Singleton;
 
 class TagMapper extends PinakesMapper {
+    use Singleton;
 
     public static function getTableName(): string { 
         return 'tag';

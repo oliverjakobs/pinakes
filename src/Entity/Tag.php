@@ -4,10 +4,7 @@ namespace App\Entity;
 
 use App\Database\Mapping;
 
-class Tag extends PinakesEntity implements TagInterface {
-    #[Mapping\Column]
-    private ?int $id = null;
-
+class Tag extends PinakesEntity {
     #[Mapping\Column]
     public string $name = 'Unknown tag';
 
@@ -23,13 +20,5 @@ class Tag extends PinakesEntity implements TagInterface {
 
     public function __toString(): string {
         return $this->name;
-    }
-
-    public function getId(): ?int {
-        return $this->id;
-    }
-
-    public function getColor(): string {
-        return $this->color;
     }
 }

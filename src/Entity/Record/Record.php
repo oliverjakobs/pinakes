@@ -10,10 +10,6 @@ enum Medium: string {
 }
 
 class Record extends PinakesEntity {
-
-    #[Mapping\Column]
-    private ?int $id = null;
-
     #[Mapping\Column]
     public string $title = 'Untitled record';
 
@@ -32,16 +28,13 @@ class Record extends PinakesEntity {
     #[Mapping\Column]
     public \DateTime $created_at;
 
-    public function __construct() {
+    public function __construct(?int $id = null) {
+        parent::__construct($id);
         $this->created_at = new \DateTime();
     }
 
     public function __toString(): string {
         return $this->title;
-    }
-
-    public function getId(): ?int {
-        return $this->id;
     }
 
     public function setMedium(string $medium): self {

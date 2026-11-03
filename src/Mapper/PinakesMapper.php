@@ -29,11 +29,8 @@ use App\Pinakes\DataField;
 use App\Pinakes\DataTable;
 use App\Pinakes\Helper;
 use ReflectionClass;
-use ReflectionException;
-use ReflectionProperty;
 
 abstract class PinakesMapper {
-
     /** @var DataField[] */
     private array $data_fields;
 
@@ -53,10 +50,11 @@ abstract class PinakesMapper {
 
         $this->data_fields = [];
         foreach ($this->defineDataFields() as $name => $def) {
-            $this->data_fields[$name] = new DataField($this, $name, ...$def);
+            $this->data_fields[$name] = new DataField($this, ...$def);
         }
     }
     
+    abstract public static function getInstance(): static;
     abstract public static function getTableName(): string;
     abstract public static function getSearchKey(): string;
     abstract public static function getEntityClass(): string;
@@ -72,6 +70,10 @@ abstract class PinakesMapper {
     public function getMapping(string $property): MappedProperty {
         Assert::isTrue(array_key_exists($property, $this->mapped_properties), 'Unkown property: ' . $property);
         return $this->mapped_properties[$property];
+    }
+    
+    public function tryGetMapping(string $property): ?MappedProperty {
+        return $this->mapped_properties[$property] ?? null;
     }
 
     /** @return PinakesEntity[] */
@@ -115,17 +117,15 @@ abstract class PinakesMapper {
 
     public function hydrate(array $data): PinakesEntity {
         $entity_class = $this->getEntityClass();
-        $result = new $entity_class();
+
+        Assert::isTrue(array_key_exists('id', $data), 'Id missing');
+        $result = new $entity_class($data['id']);
 
         foreach ($data as $key => $value) {
-            try {
-                $property = new ReflectionProperty($result, $key);
-            } catch (ReflectionException $ex) {
-                continue;
-            }
+            if ('id' === $key) continue;
 
+            $mapping = $this->tryGetMapping($key);
             // not a mapped property
-            $mapping = MappedProperty::fromReflection($property);
             if (null === $mapping) continue;
 
             if (Mapping\Reference::class === $mapping->mapping_type) {
@@ -168,7 +168,7 @@ abstract class PinakesMapper {
                     $value = $mapping->parseValue($value);
             }
 
-            $property->setValue($result, $value);
+            $result->{$key} = $value;
         }
 
         return $result;
@@ -274,10 +274,10 @@ abstract class PinakesMapper {
         
         $table_name = $this->getTableName();
 
-        if (null === $entity->getId()) {
+        if (null === $entity->id) {
             $stmt = new Insert($table_name);
         } else {
-            $stmt = new Update($table_name, $entity->getId());
+            $stmt = new Update($table_name, $entity->id);
         }
 
         $many_to_manys = [];
@@ -343,7 +343,7 @@ abstract class PinakesMapper {
 
     public function delete(PinakesEntity $entity) {
         $delete = new Delete($this->getTableName(), "id = :id");
-        $delete->setParameter(':id', $entity->getId());
+        $delete->setParameter(':id', $entity->id);
         Database::getInstance()->execute($delete);
     }
 
@@ -376,25 +376,25 @@ abstract class PinakesMapper {
     public function getOptions(): array {
         $options = [];
         foreach ($this->fetchAll() as $entity) {
-            $options[$entity->getId()] = (string) $entity;
+            $options[$entity->id] = (string) $entity;
         }
         return $options;
     }
 
     public static function getMapper(string $model): static {
         return match($model) {
-            Book::class => new BookMapper(),
-            Author::class => new AuthorMapper(),
-            Publisher::class => new PublisherMapper(),
-            Tag::class => new TagMapper(),
-            Series::class => new SeriesMapper(),
-            Transaction::class => new TransactionMapper(),
-            User::class => new UserMapper(),
-            Record::class => new RecordMapper(),
-            RecordLabel::class => new RecordLabelMapper(),
-            Artist::class => new ArtistMapper(),
-            Boardgame::class => new BoardgameMapper(),
-            BoardgamePublisher::class => new BoardgamePublisherMapper(),
+            Book::class => BookMapper::getInstance(),
+            Author::class => AuthorMapper::getInstance(),
+            Publisher::class => PublisherMapper::getInstance(),
+            Tag::class => TagMapper::getInstance(),
+            Series::class => SeriesMapper::getInstance(),
+            Transaction::class => TransactionMapper::getInstance(),
+            User::class => UserMapper::getInstance(),
+            Record::class => RecordMapper::getInstance(),
+            RecordLabel::class => RecordLabelMapper::getInstance(),
+            Artist::class => ArtistMapper::getInstance(),
+            Boardgame::class => BoardgameMapper::getInstance(),
+            BoardgamePublisher::class => BoardgamePublisherMapper::getInstance(),
         };
     }
 }

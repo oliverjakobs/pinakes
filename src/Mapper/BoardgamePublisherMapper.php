@@ -5,8 +5,10 @@ namespace App\Mapper;
 use App\Entity\BoardgamePublisher;
 use App\Mapper\PinakesMapper;
 use App\Pinakes\DataField;
+use App\Pinakes\Singleton;
 
 class BoardgamePublisherMapper extends PinakesMapper {
+    use Singleton;
 
     public static function getTableName(): string { 
         return 'boardgame_publisher';

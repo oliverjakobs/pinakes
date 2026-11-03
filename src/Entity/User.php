@@ -18,18 +18,19 @@ class User extends PinakesEntity implements UserInterface, PasswordAuthenticated
     ];
 
     #[Mapping\Column]
-    private ?int $id = null;
-
-    #[Mapping\Column]
     public ?string $username = null;
 
     /** @var string[] The user roles */
     #[Mapping\Column]
-    private array $roles = [];
+    public array $roles = [];
 
     /** * @var string The hashed password */
     #[Mapping\Column]
-    private ?string $password = null;
+    public ?string $password = null;
+
+    public function __construct(?int $id = null) {
+        parent::__construct($id);
+    }
 
     public function getId(): ?int {
         return $this->id;

@@ -8,9 +8,6 @@ use App\Renderable\Link;
 
 class Author extends PinakesEntity {
     #[Mapping\Column]
-    private ?int $id = null;
-
-    #[Mapping\Column]
     public string $name = 'Unknown author';
 
     /** @var Book[] */
@@ -30,15 +27,8 @@ class Author extends PinakesEntity {
     #[Mapping\Count(property: 'translations')]
     public int $translation_count = 0;
 
-    public function __construct() {
-    }
-
     public function __toString(): string {
         return $this->name;
-    }
-
-    public function getId(): ?int {
-        return $this->id;
     }
 
     public function getLinkOpenLibrary(): ?Link {

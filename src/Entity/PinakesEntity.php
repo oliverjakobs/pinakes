@@ -8,7 +8,12 @@ use App\Renderable\Link;
 use App\Renderable\Renderable;
 
 abstract class PinakesEntity {
-    abstract public function getId(): ?int;
+    public readonly ?int $id;
+
+    public function __construct(?int $id = null) {
+        $this->id = $id;
+    }
+
     abstract public function __toString(): string;
 
     public static function getMapper(): PinakesMapper {
@@ -21,19 +26,19 @@ abstract class PinakesEntity {
     }
 
     public function equals(PinakesEntity $other): bool {
-        return $this->getId() === $other->getId();
+        return $this->id === $other->id;
     }
 
     public function getLinkSelf(Renderable|string|null $caption = null): Link {
-        return Link::create($caption ?? (string) $this, $this->getModelName() . '_show', ['id' => $this->getId()]);
+        return Link::create($caption ?? (string) $this, $this->getModelName() . '_show', ['id' => $this->id]);
     }
 
     public function getLinkEdit(Renderable|string|null $caption = null): Link {
-        return Link::modal($caption ?? 'Edit', $this->getModelName() . '_modal', ['id' => $this->getId()]);
+        return Link::modal($caption ?? 'Edit', $this->getModelName() . '_modal', ['id' => $this->id]);
     }
 
     public function getLinkDelete(Renderable|string|null $caption = null): Link {
-        return Link::delete($caption ?? 'Delete', $this->getModelName() . '_delete', ['id' => $this->getId()])
+        return Link::delete($caption ?? 'Delete', $this->getModelName() . '_delete', ['id' => $this->id])
             ->setDisabledMessage($this->getMessageDelete());
     }
 

@@ -6,9 +6,6 @@ use App\Database\Mapping;
 
 class Publisher extends PinakesEntity {
     #[Mapping\Column]
-    private ?int $id = null;
-
-    #[Mapping\Column]
     public string $name = 'Unknown publisher';
 
     /** @var Book[] */
@@ -20,9 +17,5 @@ class Publisher extends PinakesEntity {
 
     public function __toString(): string {
         return $this->name;
-    }
-
-    public function getId(): ?int {
-        return $this->id;
     }
 }
