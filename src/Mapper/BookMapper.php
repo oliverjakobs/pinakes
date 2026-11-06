@@ -4,7 +4,6 @@ namespace App\Mapper;
 
 use App\Entity\Book;
 use App\Entity\Tag;
-use App\Pinakes\DataField;
 use App\Pinakes\DataType;
 use App\Pinakes\Singleton;
 
@@ -32,25 +31,25 @@ class BookMapper extends PinakesMapper {
             'title' => [
                 'caption' => 'Title',
                 'data' => 'title',
-                'link' => DataField::LINK_SELF,
+                'link' => true,
                 'edit' => true
             ],
             'authors' => [
                 'caption' => 'Author(s)',
                 'data' => 'authors',
-                'link' => DataField::LINK_DATA,
+                'link' => true,
                 'edit' => true
             ],
             'translators' => [
                 'caption' => 'Translator(s)',
                 'data' => 'translators',
-                'link' => DataField::LINK_DATA,
+                'link' => true,
                 'edit' => true
             ],
             'publisher' => [
                 'caption' => 'Publisher',
                 'data' => 'publisher',
-                'link' => DataField::LINK_DATA,
+                'link' => true,
                 'edit' => true
             ],
             'tags' => [
@@ -77,7 +76,7 @@ class BookMapper extends PinakesMapper {
             'series' => [
                 'caption' => 'Series',
                 'data' => 'series',
-                'link' => DataField::LINK_DATA,
+                'link' => true,
                 'edit' => true
             ],
             'series_volume' => [

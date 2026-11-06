@@ -3,7 +3,6 @@
 namespace App\Mapper;
 
 use App\Entity\Artist;
-use App\Pinakes\DataField;
 use App\Pinakes\Singleton;
 
 class ArtistMapper extends PinakesMapper {
@@ -26,7 +25,7 @@ class ArtistMapper extends PinakesMapper {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataField::LINK_SELF,
+                'link' => true,
                 'edit' => true
             ],
             'record_count' => [

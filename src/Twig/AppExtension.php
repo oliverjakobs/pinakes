@@ -58,14 +58,14 @@ class AppExtension {
     }
 
     #[AsTwigFunction('render_form')]
-    public function renderForm(DataField $col, PinakesEntity $entity): FormElement {
-        return $col->data_type->getForm($col->name, $col->getData($entity));
+    public function renderForm(DataField $col, PinakesEntity $entity, string $name): FormElement {
+        return $col->data_type->getForm($name, $col->getData($entity));
     }
 
     #[AsTwigFunction('render_filter')]
-    public function renderFilter(DataTable $table, DataField $col): FormElement {
-        $value = $table->getFilterValue($col->name);
-        return $col->data_type->getForm($col->name, $col->data_type->parse($value));
+    public function renderFilter(DataTable $table, DataField $col, string $name): FormElement {
+        $value = $table->getFilterValue($name);
+        return $col->data_type->getForm($name, $col->data_type->parse($value));
     }
 
     #[AsTwigFunction('export')]

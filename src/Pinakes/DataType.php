@@ -7,7 +7,6 @@ use App\Database\Mapping\Enum;
 use DateTime;
 use BackedEnum;
 use App\Entity\PinakesEntity;
-use App\Entity\TagInterface;
 use App\Mapper\PinakesMapper;
 use App\Renderable\Renderable;
 use App\Renderable\FormElement;
@@ -176,16 +175,13 @@ class DataType {
         return in_array($this->type, self::TARGET_TYPES);
     }
 
-    public function render(mixed $data, bool $link = false): Renderable|string {
+    public function render(mixed $data): Renderable|string {
         if (Helper::isEmpty($data)) return '-';
 
         switch ($this->type) {
             case self::TYPE_ENTITY:
-                if ($link) return $data->getLinkSelf();
                 return (string) $data;
             case self::TYPE_COLLECTION:
-                if ($link) $data = array_map(fn (PinakesEntity $d) => $d->getLinkSelf(), $data);
-                return ViewElement::ul($data)->addStyleClasses('collection');
             case self::TYPE_ARRAY:
                 return ViewElement::ul($data)->addStyleClasses('collection');
             case self::TYPE_TAGS:

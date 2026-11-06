@@ -207,19 +207,21 @@ abstract class PinakesMapper {
                     $reference_target_name = $reference_target_mapper->getTableName();
 
                     if ($reference->isManyToMany()) {
-                        $from = $reference->getJoinTable();
+                        $join = $reference->getJoinTable();
                     } else {
                         // $from = $reference_target_mapper->getTableName();
                         Assert::notImplemented();
                     }
-                    $exists = new Query($from);
-                    $exists->addSelect('1');
-                    $exists->addJoin("JOIN {$target_name} ON {$target_name}.id = self.{$target_name}_id");
-                    $exists->addWhere("self.{$reference_target_name}_id = {$reference_target_name}.id AND book.{$table_name}_id = {$table_name}.id");
 
-                    $subquery = new Query($reference_target_name);
-                    $subquery->addSelect(Expr::json_group($subquery->table_name, $reference_target_mapper->getDefaultSelect()));
-                    $subquery->addWhere("EXISTS ({$exists->build()})");
+                    $from = new Query($target_name);
+                    $from->addSelect("DISTINCT {$join}.{$reference_target_name}_id");
+                    $from->addJoin("JOIN {$join} ON {$join}.{$target_name}_id = {$target_name}.id");
+                    $from->addWhere("self.{$table_name}_id = {$table_name}.id");
+
+                    $subquery_name = "{$table_name}_{$reference_target_name}";
+                    $subquery = new Query("({$from->build()}) {$subquery_name}");
+                    $subquery->addSelect(Expr::json_group($reference_target_name, $reference_target_mapper->getDefaultSelect()));
+                    $subquery->addJoin("JOIN {$reference_target_name} ON {$reference_target_name}.id = {$subquery_name}.{$reference_target_name}_id");
                     
                     $result->addSelect("({$subquery->build()})", $mapping->name);
                     break;

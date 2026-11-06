@@ -3,7 +3,6 @@
 namespace App\Mapper;
 
 use App\Entity\Record;
-use App\Pinakes\DataField;
 use App\Pinakes\Singleton;
 
 class RecordMapper extends PinakesMapper {
@@ -26,19 +25,19 @@ class RecordMapper extends PinakesMapper {
             'title' => [
                 'caption' => 'Title',
                 'data' => 'title',
-                'link' => DataField::LINK_SELF,
+                'link' => true,
                 'edit' => true
             ],
             'artist' => [
                 'caption' => 'Artist',
                 'data' => 'artist',
-                'link' => DataField::LINK_DATA,
+                'link' => true,
                 'edit' => true
             ],
             'label' => [
                 'caption' => 'Label',
                 'data' => 'label',
-                'link' => DataField::LINK_DATA,
+                'link' => true,
                 'edit' => true
             ],
             'released' => [

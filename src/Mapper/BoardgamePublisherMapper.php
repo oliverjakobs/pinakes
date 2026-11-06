@@ -4,7 +4,6 @@ namespace App\Mapper;
 
 use App\Entity\BoardgamePublisher;
 use App\Mapper\PinakesMapper;
-use App\Pinakes\DataField;
 use App\Pinakes\Singleton;
 
 class BoardgamePublisherMapper extends PinakesMapper {
@@ -27,7 +26,7 @@ class BoardgamePublisherMapper extends PinakesMapper {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataField::LINK_SELF,
+                'link' => true,
                 'edit' => true
             ],
             'boardgame_count' => [

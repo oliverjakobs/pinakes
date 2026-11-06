@@ -3,7 +3,6 @@
 namespace App\Mapper;
 
 use App\Entity\Boardgame;
-use App\Pinakes\DataField;
 use App\Pinakes\DataType;
 use App\Pinakes\Singleton;
 
@@ -31,13 +30,13 @@ class BoardgameMapper extends PinakesMapper {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataField::LINK_SELF,
+                'link' => true,
                 'edit' => true
             ],
             'publisher' => [
                 'caption' => 'Publisher',
                 'data' => 'publisher',
-                'link' => DataField::LINK_DATA,
+                'link' => true,
                 'edit' => true
             ],
             'player_count' => [
@@ -71,13 +70,13 @@ class BoardgameMapper extends PinakesMapper {
             'base_game' => [
                 'caption' => 'Base game',
                 'data' => 'base_game',
-                'link' => DataField::LINK_DATA,
+                'link' => true,
                 'edit' => true
             ],
             'extensions' => [
                 'caption' => 'Extensions',
                 'data' => 'extensions',
-                'link' => DataField::LINK_DATA,
+                'link' => true,
                 'edit' => false
             ]
         ];

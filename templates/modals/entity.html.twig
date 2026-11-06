@@ -5,11 +5,11 @@
 <form action="{{ app.request.requesturi }}" method="post">
   <table class="table">
     <tbody>
-    {% for field in fields %}
+    {% for name, field in fields %}
       {% if field.edit %}
         <tr>
-          <td><label for="{{ field.name }}">{{ field.caption }}:</label></td>
-          <td>{{ render_form(field, entity) | raw }}</td>
+          <td><label for="{{ name }}">{{ field.caption }}:</label></td>
+          <td>{{ render_form(field, entity, name) | raw }}</td>
         </tr>
       {% endif %}
     {% endfor %}

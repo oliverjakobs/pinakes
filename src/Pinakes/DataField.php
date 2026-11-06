@@ -2,18 +2,14 @@
 
 namespace App\Pinakes;
 
-use App\Database\MappedProperty;
 use Closure;
+use App\Database\MappedProperty;
 use App\Entity\PinakesEntity;
 use App\Mapper\PinakesMapper;
 use App\Renderable\Renderable;
 use App\Renderable\ViewElement;
 
 class DataField {
-    const LINK_NONE = 0;
-    const LINK_SELF = 1;
-    const LINK_DATA = 2;
-
     public readonly PinakesMapper $mapper;
 
     public readonly string $caption;
@@ -26,8 +22,7 @@ class DataField {
 
     private ?Closure $data_cb;
 
-    private int $link;
-
+    public readonly bool $link;
     public readonly bool $edit;
     // public readonly string $visibility;
 
@@ -36,7 +31,7 @@ class DataField {
         string|Closure $data,
         ?DataType $data_type = null,
         string $caption = '',
-        int $link = self::LINK_NONE,
+        bool $link = false,
         bool $edit = false,
         array $requires = [],
     ) {
@@ -63,12 +58,9 @@ class DataField {
 
         Assert::notNull($data_type, 'Failed to determine data type');
         $this->data_type = $data_type;
-        
-        Assert::inArray($link, [ self::LINK_NONE, self::LINK_SELF, self::LINK_DATA ], 'Unkown link type');
-        Assert::isTrue(self::LINK_DATA !== $link || $data_type->isTargetType(), 'Can not link to ' . (string) $data_type);
-        $this->link = $link;
 
         $this->caption = $caption;
+        $this->link = $link;
         $this->edit = $edit;
 
         $required_properies = [];
@@ -107,8 +99,17 @@ class DataField {
     public function renderCell(PinakesEntity $entity): Renderable {
         $data = $this->getData($entity);
 
-        $value = $this->data_type->render($data, self::LINK_DATA === $this->link);
-        if (self::LINK_SELF === $this->link) {
+        if ($this->link && null !== $data) {
+            if (DataType::TYPE_ENTITY === $this->data_type->type) {
+                $data = $data->getLinkSelf();
+            } elseif ((DataType::TYPE_COLLECTION === $this->data_type->type)) {
+                $data = array_map(fn (PinakesEntity $d) => $d->getLinkSelf(), $data);
+            }
+        }
+
+        $value = $this->data_type->render($data);
+
+        if ($this->link && !$this->data_type->isTargetType()) {
             $value = $entity->getLinkSelf($value);
         }
         return ViewElement::create('td', $value)->addStyleClasses(...$this->data_type->getStyleClasses());

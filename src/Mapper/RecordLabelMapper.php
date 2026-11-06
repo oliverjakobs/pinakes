@@ -3,7 +3,6 @@
 namespace App\Mapper;
 
 use App\Entity\RecordLabel;
-use App\Pinakes\DataField;
 use App\Pinakes\Singleton;
 
 class RecordLabelMapper extends PinakesMapper {
@@ -26,7 +25,7 @@ class RecordLabelMapper extends PinakesMapper {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataField::LINK_SELF,
+                'link' => true,
                 'edit' => true
             ],
             'record_count' => [

@@ -3,7 +3,6 @@
 namespace App\Mapper;
 
 use App\Entity\Tag;
-use App\Pinakes\DataField;
 use App\Pinakes\DataType;
 use App\Pinakes\Singleton;
 
@@ -33,7 +32,7 @@ class TagMapper extends PinakesMapper {
             'name' => [
                 'caption' => 'Name',
                 'data' => 'name',
-                'link' => DataField::LINK_SELF,
+                'link' => true,
                 'data_type' => DataType::string(),
                 'edit' => true,
             ],
