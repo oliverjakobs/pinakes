@@ -99,7 +99,7 @@ abstract class PinakesMapper {
 
     public function findBy(string $key, mixed $value): ?PinakesEntity {
         $query = $this->createQuery($this->mapped_properties);
-        $query->addWhere("self.{$key} = :key");
+        $query->where("self.{$key} = :key");
         $query->setParameter(':key', $value);
 
         // TODO use fetchOne
@@ -178,7 +178,7 @@ abstract class PinakesMapper {
         $table_name = $this->getTableName();
 
         $result = new Query($table_name);
-        $result->addSelect('self.id');
+        $result->select('self.id');
 
         /** @var MappedProperty $mapping */
         foreach ($properties as $mapping) {
@@ -195,7 +195,7 @@ abstract class PinakesMapper {
                         $target_key = "{$target->target_property}_id";
                     }
 
-                    $result->addSelect("(SELECT COUNT(*) FROM {$from} WHERE {$target_key} = self.id)", $mapping->name);
+                    $result->select("(SELECT COUNT(*) FROM {$from} WHERE {$target_key} = self.id)", $mapping->name);
                     break;
                 case Mapping\Reference::class:
                     $target = $mapping->virtual_target;
@@ -214,50 +214,50 @@ abstract class PinakesMapper {
                     }
 
                     $from = new Query($target_name);
-                    $from->addSelect("DISTINCT {$join}.{$reference_target_name}_id");
-                    $from->addJoin("JOIN {$join} ON {$join}.{$target_name}_id = {$target_name}.id");
-                    $from->addWhere("self.{$table_name}_id = {$table_name}.id");
+                    $from->select("DISTINCT {$join}.{$reference_target_name}_id");
+                    $from->join("JOIN {$join} ON {$join}.{$target_name}_id = {$target_name}.id");
+                    $from->where("self.{$table_name}_id = {$table_name}.id");
 
                     $subquery_name = "{$table_name}_{$reference_target_name}";
                     $subquery = new Query("({$from->build()}) {$subquery_name}");
-                    $subquery->addSelect(Expr::json_group($reference_target_name, $reference_target_mapper->getDefaultSelect()));
-                    $subquery->addJoin("JOIN {$reference_target_name} ON {$reference_target_name}.id = {$subquery_name}.{$reference_target_name}_id");
+                    $subquery->selectGroup($reference_target_name, $reference_target_mapper->getDefaultSelect());
+                    $subquery->join("JOIN {$reference_target_name} ON {$reference_target_name}.id = {$subquery_name}.{$reference_target_name}_id");
                     
-                    $result->addSelect("({$subquery->build()})", $mapping->name);
+                    $result->select("({$subquery->build()})", $mapping->name);
                     break;
                 case Mapping\ManyToMany::class:
                     $target = PinakesMapper::getMapper($mapping->target);
                     $target_name = $target->getTableName();
 
-                    $result->addSelect("{$mapping->name}.{$mapping->name}", $mapping->name);
+                    $result->select("{$mapping->name}.{$mapping->name}", $mapping->name);
 
                     $join_table = $mapping->getJoinTable();
 
                     $subquery = new Query($join_table);
-                    $subquery->addSelect("self.{$table_name}_id");
-                    $subquery->addSelect(Expr::json_group($target_name, $target->getDefaultSelect()), $mapping->name);
-                    $subquery->addJoin("JOIN {$target_name} ON {$target_name}.id = self.{$target_name}_id");
-                    $subquery->addGroupBy("self.{$table_name}_id");
+                    $subquery->select("self.{$table_name}_id");
+                    $subquery->selectGroup($target_name, $target->getDefaultSelect(), $mapping->name);
+                    $subquery->join("JOIN {$target_name} ON {$target_name}.id = self.{$target_name}_id");
+                    $subquery->groupBy("self.{$table_name}_id");
 
-                    $result->addJoin("LEFT JOIN ({$subquery->build()}) AS {$mapping->name} ON {$mapping->name}.{$table_name}_id = self.id");
+                    $result->join("LEFT JOIN ({$subquery->build()}) AS {$mapping->name} ON {$mapping->name}.{$table_name}_id = self.id");
                     break;
                 case Mapping\ManyToOne::class:
                     $target = PinakesMapper::getMapper($mapping->target);
                     $target_name = $target->getTableName();
 
-                    $result->addSelect(Expr::json_object($mapping->name, $target->getDefaultSelect()), $mapping->name);
-                    $result->addJoin("LEFT JOIN {$target_name} {$mapping->name} ON {$mapping->name}.id = self.{$mapping->name}_id");
+                    $result->selectObject($mapping->name, $target->getDefaultSelect(), $mapping->name);
+                    $result->join("LEFT JOIN {$target_name} {$mapping->name} ON {$mapping->name}.id = self.{$mapping->name}_id");
                     break;
                 case Mapping\OneToMany::class:
                     $target = PinakesMapper::getMapper($mapping->target);
                     $target_name = $target->getTableName();
 
-                    $result->addSelect(Expr::json_group($mapping->name, $target->getDefaultSelect()), $mapping->name);
-                    $result->addJoin("LEFT JOIN {$target_name} {$mapping->name} ON {$mapping->name}.{$mapping->target_property}_id = self.id");
+                    $result->selectGroup($mapping->name, $target->getDefaultSelect(), $mapping->name);
+                    $result->join("LEFT JOIN {$target_name} {$mapping->name} ON {$mapping->name}.{$mapping->target_property}_id = self.id");
                     break;
                 case Mapping\Column::class:
                 case Mapping\Enum::class:
-                    $result->addSelect("self.{$mapping->name}");
+                    $result->select("self.{$mapping->name}");
             }
         }
 

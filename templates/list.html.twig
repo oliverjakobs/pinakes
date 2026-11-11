@@ -35,10 +35,10 @@
       <form 
         hx-get="{{ filter_url(app.request, table.filter) }}"
         hx-target="[hx-table-content]">
-        {% for form in filters %}
+        {% for name, form in filters %}
           <div>
-            <label for="{{ form.name }}">{{ form.caption }}</label>
-            {{ render_filter(table, form) | raw }}
+            <label for="{{ name }}">{{ form.caption }}</label>
+            {{ render_filter(table, form, name) | raw }}
           </div>
         {% endfor %}
         <button type="submit">Apply</button>

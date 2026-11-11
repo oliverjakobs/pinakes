@@ -6,6 +6,7 @@ use App\Entity\Book;
 use App\Entity\Tag;
 use App\Pinakes\DataType;
 use App\Pinakes\Singleton;
+use App\Renderable\ViewElement;
 
 class BookMapper extends PinakesMapper {
     use Singleton;
@@ -55,7 +56,10 @@ class BookMapper extends PinakesMapper {
             'tags' => [
                 'caption' => 'Tags',
                 'data' => 'tags',
-                'data_type' => DataType::tags(Tag::class),
+                'render' => function (array $tags): string {
+                    $data = array_map(fn ($tag) => ViewElement::tag($tag->getLinkSelf(), $tag->color), $tags);
+                    return implode(' ', $data);
+                },
                 'edit' => true
             ],
             'published' => [

@@ -2,7 +2,6 @@
 
 namespace App\Database\SQL;
 
-
 interface Statement {
     public function build(): string;
     public function getParameters(): array;

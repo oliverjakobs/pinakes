@@ -2,7 +2,11 @@
 
 namespace App\Controller;
 
+use App\Database\Database;
+use App\Database\SQL\Query;
+use App\Mapper\BoardgameMapper;
 use App\Mapper\BookMapper;
+use App\Mapper\RecordMapper;
 use App\Mapper\TransactionMapper;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -18,14 +22,16 @@ class IndexController extends PinakesController {
         $newest->allow_ordering = false;
         $newest->allow_pagination = false;
 
+        $stats = [
+            'Books' => Database::getInstance()->count(new Query(BookMapper::getTableName())),
+            'Boardgames' => Database::getInstance()->count(new Query(BoardgameMapper::getTableName())),
+            'Records' => Database::getInstance()->count(new Query(RecordMapper::getTableName())),
+        ];
+
         return $this->render('index.html.twig', [
             'newest' => $newest,
-            'balance' => TransactionMapper::getBalance()
+            'balance' => TransactionMapper::getBalance(),
+            'stats' => $stats
         ]);
-    }
-
-    #[Route('/booksearch', name: 'booksearch', methods: ['GET'])]
-    public function booksearch(): Response {
-        return $this->render('booksearch.html.twig', [ ]);
     }
 }

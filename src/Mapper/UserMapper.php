@@ -32,7 +32,8 @@ class UserMapper extends PinakesMapper {
                 'caption' => 'Roles',
                 'data' => fn(User $u) => $u->getRoles(),
                 'data_type' => DataType::array()->setOptions(User::ROLES),
-                'edit' => true
+                'edit' => true,
+                'requires' => ['roles']
             ],
             // 'edit' => [
             //     'caption' => '',

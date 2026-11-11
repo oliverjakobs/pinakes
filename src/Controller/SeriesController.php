@@ -4,12 +4,9 @@ namespace App\Controller;
 
 use App\Database\Database;
 use App\Database\SQL\Insert;
-use App\Entity\Book;
 use App\Entity\Series;
-use App\Entity\Tag;
 use App\Entity\User;
 use App\Mapper\BookMapper;
-use App\Mapper\PinakesMapper;
 use App\Mapper\SeriesMapper;
 use App\Mapper\TagMapper;
 use App\Renderable\Link;

@@ -30,7 +30,7 @@ class TransactionMapper extends PinakesMapper {
 
     public static function getBalance(): float {
         $query = new Query(self::getTableName());
-        $query->addSelect('SUM(amount)');
+        $query->select('SUM(amount)');
         return Database::getInstance()->fetchColumn($query) ?? 0.0;
     }
 

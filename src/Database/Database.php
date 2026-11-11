@@ -59,7 +59,7 @@ class Database {
 
     public function count(Query $query): int {
         $count = new Query($query->table_name);
-        $count->addSelect("COUNT(DISTINCT self.id)");
+        $count->select("COUNT(DISTINCT self.id)");
         $count->wheres = $query->wheres;
         $count->parameters = $query->parameters;
         return $this->fetchColumn($count);

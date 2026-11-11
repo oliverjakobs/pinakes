@@ -27,16 +27,22 @@
         ]
     },
     {
-        "caption": "Booksearch",
-        "route": "booksearch",
-        "icon": "search",
-        "role": "ROLE_LIBRARIAN"
-    },
-    {
         "caption": "Bookfund",
         "route": "bookfund",
         "icon": "bank",
         "role": "ROLE_LIBRARIAN"
+    },
+    {
+        "caption": "Boardgames",
+        "icon": "dice-5",
+        "route": "boardgame",
+        "items": [
+            {
+                "caption": "Publishers",
+                "route": "boardgamepublisher",
+                "icon": "box-seam"
+            }
+        ]
     },
     {
         "caption": "Music",
@@ -52,18 +58,6 @@
                 "caption": "Vinyls",
                 "route": "record_vinyl",
                 "icon": "vinyl-fill"
-            }
-        ]
-    },
-    {
-        "caption": "Boardgames",
-        "icon": "dice-5",
-        "route": "boardgame",
-        "items": [
-            {
-                "caption": "Publishers",
-                "route": "boardgamepublisher",
-                "icon": "box-seam"
             }
         ]
     },

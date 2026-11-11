@@ -3,10 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Book;
-use App\Entity\Series;
 use App\Entity\User;
 use App\Mapper\BookMapper;
-use App\Mapper\PinakesMapper;
 use App\Mapper\SeriesMapper;
 use App\Renderable\Link;
 use App\Renderable\ViewElement;

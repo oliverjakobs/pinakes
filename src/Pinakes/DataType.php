@@ -27,20 +27,17 @@ class DataType {
 
     const TYPE_ENTITY = 'entity';
     const TYPE_COLLECTION = 'collection';
-    const TYPE_TAGS = 'tags';
 
     const TYPE_ACTION = 'action';
 
     const TARGET_TYPES = [
         self::TYPE_ENTITY,
         self::TYPE_COLLECTION,
-        self::TYPE_TAGS,
     ];
 
     const ARRAY_TYPES = [
         self::TYPE_ARRAY,
         self::TYPE_COLLECTION,
-        self::TYPE_TAGS
     ];
     
     public readonly string $type;
@@ -142,11 +139,6 @@ class DataType {
         return self::withTarget(self::TYPE_COLLECTION, $entity);
     }
 
-    public static function tags(string $entity): self {
-        Assert::isTrue(property_exists($entity, 'color'), 'Invalid tag-target ' . $entity);
-        return self::withTarget(self::TYPE_TAGS, $entity);
-    }
-
     public static function action(): self {
         return new self(self::TYPE_ACTION);
     }
@@ -184,9 +176,6 @@ class DataType {
             case self::TYPE_COLLECTION:
             case self::TYPE_ARRAY:
                 return ViewElement::ul($data)->addStyleClasses('collection');
-            case self::TYPE_TAGS:
-                $data = array_map(fn ($tag) => ViewElement::tag($tag->getLinkSelf(), $tag->color), $data);
-                return implode(' ', $data);
             case self::TYPE_CURRENCY:
                 return sprintf($this->fmt, $data);
             case self::TYPE_COLOR:
@@ -210,7 +199,6 @@ class DataType {
         switch ($this->type) {
             case self::TYPE_ARRAY:
             case self::TYPE_COLLECTION:
-            case self::TYPE_TAGS:
                 return implode('; ', $data);
             case self::TYPE_CURRENCY:
                 return sprintf($this->fmt, $data);
@@ -244,7 +232,6 @@ class DataType {
         switch ($this->type) {
             case self::TYPE_ENTITY:
                 if (null === $value?->id) $value = null;
-            case self::TYPE_TAGS:
             case self::TYPE_COLLECTION:
             case self::TYPE_ARRAY:
                 return FormElement::autocomplete($name, $this->getOptions(), $value);

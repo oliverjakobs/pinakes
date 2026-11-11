@@ -2,9 +2,7 @@
 
 namespace App\Entity;
 
-use App\Database\Database;
 use App\Database\Mapping;
-use App\Database\SQL\Query;
 
 class Transaction extends PinakesEntity {
     #[Mapping\Column]

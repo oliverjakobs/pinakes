@@ -113,12 +113,12 @@ $property = 'authors';
 $join_table = 'book_author';
 
 $subquery = new Query($join_table);
-$subquery->addSelect(".{$table_name}_id");
+$subquery->select(".{$table_name}_id");
 foreach ($target->getDefaultSelect() as $select) {
-    $subquery->addSelect("GROUP_CONCAT({$target_name}.{$select}, ';') AS {$property}_{$select}");
+    $subquery->select("GROUP_CONCAT({$target_name}.{$select}, ';') AS {$property}_{$select}");
 }
-$subquery->addJoin("JOIN {$target_name} ON {$target_name}.id = {$join_table}.{$target_name}_id");
-$subquery->addGroupBy(".{$table_name}_id");
+$subquery->join("JOIN {$target_name} ON {$target_name}.id = {$join_table}.{$target_name}_id");
+$subquery->groupBy(".{$table_name}_id");
 
 var_dump($subquery->build());
 

@@ -94,7 +94,7 @@ class DataTable {
         // add search
         $search = $this->filter['search'] ?? null;
         if (null !== $search) {
-            $query->addWhere("self.{$this->mapper->getSearchKey()} LIKE :search");
+            $query->where("self.{$this->mapper->getSearchKey()} LIKE :search");
             $query->setParameter(':search', '%' . $search . '%');
         }
 
@@ -109,23 +109,23 @@ class DataTable {
             if ($field->data_type->isArrayType()) {
 
                 $in_subquery = new Query($field->mapping->getJoinTable());
-                $in_subquery->addSelect("{$table_name}_id");
+                $in_subquery->select("{$table_name}_id");
 
                 $target_name = PinakesMapper::getMapper($field->mapping->target)->getTableName();
                 if (is_iterable($value)) {
                     Assert::error('Not implemented');
                 } else {
-                    $in_subquery->addWhere("{$target_name}_id = {$value}");
+                    $in_subquery->where("{$target_name}_id = {$value}");
                 }
 
-                $query->addWhere("self.id IN ({$in_subquery->build()})");
+                $query->where("self.id IN ({$in_subquery->build()})");
             } else if ($field->data_type->isTargetType()) {
                 $param = ":{$name}";
-                $query->addWhere("{$param} = self.{$field->property}_id");
+                $query->where("{$param} = self.{$field->property}_id");
                 $query->setParameter($param, $value);
             } else {
                 $param = ":{$name}";
-                $query->addWhere("{$param} = self.{$field->property}");
+                $query->where("{$param} = self.{$field->property}");
                 $query->setParameter($param, $value);
             }
         }
@@ -135,15 +135,15 @@ class DataTable {
         if (null !== $by) {
             $field = $this->mapper->getDataField($by);
             // if (null !== $field) 
-            $query->addOrderBy($field->getOrderBy(), $this->filter['order_dir'] ?? 'asc');
+            $query->orderBy($field->getOrderBy(), $this->filter['order_dir'] ?? 'asc');
         } else {
             foreach ($this->mapper->getDefaultOrder() as $by => $dir) {
-                $query->addOrderBy($by, $dir);
+                $query->orderBy($by, $dir);
             }
         }
 
         $pp = $this->getPerPage();
-        $query->setLimit($pp, ($this->getPage() - 1) * $pp);
+        $query->limit($pp, ($this->getPage() - 1) * $pp);
 
         $this->_select = $query;
         return $query;

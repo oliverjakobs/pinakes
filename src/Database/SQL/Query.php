@@ -67,7 +67,7 @@ class Query implements Statement {
     private ?int $limit = null; 
     private ?int $offset = null;
 
-    public function __construct(string $table_name, string $alias = 'self') {
+    public function __construct(string $table_name) {
         $this->table_name = $table_name;
     }
 
@@ -75,35 +75,49 @@ class Query implements Statement {
         return $this->build();
     }
 
-    public function addSelect(string $select, ?string $alias = null): self {
+    private function parse(string $expr): string {
+        return str_replace('self.', $this->table_name . '.', $expr);
+    }
+
+    public function select(string $select, ?string $alias = null): self {
         if (null !== $alias) $select = sprintf('%s AS %s', $select, $alias);
-        $this->selects[] = Expr::parse($select, $this->table_name);
+        $this->selects[] = $this->parse($select);
         return $this;
     }
 
-    public function addJoin(string $join): self {
-        $this->joins[] = Expr::parse($join, $this->table_name);
+    public function selectObject(string $name, array $fields, ?string $alias = null): self {
+        $content = implode(', ', array_map(fn($v) => "'{$v}', {$name}.{$v}", $fields));
+        return $this->select("json_object({$content})", $alias);
+    }
+
+    public function selectGroup(string $name, array $fields, ?string $alias = null): self {
+        $content = implode(', ', array_map(fn($v) => "'{$v}', {$name}.{$v}", $fields));
+        return $this->select("json_group_array(json_object({$content}))", $alias);
+    }
+
+    public function join(string $join): self {
+        $this->joins[] = $this->parse($join);
         return $this;
     }
 
-    public function addWhere(string $where): self {
+    public function where(string $where): self {
         if ('.' === $where[0]) $where = 'self' . $where;
-        $this->wheres[] = Expr::parse($where, $this->table_name);
+        $this->wheres[] = $this->parse($where);
         return $this;
     }
 
-    public function addOrderBy(string $by, string $dir = 'ASC'): self {
-        $by = Expr::parse($by, $this->table_name);
+    public function orderBy(string $by, string $dir = 'ASC'): self {
+        $by = $this->parse($by);
         $this->order_by[$by] = $dir;
         return $this;
     }
 
-    public function addGroupBy(string $by): self {
-        $this->group_by[] = Expr::parse($by, $this->table_name);
+    public function groupBy(string $by): self {
+        $this->group_by[] = $this->parse($by);
         return $this;
     }
 
-    public function setLimit(int $limit, ?int $offset = null): self {
+    public function limit(int $limit, ?int $offset = null): self {
         $this->limit = $limit;
         $this->offset = $offset;
         return $this;

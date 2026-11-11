@@ -21,6 +21,7 @@ class DataField {
     public readonly array $requires;
 
     private ?Closure $data_cb;
+    private ?Closure $render_cb;
 
     public readonly bool $link;
     public readonly bool $edit;
@@ -31,6 +32,7 @@ class DataField {
         string|Closure $data,
         ?DataType $data_type = null,
         string $caption = '',
+        ?Closure $render = null,
         bool $link = false,
         bool $edit = false,
         array $requires = [],
@@ -58,6 +60,8 @@ class DataField {
 
         Assert::notNull($data_type, 'Failed to determine data type');
         $this->data_type = $data_type;
+
+        $this->render_cb = $render;
 
         $this->caption = $caption;
         $this->link = $link;
@@ -107,7 +111,11 @@ class DataField {
             }
         }
 
-        $value = $this->data_type->render($data);
+        if (null !== $this->render_cb) {
+            $value = call_user_func($this->render_cb, $data);
+        } else {
+            $value = $this->data_type->render($data);
+        }
 
         if ($this->link && !$this->data_type->isTargetType()) {
             $value = $entity->getLinkSelf($value);

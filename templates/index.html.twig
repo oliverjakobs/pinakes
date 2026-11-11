@@ -8,21 +8,51 @@
 
 <div class="container">
 
-  <h1>Bookfund</h1>
 
-  <div class="balance-card">
-    <h2>Balance</h2>
-    <div class="balance">
-      {{ balance | fmt_currency }}
+  <div class="row">
+
+    <div class="card">
+      <h1>Bookfund</h1>
+      <div class="balance-card">
+        <h2>Balance</h2>
+        <div class="balance">
+          {{ balance | fmt_currency }}
+        </div>
+      </div>
     </div>
+
+
+    <div class="card table-container">
+      <h1>Stats</h1>
+
+    
+      <table class="list">
+        <tbody>
+        {% for caption, value in stats %}
+          <tr>
+            <td>{{ caption }}</td>
+            <td class="align-right">{{ value }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
   </div>
 
-  <h1>Newest Books</h1>
-  {% include 'components/table.html.twig' with {
-    'allow_ordering': false,
-    'allow_pagination': false,
-    'table': newest
-  } %}
+
+  <div class="card">
+
+    <div class="card">
+      <h1>Newest Books</h1>
+      {% include 'components/table.html.twig' with {
+        'allow_ordering': false,
+        'allow_pagination': false,
+        'table': newest
+      } %}
+    </div>
+
+  </div>
 
 </div>
 

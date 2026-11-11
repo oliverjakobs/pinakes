@@ -1,5 +1,7 @@
 # TODO
 
+[] MappingDef in Mapper
+[x] Expr into Query
 [x] self table_name
 [] check if delete cascades properly
 [x] migrations
@@ -11,7 +13,7 @@
 [x] enum mapping
 [x] Records to Mapper
 [x] Boardgames to Mapper
-[] Icons to DataTable
+[x] Icons to DataTable
 [x] show series->authors in table
 [x] use json_group_array|json_group_object instead of GROUP_CONCAT
 [x] Work more with query parameter
